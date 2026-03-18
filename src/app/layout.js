@@ -2,12 +2,12 @@
 
 import "./globals.css";
 import { usePathname } from "next/navigation";
-import Sidebar from "../../sidebar"; // Importing your smart sidebar file!
+import Sidebar from "../sidebar"; // This tells it to look at your smart sidebar file!
 
 export default function RootLayout({ children }) {
   const pathname = usePathname();
   
-  // Check if we are on the salesmen field page
+  // THE LOCKDOWN LOGIC: Check if we are on the salesmen field page
   const isFieldRoute = pathname && pathname.startsWith("/field");
 
   return (
@@ -20,7 +20,8 @@ export default function RootLayout({ children }) {
       }}>
         <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
 
-          {/* This uses your actual src/sidebar.js file! */}
+          {/* This imports your actual sidebar.js file. 
+              Since your sidebar.js already has logic to hide itself on /field, it will vanish! */}
           <Sidebar />
 
           {/* Main Content Area */}
@@ -31,7 +32,7 @@ export default function RootLayout({ children }) {
             background: "radial-gradient(circle at 20% 20%, #111 0%, #0a0a0a 100%)"
           }}>
             
-            {/* We only show the ADMIN_SESSION header if we are NOT on the field page */}
+            {/* We only show the "ADMIN_SESSION" header if we are NOT on the field page */}
             {!isFieldRoute && (
               <header style={{
                 marginBottom: "40px",
