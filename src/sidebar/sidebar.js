@@ -44,7 +44,7 @@ export default function Sidebar() {
           margin: 0,
           textTransform: "uppercase"
         }}>
-          CONQRETE<span style={{ color: "#00f2ff", marginLeft: "4px" }}>_</span>
+          CONQRETE TEST<span style={{ color: "#00f2ff", marginLeft: "4px" }}>_</span>
         </h2>
         <p style={{ fontSize: "0.7rem", color: "#666", marginTop: "4px" }}>OPERATIONAL INTELLIGENCE</p>
       </div>
