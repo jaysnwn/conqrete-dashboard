@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { usePathname } from "next/navigation"; // ADDED: To track what page we are on
 
 const navItems = [
   { name: "Dashboard", path: "/dashboard" },
@@ -16,6 +17,13 @@ const navItems = [
 
 export default function Sidebar() {
   const [hoveredIndex, setHoveredIndex] = useState(null);
+  const pathname = usePathname(); // ADDED: Get the current URL
+
+  // ADDED: THE LOCKDOWN LOGIC
+  // If the URL starts with "/field", do not render the sidebar at all.
+  if (pathname && pathname.startsWith("/field")) {
+    return null;
+  }
 
   return (
     <aside style={{

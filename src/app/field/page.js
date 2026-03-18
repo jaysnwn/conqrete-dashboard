@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 
 export default function FieldPortal() {
   const [salesmen, setSalesmen] = useState([]);
-  const [currentRep, setCurrentRep] = useState(null); // Acts as our "Login"
+  const [currentRep, setCurrentRep] = useState(null); 
   
-  // App Data
   const [products, setProducts] = useState([]);
   const [retailers, setRetailers] = useState([]);
   const [myOrders, setMyOrders] = useState([]);
@@ -18,6 +17,10 @@ export default function FieldPortal() {
   const [customerName, setCustomerName] = useState("");
   const [salesChannel, setSalesChannel] = useState("Retailer");
   const [cart, setCart] = useState([{ productId: "", quantity: 1 }]);
+
+  // NEW: Add Shop State
+  const [isAddingRetailer, setIsAddingRetailer] = useState(false);
+  const [newShop, setNewShop] = useState({ store_name: "", location: "" });
 
   useEffect(() => { fetchLoginData(); }, []);
 
@@ -31,7 +34,6 @@ export default function FieldPortal() {
     setIsLoading(true);
     setCurrentRep(rep);
     
-    // Fetch products, retailers, and only THIS rep's orders
     const [prodRes, retRes, ordRes] = await Promise.all([
       supabase.from("products").select("*").order("name", { ascending: true }),
       supabase.from("retailers").select("*").order("store_name", { ascending: true }),
@@ -42,6 +44,29 @@ export default function FieldPortal() {
     setRetailers(retRes.data || []);
     setMyOrders(ordRes.data || []);
     setIsLoading(false);
+  };
+
+  // --- NEW: Add Retailer Function ---
+  const handleAddNewShop = async (e) => {
+    e.preventDefault();
+    const { data, error } = await supabase
+      .from("retailers")
+      .insert([{ 
+        store_name: newShop.store_name, 
+        location: newShop.location,
+        payment_cycle_days: 15,
+        total_pending: 0
+      }])
+      .select()
+      .single();
+
+    if (error) return alert("Error adding shop: " + error.message);
+    
+    setRetailers([...retailers, data].sort((a, b) => a.store_name.localeCompare(b.store_name)));
+    setCustomerName(data.store_name);
+    setIsAddingRetailer(false);
+    setNewShop({ store_name: "", location: "" });
+    alert(`${data.store_name} added successfully!`);
   };
 
   const handleAddItem = () => setCart([...cart, { productId: "", quantity: 1 }]);
@@ -71,7 +96,6 @@ export default function FieldPortal() {
     const grandTotal = calculateTotal();
 
     try {
-      // 1. Create Order tagged to this Rep
       const { data: newOrder, error: orderErr } = await supabase.from("orders").insert([{
         order_number: orderNum, customer_name: customerName, sales_channel: salesChannel,
         total_amount: grandTotal, status: "Pending", sales_rep: currentRep.name
@@ -79,7 +103,6 @@ export default function FieldPortal() {
 
       if (orderErr) throw orderErr;
 
-      // 2. Process Cart
       for (const item of cart) {
         const product = products.find(p => p.id === item.productId);
         const price = salesChannel === "Distributor" ? product.pricing.distributor : product.pricing.retailer;
@@ -92,7 +115,6 @@ export default function FieldPortal() {
         await supabase.from("products").update({ stock: product.stock - item.quantity }).eq("id", product.id);
       }
 
-      // 3. Update Retailer LEDGER
       const retailer = retailers.find(r => r.store_name === customerName);
       if (retailer) {
         await supabase.from("retailers").update({
@@ -106,27 +128,27 @@ export default function FieldPortal() {
       setCart([{ productId: "", quantity: 1 }]);
       setCustomerName("");
       
-      // Refresh My Orders
       const { data: updatedOrders } = await supabase.from("orders").select("*").eq("sales_rep", currentRep.name).order("created_at", { ascending: false });
       setMyOrders(updatedOrders || []);
+      
+      // Refresh products to show updated stock
+      const { data: updatedProducts } = await supabase.from("products").select("*").order("name", { ascending: true });
+      setProducts(updatedProducts || []);
 
     } catch (err) {
       alert("Error: " + err.message);
     }
   };
 
-  // Stats Calculations
   const myTotalSales = myOrders.reduce((sum, o) => sum + Number(o.total_amount), 0);
   const myCommission = myTotalSales * (Number(currentRep?.commission_rate || 0) / 100);
   const progress = currentRep?.monthly_target ? Math.min((myTotalSales / currentRep.monthly_target) * 100, 100) : 0;
 
-  // --- LOGIN SCREEN ---
   if (!currentRep) {
     return (
       <div className="min-h-screen bg-black text-white p-6 flex flex-col justify-center items-center">
         <h1 className="text-4xl font-black italic tracking-tighter mb-2 text-cyan-400">CONQRETE</h1>
         <p className="text-[10px] text-gray-500 uppercase tracking-[0.3em] font-bold mb-10">Field Operations Portal</p>
-        
         <div className="w-full max-w-sm bg-[#0a0a0a] border border-gray-800 p-8 rounded-3xl shadow-2xl">
           <p className="text-xs text-gray-400 uppercase tracking-widest font-bold mb-6 text-center">Select Your Profile</p>
           {isLoading ? (
@@ -134,11 +156,7 @@ export default function FieldPortal() {
           ) : (
             <div className="space-y-3">
               {salesmen.map(rep => (
-                <button 
-                  key={rep.id} 
-                  onClick={() => loginAsRep(rep)}
-                  className="w-full bg-[#111] border border-gray-800 hover:border-cyan-400 text-left p-4 rounded-xl flex justify-between items-center group transition-all"
-                >
+                <button key={rep.id} onClick={() => loginAsRep(rep)} className="w-full bg-[#111] border border-gray-800 hover:border-cyan-400 text-left p-4 rounded-xl flex justify-between items-center group transition-all">
                   <span className="font-bold text-white uppercase">{rep.name}</span>
                   <span className="text-[10px] text-gray-500 font-mono group-hover:text-cyan-400">Login →</span>
                 </button>
@@ -150,10 +168,8 @@ export default function FieldPortal() {
     );
   }
 
-  // --- MAIN MOBILE DASHBOARD ---
   return (
     <div className="min-h-screen bg-black text-white pb-24">
-      {/* HEADER */}
       <div className="bg-[#0a0a0a] border-b border-gray-800 p-6 pt-10 sticky top-0 z-10 backdrop-blur-md">
         <div className="flex justify-between items-center">
           <div>
@@ -165,7 +181,6 @@ export default function FieldPortal() {
       </div>
 
       <div className="p-6">
-        {/* STATS WIDGET */}
         <div className="bg-gradient-to-br from-[#111] to-black border border-gray-800 rounded-3xl p-6 mb-8 shadow-2xl">
           <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest mb-4">My Performance</p>
           <div className="flex justify-between items-end mb-2">
@@ -186,14 +201,13 @@ export default function FieldPortal() {
           </div>
         </div>
 
-        {/* ORDER LIST */}
         <h2 className="text-xs text-gray-500 uppercase font-black tracking-widest mb-4 pl-2">My Recent Punches</h2>
         <div className="space-y-4 mb-20">
           {myOrders.slice(0, 10).map(o => (
             <div key={o.id} className="bg-[#0a0a0a] border border-gray-800 p-4 rounded-2xl flex justify-between items-center">
               <div>
                 <p className="text-sm font-bold text-white uppercase">{o.customer_name}</p>
-                <p className="text-[10px] text-gray-600 font-mono mt-1">{o.order_number} • {new Date(o.created_at).toLocaleDateString()}</p>
+                <p className="text-[10px] text-gray-600 font-mono mt-1">{o.order_number}</p>
               </div>
               <div className="text-right">
                 <p className="text-sm font-mono font-black text-cyan-400">₹{Number(o.total_amount).toLocaleString()}</p>
@@ -205,16 +219,34 @@ export default function FieldPortal() {
         </div>
       </div>
 
-      {/* FLOATING ACTION BUTTON */}
-      <button 
-        onClick={() => setIsCreatingOrder(true)}
-        className="fixed bottom-6 right-6 left-6 bg-cyan-400 text-black py-4 rounded-full font-black uppercase tracking-widest text-sm shadow-[0_0_30px_rgba(34,211,238,0.3)] active:scale-95 transition-all z-20"
-      >
+      <button onClick={() => setIsCreatingOrder(true)} className="fixed bottom-6 right-6 left-6 bg-cyan-400 text-black py-4 rounded-full font-black uppercase tracking-widest text-sm shadow-[0_0_30px_rgba(34,211,238,0.3)] active:scale-95 transition-all z-20">
         + Punch New Order
       </button>
 
-      {/* MOBILE ORDER FORM (FULL SCREEN OVERLAY) */}
-      {isCreatingOrder && (
+      {/* NEW SHOP MODAL */}
+      {isAddingRetailer && (
+        <div className="fixed inset-0 bg-black/95 z-[60] flex items-center justify-center p-6 backdrop-blur-sm">
+          <div className="bg-[#0a0a0a] border border-gray-800 p-6 rounded-3xl w-full shadow-2xl">
+            <h3 className="text-lg font-black uppercase text-white mb-6 tracking-tighter border-b border-gray-800 pb-4">Register New Shop</h3>
+            <form onSubmit={handleAddNewShop} className="space-y-4">
+              <div>
+                <label className="block text-[10px] text-gray-500 mb-2 uppercase font-black">Store Name</label>
+                <input required autoFocus type="text" value={newShop.store_name} onChange={e => setNewShop({...newShop, store_name: e.target.value})} className="w-full bg-[#111] border border-gray-800 p-4 rounded-xl text-white text-sm outline-none" placeholder="e.g. Mobile Hub" />
+              </div>
+              <div>
+                <label className="block text-[10px] text-gray-500 mb-2 uppercase font-black">Location</label>
+                <input required type="text" value={newShop.location} onChange={e => setNewShop({...newShop, location: e.target.value})} className="w-full bg-[#111] border border-gray-800 p-4 rounded-xl text-white text-sm outline-none" placeholder="e.g. Main Market" />
+              </div>
+              <div className="flex gap-4 pt-4 border-t border-gray-800">
+                <button type="button" onClick={() => setIsAddingRetailer(false)} className="flex-1 text-gray-500 text-xs font-bold uppercase">Cancel</button>
+                <button type="submit" className="flex-1 bg-emerald-500 text-black py-4 rounded-xl font-black uppercase text-xs">Save Shop</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {isCreatingOrder && !isAddingRetailer && (
         <div className="fixed inset-0 bg-black z-50 overflow-y-auto">
           <div className="p-6 pt-10">
             <div className="flex justify-between items-center mb-8 border-b border-gray-800 pb-4">
@@ -222,10 +254,13 @@ export default function FieldPortal() {
               <button onClick={() => setIsCreatingOrder(false)} className="text-gray-500 text-sm font-bold uppercase tracking-widest">Cancel</button>
             </div>
 
-            <form onSubmit={submitMobileOrder} className="space-y-6 pb-20">
+            <form onSubmit={submitMobileOrder} className="space-y-6 pb-24">
               <div className="space-y-4">
                 <div>
-                  <label className="block text-[10px] text-gray-500 mb-2 uppercase font-black tracking-widest">Retailer / Client</label>
+                  <div className="flex justify-between items-end mb-2">
+                    <label className="block text-[10px] text-gray-500 uppercase font-black tracking-widest">Retailer / Client</label>
+                    <button type="button" onClick={() => setIsAddingRetailer(true)} className="text-[10px] text-emerald-400 font-bold uppercase underline">+ New Shop</button>
+                  </div>
                   <select required value={customerName} onChange={e => setCustomerName(e.target.value)} className="w-full bg-[#111] border border-gray-800 p-4 rounded-xl text-white text-sm outline-none">
                     <option value="">Select Shop...</option>
                     {retailers.map(r => <option key={r.id} value={r.store_name}>{r.store_name}</option>)}
@@ -241,12 +276,16 @@ export default function FieldPortal() {
               </div>
 
               <div className="pt-4 border-t border-gray-800">
-                <p className="text-[10px] text-cyan-400 mb-4 uppercase font-black tracking-widest">Add Products</p>
+                <p className="text-[10px] text-cyan-400 mb-4 uppercase font-black tracking-widest">Add Products (Live Inventory)</p>
                 {cart.map((item, index) => (
                   <div key={index} className="bg-[#111] p-4 rounded-xl border border-gray-800 mb-4 relative">
                     <select required value={item.productId} onChange={e => updateCartItem(index, 'productId', e.target.value)} className="w-full bg-transparent text-white text-sm outline-none mb-3 pb-2 border-b border-gray-800">
                       <option value="">Choose item...</option>
-                      {products.map(p => <option key={p.id} value={p.id} disabled={p.stock <= 0}>{p.name} {p.stock <= 0 ? '(OUT)' : ''}</option>)}
+                      {products.map(p => (
+                        <option key={p.id} value={p.id} disabled={p.stock <= 0}>
+                          {p.name} {p.stock <= 0 ? '(OUT OF STOCK)' : `(In Stock: ${p.stock})`}
+                        </option>
+                      ))}
                     </select>
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-3">
@@ -262,12 +301,12 @@ export default function FieldPortal() {
                 </button>
               </div>
 
-              <div className="fixed bottom-0 left-0 w-full bg-[#0a0a0a] border-t border-gray-800 p-6 flex justify-between items-center">
+              <div className="fixed bottom-0 left-0 w-full bg-[#0a0a0a] border-t border-gray-800 p-6 flex justify-between items-center z-40">
                 <div>
                   <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1">Total</p>
                   <p className="text-2xl font-mono text-white font-black">₹{calculateTotal().toLocaleString()}</p>
                 </div>
-                <button type="submit" className="bg-emerald-500 text-black px-8 py-3 rounded-full font-black uppercase tracking-widest text-xs shadow-[0_0_20px_rgba(16,185,129,0.2)]">
+                <button type="submit" className="bg-cyan-400 text-black px-8 py-3 rounded-full font-black uppercase tracking-widest text-xs shadow-[0_0_20px_rgba(34,211,238,0.2)]">
                   Punch Order
                 </button>
               </div>
