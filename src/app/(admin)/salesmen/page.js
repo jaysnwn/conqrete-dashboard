@@ -8,9 +8,19 @@ export default function SalesmenPage() {
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   
+  // Modals & States
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false); // NEW: Edit Modal
+  const [isSaving, setIsSaving] = useState(false);
+  
+  // Create Form State
   const [formData, setFormData] = useState({
-    name: "", phone: "", region: "", monthly_target: 100000, fixed_salary: 15000, commission_rate: 2.0
+    name: "", phone: "", region: "", email: "", password: "", monthly_target: 100000, fixed_salary: 15000, commission_rate: 2.0
+  });
+
+  // NEW: Edit Form State
+  const [editData, setEditData] = useState({
+    id: "", name: "", phone: "", region: "", monthly_target: 100000, fixed_salary: 15000, commission_rate: 2.0
   });
 
   useEffect(() => { fetchTeamData(); }, []);
@@ -29,18 +39,95 @@ export default function SalesmenPage() {
 
   const handleSaveSalesman = async (e) => {
     e.preventDefault();
-    const { error } = await supabase.from("salesmen").insert([formData]);
-    if (error) return alert("Error adding team member: " + error.message);
+    setIsSaving(true);
 
-    setIsModalOpen(false);
-    setFormData({ name: "", phone: "", region: "", monthly_target: 100000, fixed_salary: 15000, commission_rate: 2.0 });
-    fetchTeamData();
+    try {
+      const res = await fetch("/api/create-rep", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: formData.email, password: formData.password })
+      });
+      
+      const authData = await res.json();
+      if (authData.error) throw new Error(authData.error);
+
+      const { error: dbError } = await supabase.from("salesmen").insert([{
+        name: formData.name,
+        phone: formData.phone,
+        region: formData.region,
+        email: formData.email, 
+        monthly_target: formData.monthly_target,
+        fixed_salary: formData.fixed_salary,
+        commission_rate: formData.commission_rate
+      }]);
+
+      if (dbError) throw dbError;
+
+      alert(`Success! ${formData.name} can now log into the Field Portal.`);
+      setIsModalOpen(false);
+      setFormData({ name: "", phone: "", region: "", email: "", password: "", monthly_target: 100000, fixed_salary: 15000, commission_rate: 2.0 });
+      fetchTeamData();
+
+    } catch (err) {
+      alert("Error adding team member: " + err.message);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  // --- THE PAYROLL ENGINE ---
+  // NEW: Function to open the edit modal and populate data
+  const openEditModal = (rep) => {
+    setEditData({
+      id: rep.id,
+      name: rep.name,
+      phone: rep.phone || "",
+      region: rep.region || "",
+      monthly_target: rep.monthly_target,
+      fixed_salary: rep.fixed_salary,
+      commission_rate: rep.commission_rate
+    });
+    setIsEditModalOpen(true);
+  };
+
+  // NEW: Function to save the edited data
+  const handleUpdateSalesman = async (e) => {
+    e.preventDefault();
+    setIsSaving(true);
+
+    try {
+      const { error } = await supabase
+        .from("salesmen")
+        .update({
+          name: editData.name,
+          phone: editData.phone,
+          region: editData.region,
+          monthly_target: editData.monthly_target,
+          fixed_salary: editData.fixed_salary,
+          commission_rate: editData.commission_rate
+        })
+        .eq("id", editData.id);
+
+      if (error) throw error;
+
+      alert(`${editData.name}'s profile updated successfully!`);
+      setIsEditModalOpen(false);
+      fetchTeamData();
+    } catch (err) {
+      alert("Error updating team member: " + err.message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async (id, name) => {
+    if (!window.confirm(`WARNING: Remove ${name} from the roster?`)) return;
+    const { error } = await supabase.from("salesmen").delete().eq("id", id);
+    if (!error) fetchTeamData();
+  };
+
+  // --- PAYROLL ENGINE ---
   const teamPerformance = useMemo(() => {
     return salesmen.map(rep => {
-      // Find orders tagged to this rep
       const repOrders = orders.filter(o => o.sales_rep === rep.name);
       const totalSold = repOrders.reduce((sum, o) => sum + Number(o.total_amount), 0);
       
@@ -63,7 +150,6 @@ export default function SalesmenPage() {
 
   return (
     <div className="p-8 text-white min-h-screen bg-black pb-20">
-      {/* HEADER & GLOBAL STATS */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
         <div>
           <h1 className="text-4xl font-black italic tracking-tighter uppercase text-white">FIELD FORCE</h1>
@@ -79,13 +165,12 @@ export default function SalesmenPage() {
             <p className="text-[9px] text-gray-500 uppercase font-black tracking-widest mb-1">Total Payroll Due</p>
             <p className="text-2xl font-mono text-emerald-400 font-black">₹{Math.round(totalPayrollLiability).toLocaleString()}</p>
           </div>
-          <button onClick={() => setIsModalOpen(true)} className="bg-cyan-400 text-black px-8 py-3 rounded-full font-black uppercase text-xs tracking-widest hover:bg-cyan-300 transition-all shadow-xl shadow-cyan-400/10">
+          <button onClick={() => setIsModalOpen(true)} className="bg-cyan-400 text-black px-8 py-3 rounded-full font-black uppercase text-xs tracking-widest hover:bg-cyan-300 transition-all shadow-xl shadow-cyan-400/10 active:scale-95">
             + Add Sales Exec
           </button>
         </div>
       </div>
 
-      {/* TOP PERFORMER */}
       {topPerformer && topPerformer.totalSold > 0 && (
         <div className="mb-10 bg-gradient-to-r from-[#0a1a15] to-black border border-emerald-900/50 p-6 rounded-3xl flex flex-col md:flex-row items-start md:items-center justify-between shadow-2xl">
           <div className="flex items-center gap-6 mb-4 md:mb-0">
@@ -103,23 +188,28 @@ export default function SalesmenPage() {
         </div>
       )}
 
-      {/* TEAM ROSTER GRID */}
       {isLoading ? (
         <div className="text-center py-20 text-cyan-400 font-mono text-xs tracking-widest uppercase animate-pulse">Syncing Payroll Data...</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
           {teamPerformance.map((rep) => (
-            <div key={rep.id} className="bg-[#0a0a0a] border border-gray-800 rounded-3xl p-6 shadow-2xl hover:border-cyan-900/50 transition-all">
+            <div key={rep.id} className="bg-[#0a0a0a] border border-gray-800 rounded-3xl p-6 shadow-2xl hover:border-cyan-900/50 transition-all relative">
               
+              {/* NEW: Edit & Delete Buttons */}
+              <div className="absolute top-6 right-6 flex gap-3">
+                <button onClick={() => openEditModal(rep)} className="text-gray-500 hover:text-cyan-400 transition-colors text-sm">✏️</button>
+                <button onClick={() => handleDelete(rep.id, rep.name)} className="text-gray-500 hover:text-red-500 transition-colors text-sm">🗑️</button>
+              </div>
+
               <div className="mb-6">
-                <h3 className="text-2xl font-black text-white uppercase tracking-tight">{rep.name}</h3>
+                <h3 className="text-2xl font-black text-white uppercase tracking-tight pr-12">{rep.name}</h3>
+                <p className="text-[10px] text-cyan-400 font-mono mt-1">{rep.email || "No Secure Login Generated"}</p>
                 <div className="flex gap-2 mt-3">
                   <span className="text-[9px] bg-[#111] text-gray-400 px-3 py-1.5 rounded-full border border-gray-800 uppercase tracking-widest font-bold">{rep.region}</span>
                   <span className="text-[9px] bg-cyan-900/20 text-cyan-400 px-3 py-1.5 rounded-full border border-cyan-900/50 uppercase tracking-widest font-bold">{rep.commission_rate}% Comm</span>
                 </div>
               </div>
 
-              {/* TARGET PROGRESS */}
               <div className="mb-8 bg-black p-5 rounded-2xl border border-gray-800/50">
                 <div className="flex justify-between items-end mb-3">
                   <span className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Target Progress</span>
@@ -136,7 +226,6 @@ export default function SalesmenPage() {
                 </div>
               </div>
 
-              {/* PAYROLL BREAKDOWN */}
               <div className="bg-[#111] rounded-2xl p-5 border border-gray-800">
                 <p className="text-[9px] text-gray-500 uppercase font-black tracking-widest mb-4 border-b border-gray-800 pb-2">Estimated Payout</p>
                 <div className="space-y-2 mb-4">
@@ -162,8 +251,8 @@ export default function SalesmenPage() {
       {/* REGISTRATION MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/95 flex items-center justify-center p-4 z-50 backdrop-blur-xl">
-          <div className="bg-[#0a0a0a] border border-gray-800 p-8 rounded-3xl w-full max-w-lg shadow-2xl relative">
-            <button onClick={() => setIsModalOpen(false)} className="absolute top-6 right-6 text-gray-600 hover:text-white text-2xl">×</button>
+          <div className="bg-[#0a0a0a] border border-gray-800 p-8 rounded-3xl w-full max-w-lg shadow-2xl relative overflow-y-auto max-h-[95vh]">
+            <button onClick={() => setIsModalOpen(false)} className="absolute top-6 right-6 text-gray-600 hover:text-white text-2xl bg-gray-900 w-8 h-8 flex items-center justify-center rounded-full">×</button>
             <h2 className="text-xl font-black text-white mb-8 uppercase tracking-tighter italic border-b border-gray-800 pb-4">Onboard Sales Exec</h2>
             
             <form onSubmit={handleSaveSalesman} className="space-y-6">
@@ -174,32 +263,94 @@ export default function SalesmenPage() {
                 </div>
                 <div>
                   <label className="block text-[10px] text-gray-500 mb-2 uppercase tracking-widest font-bold">Phone</label>
-                  <input type="text" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full bg-black border border-gray-800 rounded-xl p-4 text-white text-sm font-mono outline-none" placeholder="9922..." />
+                  <input type="text" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full bg-black border border-gray-800 rounded-xl p-4 text-white text-sm font-mono outline-none focus:border-cyan-400" placeholder="9922..." />
                 </div>
                 <div>
                   <label className="block text-[10px] text-gray-500 mb-2 uppercase tracking-widest font-bold">Territory</label>
-                  <input required type="text" value={formData.region} onChange={e => setFormData({...formData, region: e.target.value})} className="w-full bg-black border border-gray-800 rounded-xl p-4 text-white text-sm outline-none" placeholder="e.g. Sangamner" />
+                  <input required type="text" value={formData.region} onChange={e => setFormData({...formData, region: e.target.value})} className="w-full bg-black border border-gray-800 rounded-xl p-4 text-white text-sm outline-none focus:border-cyan-400" placeholder="e.g. Sangamner" />
                 </div>
+
+                <div className="col-span-2 mt-4">
+                  <p className="text-[10px] text-cyan-500 uppercase tracking-widest font-black border-b border-gray-800 pb-2 mb-4">Secure Login Credentials</p>
+                </div>
+                <div>
+                  <label className="block text-[10px] text-gray-500 mb-2 uppercase tracking-widest font-bold">Login Email</label>
+                  <input required type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full bg-black border border-gray-800 rounded-xl p-4 text-white text-sm outline-none focus:border-cyan-400" placeholder="rep@conqrete.com" />
+                </div>
+                <div>
+                  <label className="block text-[10px] text-gray-500 mb-2 uppercase tracking-widest font-bold">Temporary Password</label>
+                  <input required type="text" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full bg-black border border-gray-800 rounded-xl p-4 text-white font-mono text-sm outline-none focus:border-cyan-400" placeholder="Min 6 chars" minLength="6" />
+                </div>
+
                 <div className="col-span-2 mt-4">
                   <p className="text-[10px] text-cyan-500 uppercase tracking-widest font-black border-b border-gray-800 pb-2 mb-4">Financial Structure</p>
                 </div>
                 <div>
                   <label className="block text-[10px] text-gray-500 mb-2 uppercase tracking-widest font-bold">Fixed Base Salary (₹)</label>
-                  <input required type="number" value={formData.fixed_salary} onChange={e => setFormData({...formData, fixed_salary: e.target.value})} className="w-full bg-black border border-gray-800 rounded-xl p-4 text-white font-mono text-sm outline-none" />
+                  <input required type="number" value={formData.fixed_salary} onChange={e => setFormData({...formData, fixed_salary: e.target.value})} className="w-full bg-black border border-gray-800 rounded-xl p-4 text-white font-mono text-sm outline-none focus:border-cyan-400" />
                 </div>
                 <div>
                   <label className="block text-[10px] text-gray-500 mb-2 uppercase tracking-widest font-bold">Commission (%)</label>
-                  <input required type="number" step="0.1" value={formData.commission_rate} onChange={e => setFormData({...formData, commission_rate: e.target.value})} className="w-full bg-black border border-gray-800 rounded-xl p-4 text-emerald-400 font-mono text-sm outline-none" />
+                  <input required type="number" step="0.1" value={formData.commission_rate} onChange={e => setFormData({...formData, commission_rate: e.target.value})} className="w-full bg-black border border-gray-800 rounded-xl p-4 text-emerald-400 font-mono text-sm outline-none focus:border-cyan-400" />
                 </div>
                 <div className="col-span-2">
                   <label className="block text-[10px] text-gray-500 mb-2 uppercase tracking-widest font-bold">Monthly Target (₹)</label>
-                  <input required type="number" value={formData.monthly_target} onChange={e => setFormData({...formData, monthly_target: e.target.value})} className="w-full bg-black border border-gray-800 rounded-xl p-4 text-cyan-400 font-mono text-sm outline-none" />
+                  <input required type="number" value={formData.monthly_target} onChange={e => setFormData({...formData, monthly_target: e.target.value})} className="w-full bg-black border border-gray-800 rounded-xl p-4 text-cyan-400 font-mono text-sm outline-none focus:border-cyan-400" />
                 </div>
               </div>
 
               <div className="pt-6 mt-6 border-t border-gray-800">
-                <button type="submit" className="w-full bg-cyan-400 text-black py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-cyan-300 transition-all shadow-xl shadow-cyan-400/10 active:scale-95">
-                  Save & Deploy to Field
+                <button type="submit" disabled={isSaving} className="w-full bg-cyan-400 text-black py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-cyan-300 transition-all shadow-xl shadow-cyan-400/10 active:scale-95 disabled:opacity-50">
+                  {isSaving ? "Provisioning Login & Profile..." : "Save & Deploy to Field"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* NEW: EDIT REP MODAL */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 bg-black/95 flex items-center justify-center p-4 z-50 backdrop-blur-xl">
+          <div className="bg-[#0a0a0a] border border-gray-800 p-8 rounded-3xl w-full max-w-lg shadow-2xl relative overflow-y-auto max-h-[95vh]">
+            <button onClick={() => setIsEditModalOpen(false)} className="absolute top-6 right-6 text-gray-600 hover:text-white text-2xl bg-gray-900 w-8 h-8 flex items-center justify-center rounded-full">×</button>
+            <h2 className="text-xl font-black text-cyan-400 mb-8 uppercase tracking-tighter italic border-b border-gray-800 pb-4">Update Profile</h2>
+            
+            <form onSubmit={handleUpdateSalesman} className="space-y-6">
+              <div className="grid grid-cols-2 gap-5">
+                <div className="col-span-2">
+                  <label className="block text-[10px] text-gray-500 mb-2 uppercase tracking-widest font-bold">Full Name</label>
+                  <input required type="text" value={editData.name} onChange={e => setEditData({...editData, name: e.target.value})} className="w-full bg-black border border-gray-800 rounded-xl p-4 text-white text-sm outline-none focus:border-cyan-400" />
+                </div>
+                <div>
+                  <label className="block text-[10px] text-gray-500 mb-2 uppercase tracking-widest font-bold">Phone</label>
+                  <input type="text" value={editData.phone} onChange={e => setEditData({...editData, phone: e.target.value})} className="w-full bg-black border border-gray-800 rounded-xl p-4 text-white text-sm font-mono outline-none focus:border-cyan-400" />
+                </div>
+                <div>
+                  <label className="block text-[10px] text-gray-500 mb-2 uppercase tracking-widest font-bold">Territory</label>
+                  <input required type="text" value={editData.region} onChange={e => setEditData({...editData, region: e.target.value})} className="w-full bg-black border border-gray-800 rounded-xl p-4 text-white text-sm outline-none focus:border-cyan-400" />
+                </div>
+
+                <div className="col-span-2 mt-4">
+                  <p className="text-[10px] text-cyan-500 uppercase tracking-widest font-black border-b border-gray-800 pb-2 mb-4">Financial Structure</p>
+                </div>
+                <div>
+                  <label className="block text-[10px] text-gray-500 mb-2 uppercase tracking-widest font-bold">Fixed Base Salary (₹)</label>
+                  <input required type="number" value={editData.fixed_salary} onChange={e => setEditData({...editData, fixed_salary: e.target.value})} className="w-full bg-black border border-gray-800 rounded-xl p-4 text-white font-mono text-sm outline-none focus:border-cyan-400" />
+                </div>
+                <div>
+                  <label className="block text-[10px] text-gray-500 mb-2 uppercase tracking-widest font-bold">Commission (%)</label>
+                  <input required type="number" step="0.1" value={editData.commission_rate} onChange={e => setEditData({...editData, commission_rate: e.target.value})} className="w-full bg-black border border-gray-800 rounded-xl p-4 text-emerald-400 font-mono text-sm outline-none focus:border-cyan-400" />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-[10px] text-gray-500 mb-2 uppercase tracking-widest font-bold">Monthly Target (₹)</label>
+                  <input required type="number" value={editData.monthly_target} onChange={e => setEditData({...editData, monthly_target: e.target.value})} className="w-full bg-black border border-gray-800 rounded-xl p-4 text-cyan-400 font-mono text-sm outline-none focus:border-cyan-400" />
+                </div>
+              </div>
+
+              <div className="pt-6 mt-6 border-t border-gray-800">
+                <button type="submit" disabled={isSaving} className="w-full bg-cyan-400 text-black py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-cyan-300 transition-all shadow-xl shadow-cyan-400/10 active:scale-95 disabled:opacity-50">
+                  {isSaving ? "Saving Updates..." : "Save Profile Changes"}
                 </button>
               </div>
             </form>

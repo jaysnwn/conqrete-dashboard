@@ -21,7 +21,8 @@ export default function Dashboard() {
     // Fetch all core data in parallel
     const [prods, ords, lgData] = await Promise.all([
       supabase.from("products").select("*"),
-      supabase.from("orders").select("*"),
+      // FIX: Added sorting so the newest orders are pulled first
+      supabase.from("orders").select("*").order("created_at", { ascending: false }),
       supabase.from("inventory_logs").select("*").order("created_at", { ascending: false }).limit(5)
     ]);
 
