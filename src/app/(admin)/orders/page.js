@@ -59,13 +59,12 @@ export default function OrdersPage() {
       const selectedProd = products.find((p) => p.id === value);
       if (selectedProd) {
         item.productId = value;
-        // Logic: Use Distributor price or Retailer price based on channel
         item.unitPrice = salesChannel === "Distributor" 
-          ? selectedProd.pricing.distributor 
-          : selectedProd.pricing.retailer;
+          ? selectedProd.pricing?.distributor || 0 
+          : selectedProd.pricing?.retailer || 0;
       }
     } else if (field === "quantity") {
-      item.quantity = parseInt(value) || 0;
+      item.quantity = Number(value) || 0;
     }
 
     item.totalPrice = item.unitPrice * item.quantity;
@@ -98,33 +97,50 @@ export default function OrdersPage() {
 
       if (orderErr) throw orderErr;
 
-      // 2. Process Items, Update Stock, and Create Items
+      // 2. Process Items, Update Stock, and Write to Ledger
       for (const item of cart) {
         const product = products.find(p => p.id === item.productId);
         
+        // Strict Number conversion to prevent Supabase silent failures
+        const currentStock = Number(product.stock) || 0;
+        const deductQty = Number(item.quantity) || 0;
+        const newStock = currentStock - deductQty;
+
         // Insert Order Item
         await supabase.from("order_items").insert([{
           order_id: newOrder.id,
           product_id: product.id,
           product_name: product.name,
           sku: product.sku,
-          quantity: item.quantity,
+          quantity: deductQty,
           unit_price: item.unitPrice,
           total_price: item.totalPrice
         }]);
 
-        // Deduct Stock
-        await supabase.from("products").update({
-          stock: product.stock - item.quantity
+        // Deduct Stock from Products Table
+        const { error: stockErr } = await supabase.from("products").update({
+          stock: newStock
         }).eq("id", product.id);
+        
+        if (stockErr) throw stockErr;
+
+        // NEW: Write to Audit Ledger so it appears on the Inventory Dashboard!
+        await supabase.from("inventory_logs").insert([{
+          product_id: product.id,
+          product_name: product.name,
+          change_amount: -deductQty,
+          new_stock: newStock,
+          reason: `Sale: ${orderNum}`,
+          user_name: "Sales Desk"
+        }]);
       }
 
-      // 3. Update Retailer Balance (If Customer is a registered Retailer)
+      // 3. Update Retailer Balance
       const retailer = retailers.find(r => r.store_name === customerName);
       if (retailer) {
         await supabase.from("retailers").update({
-          total_lifetime_sales: (retailer.total_lifetime_sales || 0) + grandTotal,
-          total_pending: (retailer.total_pending || 0) + grandTotal
+          total_lifetime_sales: Number(retailer.total_lifetime_sales || 0) + grandTotal,
+          total_pending: Number(retailer.total_pending || 0) + grandTotal
         }).eq("id", retailer.id);
       }
 
@@ -297,7 +313,7 @@ export default function OrdersPage() {
                         min="1"
                         value={item.quantity} 
                         onChange={e => updateCartItem(index, 'quantity', e.target.value)}
-                        className="w-full bg-transparent text-white font-mono text-xs border-b border-gray-800 pb-1"
+                        className="w-full bg-transparent text-white font-mono text-xs border-b border-gray-800 pb-1 outline-none"
                       />
                     </div>
                     <div className="w-full md:w-32 text-right">

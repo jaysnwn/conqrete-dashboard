@@ -18,7 +18,7 @@ export default function FieldPortal() {
   const [salesChannel, setSalesChannel] = useState("Retailer");
   const [cart, setCart] = useState([{ productId: "", quantity: 1 }]);
 
-  // NEW: Add Shop State
+  // Add Shop State
   const [isAddingRetailer, setIsAddingRetailer] = useState(false);
   const [newShop, setNewShop] = useState({ store_name: "", location: "" });
 
@@ -46,7 +46,6 @@ export default function FieldPortal() {
     setIsLoading(false);
   };
 
-  // --- NEW: Add Retailer Function ---
   const handleAddNewShop = async (e) => {
     e.preventDefault();
     const { data, error } = await supabase
@@ -74,7 +73,7 @@ export default function FieldPortal() {
 
   const updateCartItem = (index, field, value) => {
     const updatedCart = [...cart];
-    if (field === "quantity") updatedCart[index][field] = parseInt(value) || 0;
+    if (field === "quantity") updatedCart[index][field] = Number(value) || 0;
     else updatedCart[index][field] = value;
     setCart(updatedCart);
   };
@@ -82,9 +81,9 @@ export default function FieldPortal() {
   const calculateTotal = () => {
     return cart.reduce((sum, item) => {
       const product = products.find(p => p.id === item.productId);
-      if (!product) return sum;
+      if (!product || !product.pricing) return sum;
       const price = salesChannel === "Distributor" ? product.pricing.distributor : product.pricing.retailer;
-      return sum + (price * item.quantity);
+      return sum + (price * Number(item.quantity));
     }, 0);
   };
 
@@ -107,12 +106,29 @@ export default function FieldPortal() {
         const product = products.find(p => p.id === item.productId);
         const price = salesChannel === "Distributor" ? product.pricing.distributor : product.pricing.retailer;
         
+        const currentStock = Number(product.stock) || 0;
+        const deductQty = Number(item.quantity) || 0;
+        const newStock = currentStock - deductQty;
+
+        // Insert line item
         await supabase.from("order_items").insert([{
           order_id: newOrder.id, product_id: product.id, product_name: product.name,
-          sku: product.sku, quantity: item.quantity, unit_price: price, total_price: price * item.quantity
+          sku: product.sku, quantity: deductQty, unit_price: price, total_price: price * deductQty
         }]);
 
-        await supabase.from("products").update({ stock: product.stock - item.quantity }).eq("id", product.id);
+        // Deduct Stock Safely
+        const { error: stockErr } = await supabase.from("products").update({ stock: newStock }).eq("id", product.id);
+        if (stockErr) throw stockErr;
+
+        // NEW: Sync to Inventory Ledger!
+        await supabase.from("inventory_logs").insert([{
+          product_id: product.id,
+          product_name: product.name,
+          change_amount: -deductQty,
+          new_stock: newStock,
+          reason: `Field Punch: ${orderNum}`,
+          user_name: currentRep.name
+        }]);
       }
 
       const retailer = retailers.find(r => r.store_name === customerName);
@@ -128,12 +144,13 @@ export default function FieldPortal() {
       setCart([{ productId: "", quantity: 1 }]);
       setCustomerName("");
       
-      const { data: updatedOrders } = await supabase.from("orders").select("*").eq("sales_rep", currentRep.name).order("created_at", { ascending: false });
-      setMyOrders(updatedOrders || []);
+      const [ordRes, prodRes] = await Promise.all([
+        supabase.from("orders").select("*").eq("sales_rep", currentRep.name).order("created_at", { ascending: false }),
+        supabase.from("products").select("*").order("name", { ascending: true })
+      ]);
       
-      // Refresh products to show updated stock
-      const { data: updatedProducts } = await supabase.from("products").select("*").order("name", { ascending: true });
-      setProducts(updatedProducts || []);
+      setMyOrders(ordRes.data || []);
+      setProducts(prodRes.data || []);
 
     } catch (err) {
       alert("Error: " + err.message);
@@ -290,7 +307,7 @@ export default function FieldPortal() {
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-3">
                         <label className="text-[10px] text-gray-500 font-bold uppercase">Qty:</label>
-                        <input type="number" min="1" value={item.quantity} onChange={e => updateCartItem(index, 'quantity', e.target.value)} className="w-16 bg-black border border-gray-800 p-2 rounded text-center text-white font-mono text-sm" />
+                        <input type="number" min="1" value={item.quantity} onChange={e => updateCartItem(index, 'quantity', e.target.value)} className="w-16 bg-black border border-gray-800 p-2 rounded text-center text-white font-mono text-sm outline-none" />
                       </div>
                       <button type="button" onClick={() => removeItem(index)} className="text-[10px] text-red-500 font-bold uppercase tracking-widest bg-red-500/10 px-3 py-1.5 rounded">Remove</button>
                     </div>
@@ -306,7 +323,7 @@ export default function FieldPortal() {
                   <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1">Total</p>
                   <p className="text-2xl font-mono text-white font-black">₹{calculateTotal().toLocaleString()}</p>
                 </div>
-                <button type="submit" className="bg-cyan-400 text-black px-8 py-3 rounded-full font-black uppercase tracking-widest text-xs shadow-[0_0_20px_rgba(34,211,238,0.2)]">
+                <button type="submit" className="bg-cyan-400 text-black px-8 py-3 rounded-full font-black uppercase tracking-widest text-xs shadow-[0_0_20px_rgba(34,211,238,0.2)] active:scale-95 transition-all">
                   Punch Order
                 </button>
               </div>
