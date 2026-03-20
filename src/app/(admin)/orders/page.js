@@ -10,6 +10,9 @@ export default function OrdersPage() {
   const [retailers, setRetailers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  
+  // NEW: State to track if the user has unlocked the audio
+  const [soundEnabled, setSoundEnabled] = useState(false);
 
   // Form State
   const [customerName, setCustomerName] = useState("");
@@ -17,12 +20,11 @@ export default function OrdersPage() {
   const [cart, setCart] = useState([{ productId: "", quantity: 1, unitPrice: 0, totalPrice: 0 }]);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // 1. Initial Data Fetch
   useEffect(() => {
     fetchInitialData();
   }, []);
 
-  // 2. NEW: Realtime Listener for Live Orders
+  // NEW: Realtime Listener for Live Orders
   useEffect(() => {
     const channel = supabase
       .channel('orders-live-feed')
@@ -37,14 +39,11 @@ export default function OrdersPage() {
 
           // Play the notification sound
           const audio = new Audio("/notify.mp3");
-          audio.play().catch(() => console.log("Audio blocked. Click the page once to allow sound!"));
+          audio.play().catch(() => console.log("Audio blocked. User hasn't clicked 'Enable Alerts' yet."));
         }
       )
-      .subscribe((status) => {
-        console.log("Realtime Status:", status); // Should log "SUBSCRIBED" in your console
-      });
+      .subscribe();
 
-    // Cleanup listener when you leave the page
     return () => {
       supabase.removeChannel(channel);
     };
@@ -65,10 +64,19 @@ export default function OrdersPage() {
       setRetailers(retRes.data || []);
     } catch (err) {
       console.error("Master Fetch Error:", err);
-      alert("Failed to sync with Supabase. Check your connection.");
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // NEW: Function to manually unlock the browser's audio engine
+  const handleEnableSound = () => {
+    const audio = new Audio("/notify.mp3");
+    audio.play().then(() => {
+      setSoundEnabled(true);
+    }).catch(err => {
+      alert("Browser blocked the sound. Make sure your volume is up!");
+    });
   };
 
   const handleAddItem = () => {
@@ -169,8 +177,6 @@ export default function OrdersPage() {
       setIsFormOpen(false);
       setCart([{ productId: "", quantity: 1, unitPrice: 0, totalPrice: 0 }]);
       setCustomerName("");
-      // Note: We don't necessarily need fetchInitialData() here anymore because the Realtime listener will catch this insert!
-      // But keeping it ensures products and retailers re-sync perfectly.
       fetchInitialData();
 
     } catch (err) {
@@ -201,17 +207,30 @@ export default function OrdersPage() {
           <h1 className="text-4xl font-black italic tracking-tighter uppercase text-white">CONQRETE SALES</h1>
           <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.3em] mt-1">Transaction & Revenue Terminal</p>
         </div>
-        <div className="flex gap-4 w-full md:w-auto">
+        <div className="flex gap-4 w-full md:w-auto items-center">
           <input 
             type="text" 
             placeholder="Search Orders..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="bg-[#111] border border-gray-800 px-4 py-2 rounded-lg text-xs outline-none focus:border-cyan-400 w-full"
+            className="bg-[#111] border border-gray-800 px-4 py-3 rounded-xl text-xs outline-none focus:border-cyan-400 w-full"
           />
+          
+          {/* NEW: THE AUDIO UNLOCK BUTTON */}
+          <button 
+            onClick={handleEnableSound}
+            className={`px-4 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all whitespace-nowrap border ${
+              soundEnabled 
+                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' 
+                : 'bg-[#111] text-gray-500 border-gray-800 hover:text-white hover:border-gray-600'
+            }`}
+          >
+            {soundEnabled ? '🔊 Alerts On' : '🔇 Enable Alerts'}
+          </button>
+
           <button 
             onClick={() => setIsFormOpen(true)}
-            className="bg-cyan-400 text-black px-8 py-3 rounded-full font-black uppercase text-xs tracking-widest hover:scale-105 transition-all shadow-lg shadow-cyan-400/20 whitespace-nowrap"
+            className="bg-cyan-400 text-black px-8 py-3 rounded-xl font-black uppercase text-xs tracking-widest hover:scale-105 transition-all shadow-lg shadow-cyan-400/20 whitespace-nowrap"
           >
             + Create Invoice
           </button>
