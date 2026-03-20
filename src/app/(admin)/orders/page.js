@@ -17,8 +17,37 @@ export default function OrdersPage() {
   const [cart, setCart] = useState([{ productId: "", quantity: 1, unitPrice: 0, totalPrice: 0 }]);
   const [searchQuery, setSearchQuery] = useState("");
 
+  // 1. Initial Data Fetch
   useEffect(() => {
     fetchInitialData();
+  }, []);
+
+  // 2. NEW: Realtime Listener for Live Orders
+  useEffect(() => {
+    const channel = supabase
+      .channel('orders-live-feed')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'orders' },
+        (payload) => {
+          console.log("🔥 Live Order Arrived:", payload.new);
+          
+          // Instantly add the new order to the top of the UI list
+          setOrders((prevOrders) => [payload.new, ...prevOrders]);
+
+          // Play the notification sound
+          const audio = new Audio("/notify.mp3");
+          audio.play().catch(() => console.log("Audio blocked. Click the page once to allow sound!"));
+        }
+      )
+      .subscribe((status) => {
+        console.log("Realtime Status:", status); // Should log "SUBSCRIBED" in your console
+      });
+
+    // Cleanup listener when you leave the page
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchInitialData = async () => {
@@ -82,7 +111,6 @@ export default function OrdersPage() {
     const orderNum = `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
 
     try {
-      // 1. Create the Main Order
       const { data: newOrder, error: orderErr } = await supabase
         .from("orders")
         .insert([{
@@ -97,16 +125,12 @@ export default function OrdersPage() {
 
       if (orderErr) throw orderErr;
 
-      // 2. Process Items, Update Stock, and Write to Ledger
       for (const item of cart) {
         const product = products.find(p => p.id === item.productId);
-        
-        // Strict Number conversion to prevent Supabase silent failures
         const currentStock = Number(product.stock) || 0;
         const deductQty = Number(item.quantity) || 0;
         const newStock = currentStock - deductQty;
 
-        // Insert Order Item
         await supabase.from("order_items").insert([{
           order_id: newOrder.id,
           product_id: product.id,
@@ -117,14 +141,12 @@ export default function OrdersPage() {
           total_price: item.totalPrice
         }]);
 
-        // Deduct Stock from Products Table
         const { error: stockErr } = await supabase.from("products").update({
           stock: newStock
         }).eq("id", product.id);
         
         if (stockErr) throw stockErr;
 
-        // NEW: Write to Audit Ledger so it appears on the Inventory Dashboard!
         await supabase.from("inventory_logs").insert([{
           product_id: product.id,
           product_name: product.name,
@@ -135,7 +157,6 @@ export default function OrdersPage() {
         }]);
       }
 
-      // 3. Update Retailer Balance
       const retailer = retailers.find(r => r.store_name === customerName);
       if (retailer) {
         await supabase.from("retailers").update({
@@ -148,6 +169,8 @@ export default function OrdersPage() {
       setIsFormOpen(false);
       setCart([{ productId: "", quantity: 1, unitPrice: 0, totalPrice: 0 }]);
       setCustomerName("");
+      // Note: We don't necessarily need fetchInitialData() here anymore because the Realtime listener will catch this insert!
+      // But keeping it ensures products and retailers re-sync perfectly.
       fetchInitialData();
 
     } catch (err) {
@@ -173,7 +196,6 @@ export default function OrdersPage() {
 
   return (
     <div className="p-8 text-white min-h-screen bg-black">
-      {/* HEADER SECTION */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
         <div>
           <h1 className="text-4xl font-black italic tracking-tighter uppercase text-white">CONQRETE SALES</h1>
@@ -196,7 +218,6 @@ export default function OrdersPage() {
         </div>
       </div>
 
-      {/* ORDERS TABLE */}
       <div className="bg-[#0a0a0a] border border-gray-800 rounded-2xl overflow-hidden shadow-2xl">
         <table className="w-full text-left border-collapse">
           <thead>
@@ -243,7 +264,6 @@ export default function OrdersPage() {
         </table>
       </div>
 
-      {/* HEAVY-DUTY MODAL */}
       {isFormOpen && (
         <div className="fixed inset-0 bg-black/95 flex items-center justify-center p-4 z-50 backdrop-blur-xl">
           <div className="bg-[#0a0a0a] border border-gray-800 p-10 rounded-3xl w-full max-w-4xl shadow-2xl max-h-[90vh] overflow-y-auto">
