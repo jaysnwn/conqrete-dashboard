@@ -10,9 +10,12 @@ export default function OrdersPage() {
   const [retailers, setRetailers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  
-  // NEW: State to track if the user has unlocked the audio
+
   const [soundEnabled, setSoundEnabled] = useState(false);
+
+  // Arrays to track which items are actively animating
+  const [deletingIds, setDeletingIds] = useState([]);
+  const [newArrivalIds, setNewArrivalIds] = useState([]);
 
   // Form State
   const [customerName, setCustomerName] = useState("");
@@ -24,22 +27,50 @@ export default function OrdersPage() {
     fetchInitialData();
   }, []);
 
-  // NEW: Realtime Listener for Live Orders
+  // Realtime Listener for Live Orders (INSERT + DELETE)
   useEffect(() => {
     const channel = supabase
       .channel('orders-live-feed')
+      // --- NEW ORDER ARRIVED ---
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'orders' },
         (payload) => {
           console.log("🔥 Live Order Arrived:", payload.new);
-          
-          // Instantly add the new order to the top of the UI list
+
           setOrders((prevOrders) => [payload.new, ...prevOrders]);
 
-          // Play the notification sound
           const audio = new Audio("/notify.mp3");
-          audio.play().catch(() => console.log("Audio blocked. User hasn't clicked 'Enable Alerts' yet."));
+          audio.play().catch(() => console.log("Audio blocked. User hasn't enabled alerts."));
+
+          // Add to new arrivals for the cyan glow
+          setNewArrivalIds((prev) => [...prev, payload.new.id]);
+
+          // Remove the glow after 9 seconds (matches CSS animation duration)
+          setTimeout(() => {
+            setNewArrivalIds((prev) => prev.filter(id => id !== payload.new.id));
+          }, 9000);
+        }
+      )
+      // --- ORDER DELETED REMOTELY (from field app) ---
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'orders' },
+        (payload) => {
+          console.log("🗑️ Order Deleted Remotely:", payload.old);
+
+          // Play delete warning sound
+          const deleteAudio = new Audio("/delete-alert.mp3");
+          deleteAudio.play().catch(() => console.log("Audio blocked."));
+
+          // Trigger red glow animation on the row
+          setDeletingIds((prev) => [...prev, payload.old.id]);
+
+          // After 2s animation plays, remove from UI
+          setTimeout(() => {
+            setOrders((prev) => prev.filter(o => o.id !== payload.old.id));
+            setDeletingIds((prev) => prev.filter(id => id !== payload.old.id));
+          }, 2000);
         }
       )
       .subscribe();
@@ -69,7 +100,6 @@ export default function OrdersPage() {
     }
   };
 
-  // NEW: Function to manually unlock the browser's audio engine
   const handleEnableSound = () => {
     const audio = new Audio("/notify.mp3");
     audio.play().then(() => {
@@ -77,6 +107,36 @@ export default function OrdersPage() {
     }).catch(err => {
       alert("Browser blocked the sound. Make sure your volume is up!");
     });
+  };
+
+  // The 2-Step Deletion Logic (for local user deleting from this page)
+  const handleDeleteClick = (orderId) => {
+    // 1. Play the warning sound
+    const deleteAudio = new Audio("/delete-alert.mp3");
+    deleteAudio.play().catch(() => console.log("Audio blocked."));
+
+    // 2. Add ID to array to trigger the red CSS animation instantly
+    setDeletingIds((prev) => [...prev, orderId]);
+
+    // 3. Wait 2 seconds so the animation plays, then delete from database
+    // Note: the realtime DELETE listener will handle removing from UI on all
+    // other connected screens. On THIS screen, we remove it directly below.
+    setTimeout(async () => {
+      try {
+        const { error } = await supabase.from("orders").delete().eq("id", orderId);
+
+        if (error) throw error;
+
+        // Remove from the local UI (other screens handled by realtime listener)
+        setOrders((currentOrders) => currentOrders.filter(o => o.id !== orderId));
+      } catch (err) {
+        console.error("Failed to delete order:", err);
+        alert("Could not delete order from database.");
+      } finally {
+        // Always clean up the animation state array
+        setDeletingIds((prev) => prev.filter(id => id !== orderId));
+      }
+    }, 2000);
   };
 
   const handleAddItem = () => {
@@ -96,8 +156,8 @@ export default function OrdersPage() {
       const selectedProd = products.find((p) => p.id === value);
       if (selectedProd) {
         item.productId = value;
-        item.unitPrice = salesChannel === "Distributor" 
-          ? selectedProd.pricing?.distributor || 0 
+        item.unitPrice = salesChannel === "Distributor"
+          ? selectedProd.pricing?.distributor || 0
           : selectedProd.pricing?.retailer || 0;
       }
     } else if (field === "quantity") {
@@ -152,7 +212,7 @@ export default function OrdersPage() {
         const { error: stockErr } = await supabase.from("products").update({
           stock: newStock
         }).eq("id", product.id);
-        
+
         if (stockErr) throw stockErr;
 
         await supabase.from("inventory_logs").insert([{
@@ -195,7 +255,7 @@ export default function OrdersPage() {
     generateInvoicePDF(order, items);
   };
 
-  const filteredOrders = orders.filter(o => 
+  const filteredOrders = orders.filter(o =>
     o.customer_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     o.order_number.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -208,27 +268,26 @@ export default function OrdersPage() {
           <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.3em] mt-1">Transaction & Revenue Terminal</p>
         </div>
         <div className="flex gap-4 w-full md:w-auto items-center">
-          <input 
-            type="text" 
-            placeholder="Search Orders..." 
+          <input
+            type="text"
+            placeholder="Search Orders..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="bg-[#111] border border-gray-800 px-4 py-3 rounded-xl text-xs outline-none focus:border-cyan-400 w-full"
           />
-          
-          {/* NEW: THE AUDIO UNLOCK BUTTON */}
-          <button 
+
+          <button
             onClick={handleEnableSound}
             className={`px-4 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all whitespace-nowrap border ${
-              soundEnabled 
-                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' 
+              soundEnabled
+                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
                 : 'bg-[#111] text-gray-500 border-gray-800 hover:text-white hover:border-gray-600'
             }`}
           >
             {soundEnabled ? '🔊 Alerts On' : '🔇 Enable Alerts'}
           </button>
 
-          <button 
+          <button
             onClick={() => setIsFormOpen(true)}
             className="bg-cyan-400 text-black px-8 py-3 rounded-xl font-black uppercase text-xs tracking-widest hover:scale-105 transition-all shadow-lg shadow-cyan-400/20 whitespace-nowrap"
           >
@@ -245,40 +304,56 @@ export default function OrdersPage() {
               <th className="p-6">Client Name</th>
               <th className="p-6">Status</th>
               <th className="p-6 text-right">Grand Total</th>
-              <th className="p-6 text-center">Invoicing</th>
+              <th className="p-6 text-center">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-800/50">
-            {filteredOrders.map((o) => (
-              <tr key={o.id} className="hover:bg-white/[0.02] transition-colors group">
-                <td className="p-6">
-                  <p className="font-mono text-cyan-400 font-bold text-sm">{o.order_number}</p>
-                  <p className="text-[10px] text-gray-600 mt-1 uppercase">{new Date(o.created_at).toLocaleDateString()}</p>
-                </td>
-                <td className="p-6">
-                  <p className="text-sm font-bold text-gray-200 uppercase tracking-tight">{o.customer_name}</p>
-                  <p className="text-[9px] text-gray-600 uppercase font-bold">{o.sales_channel}</p>
-                </td>
-                <td className="p-6">
-                  <span className={`text-[9px] font-black px-3 py-1 rounded-full uppercase border ${
-                    o.status === 'Pending' ? 'text-orange-500 border-orange-500/20 bg-orange-500/5' : 'text-emerald-500 border-emerald-500/20 bg-emerald-500/5'
-                  }`}>
-                    {o.status}
-                  </span>
-                </td>
-                <td className="p-6 text-right font-mono text-white text-lg font-black">
-                  ₹{Number(o.total_amount).toLocaleString()}
-                </td>
-                <td className="p-6 text-center">
-                  <button 
-                    onClick={() => handlePrint(o)}
-                    className="text-[9px] border border-gray-700 px-4 py-2 rounded-full text-gray-500 hover:text-white hover:border-cyan-400 transition-all font-black uppercase tracking-widest"
-                  >
-                    Generate PDF
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {filteredOrders.map((o) => {
+              const isDeleting = deletingIds.includes(o.id);
+              const isNew = newArrivalIds.includes(o.id);
+
+              let rowClass = "hover:bg-white/[0.02] transition-colors group ";
+              if (isDeleting) rowClass += "deleting pointer-events-none ";
+              if (isNew) rowClass += "new-arrival";
+
+              return (
+                <tr key={o.id} className={rowClass}>
+                  <td className="p-6">
+                    <p className="font-mono text-cyan-400 font-bold text-sm">{o.order_number}</p>
+                    <p className="text-[10px] text-gray-600 mt-1 uppercase">{new Date(o.created_at).toLocaleDateString()}</p>
+                  </td>
+                  <td className="p-6">
+                    <p className="text-sm font-bold text-gray-200 uppercase tracking-tight">{o.customer_name}</p>
+                    <p className="text-[9px] text-gray-600 uppercase font-bold">{o.sales_channel}</p>
+                  </td>
+                  <td className="p-6">
+                    <span className={`text-[9px] font-black px-3 py-1 rounded-full uppercase border ${
+                      o.status === 'Pending' ? 'text-orange-500 border-orange-500/20 bg-orange-500/5' : 'text-emerald-500 border-emerald-500/20 bg-emerald-500/5'
+                    }`}>
+                      {o.status}
+                    </span>
+                  </td>
+                  <td className="p-6 text-right font-mono text-white text-lg font-black">
+                    ₹{Number(o.total_amount).toLocaleString()}
+                  </td>
+                  <td className="p-6 text-center flex justify-center gap-2 items-center h-full mt-2">
+                    <button
+                      onClick={() => handlePrint(o)}
+                      className="text-[9px] border border-gray-700 px-3 py-2 rounded-full text-gray-500 hover:text-white hover:border-cyan-400 transition-all font-black uppercase tracking-widest"
+                    >
+                      PDF
+                    </button>
+                    <button
+                      onClick={() => handleDeleteClick(o.id)}
+                      disabled={isDeleting}
+                      className="text-[9px] border border-gray-700 px-3 py-2 rounded-full text-gray-500 hover:text-white hover:border-red-500 hover:bg-red-500/10 transition-all font-black uppercase tracking-widest disabled:opacity-50"
+                    >
+                      {isDeleting ? '...' : 'Del'}
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -295,11 +370,11 @@ export default function OrdersPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
                   <label className="block text-[10px] text-gray-500 mb-2 uppercase font-black tracking-widest">Customer / Store Name</label>
-                  <input 
+                  <input
                     list="retailers-list"
-                    required 
-                    value={customerName} 
-                    onChange={e => setCustomerName(e.target.value)} 
+                    required
+                    value={customerName}
+                    onChange={e => setCustomerName(e.target.value)}
                     className="w-full bg-black border border-gray-800 p-4 rounded-xl text-white text-sm outline-none focus:border-cyan-400"
                     placeholder="Enter or select retailer..."
                   />
@@ -309,8 +384,8 @@ export default function OrdersPage() {
                 </div>
                 <div>
                   <label className="block text-[10px] text-gray-500 mb-2 uppercase font-black tracking-widest">Pricing Tier</label>
-                  <select 
-                    value={salesChannel} 
+                  <select
+                    value={salesChannel}
                     onChange={e => setSalesChannel(e.target.value)}
                     className="w-full bg-black border border-gray-800 p-4 rounded-xl text-white text-sm outline-none focus:border-cyan-400"
                   >
@@ -331,9 +406,9 @@ export default function OrdersPage() {
                   <div key={index} className="flex flex-col md:flex-row gap-4 bg-black/50 p-6 rounded-2xl border border-gray-800 relative group">
                     <div className="flex-1">
                       <label className="block text-[8px] text-gray-700 mb-1 uppercase font-bold">Select Product</label>
-                      <select 
+                      <select
                         required
-                        value={item.productId} 
+                        value={item.productId}
                         onChange={e => updateCartItem(index, 'productId', e.target.value)}
                         className="w-full bg-transparent text-white text-xs outline-none"
                       >
@@ -347,10 +422,10 @@ export default function OrdersPage() {
                     </div>
                     <div className="w-full md:w-24">
                       <label className="block text-[8px] text-gray-700 mb-1 uppercase font-bold">Quantity</label>
-                      <input 
-                        type="number" 
+                      <input
+                        type="number"
                         min="1"
-                        value={item.quantity} 
+                        value={item.quantity}
                         onChange={e => updateCartItem(index, 'quantity', e.target.value)}
                         className="w-full bg-transparent text-white font-mono text-xs border-b border-gray-800 pb-1 outline-none"
                       />
@@ -359,8 +434,8 @@ export default function OrdersPage() {
                       <label className="block text-[8px] text-gray-700 mb-1 uppercase font-bold">Line Total</label>
                       <p className="text-sm font-mono font-black text-emerald-400">₹{item.totalPrice.toLocaleString()}</p>
                     </div>
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       onClick={() => removeItem(index)}
                       className="absolute -right-2 -top-2 bg-red-500/10 text-red-500 w-6 h-6 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs"
                     >
@@ -376,14 +451,14 @@ export default function OrdersPage() {
                   <p className="text-5xl font-mono text-white font-black italic tracking-tighter">₹{grandTotal.toLocaleString()}</p>
                 </div>
                 <div className="flex gap-6 w-full md:w-auto">
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     onClick={() => setIsFormOpen(false)}
                     className="flex-1 md:flex-none text-gray-600 text-xs font-black uppercase tracking-widest"
                   >
                     Discard
                   </button>
-                  <button 
+                  <button
                     type="submit"
                     className="flex-1 md:flex-none bg-white text-black px-12 py-4 rounded-full font-black uppercase text-xs tracking-widest shadow-xl shadow-white/5 active:scale-95 transition-all"
                   >
