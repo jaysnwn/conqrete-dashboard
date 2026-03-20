@@ -109,7 +109,7 @@ export default function OrdersPage() {
     });
   };
 
-  // The 2-Step Deletion Logic (for local user deleting from this page)
+  // The 2-Step Deletion Logic (WITH INVENTORY RESTORATION)
   const handleDeleteClick = (orderId) => {
     // 1. Play the warning sound
     const deleteAudio = new Audio("/delete-alert.mp3");
@@ -118,20 +118,50 @@ export default function OrdersPage() {
     // 2. Add ID to array to trigger the red CSS animation instantly
     setDeletingIds((prev) => [...prev, orderId]);
 
-    // 3. Wait 2 seconds so the animation plays, then delete from database
-    // Note: the realtime DELETE listener will handle removing from UI on all
-    // other connected screens. On THIS screen, we remove it directly below.
+    // 3. Wait 2 seconds so the animation plays, then process database actions
     setTimeout(async () => {
       try {
-        const { error } = await supabase.from("orders").delete().eq("id", orderId);
+        // STEP A: Fetch the items inside this order so we know what to restore
+        const { data: itemsToRestore, error: fetchErr } = await supabase
+          .from("order_items")
+          .select("product_id, quantity")
+          .eq("order_id", orderId);
 
+        if (fetchErr) throw fetchErr;
+
+        // STEP B: Loop through the items and add the stock back to the products table
+        if (itemsToRestore && itemsToRestore.length > 0) {
+          for (const item of itemsToRestore) {
+            const { data: productData } = await supabase
+              .from("products")
+              .select("stock")
+              .eq("id", item.product_id)
+              .single();
+
+            if (productData) {
+              const restoredStock = Number(productData.stock) + Number(item.quantity);
+              
+              await supabase
+                .from("products")
+                .update({ stock: restoredStock })
+                .eq("id", item.product_id);
+            }
+          }
+        }
+
+        // STEP C: Now delete the actual order
+        const { error } = await supabase.from("orders").delete().eq("id", orderId);
         if (error) throw error;
 
-        // Remove from the local UI (other screens handled by realtime listener)
+        // Remove from the local UI
         setOrders((currentOrders) => currentOrders.filter(o => o.id !== orderId));
+        
+        // Refresh data to show updated product stock in your UI
+        fetchInitialData();
+
       } catch (err) {
-        console.error("Failed to delete order:", err);
-        alert("Could not delete order from database.");
+        console.error("Failed to delete order and restore stock:", err);
+        alert("Could not process deletion completely.");
       } finally {
         // Always clean up the animation state array
         setDeletingIds((prev) => prev.filter(id => id !== orderId));
