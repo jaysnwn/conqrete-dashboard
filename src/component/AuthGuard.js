@@ -19,18 +19,33 @@ export default function AuthGuard({ children }) {
         return;
       }
 
+      const userEmail = session.user.email?.toLowerCase();
+
+      // Bouncer Logic 1: Kick salesmen out of everything except /field
       const { data: rep } = await supabase
         .from("salesmen")
         .select("id")
-        .eq("email", session.user.email?.toLowerCase())
-        .single();
+        .eq("email", userEmail)
+        .maybeSingle();
 
-      // Bouncer Logic: Kick salesmen out of the admin panel
       if (rep && !pathname.startsWith("/field")) {
         router.push("/field");
         return;
       }
 
+      // Bouncer Logic 2: Kick warehouse workers out of everything except /warehouse
+      const { data: warehouse } = await supabase
+        .from("warehouse_workers")
+        .select("id")
+        .eq("email", userEmail)
+        .maybeSingle();
+
+      if (warehouse && !pathname.startsWith("/warehouse")) {
+        router.push("/warehouse");
+        return;
+      }
+
+      // If they pass the checks (either they are an Admin, or they are a worker on their correct page)
       setIsAuthenticated(true);
       setIsLoading(false);
     };
