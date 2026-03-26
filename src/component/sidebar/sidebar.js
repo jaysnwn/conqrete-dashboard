@@ -14,8 +14,11 @@ const navItems = [
   { name: "Shipments", path: "/shipments" },
   { name: "Retailers", path: "/retailers" },
   { name: "Salesmen", path: "/salesmen" },
-  { name: "Manage Staff", path: "/warehouseworker" },
-  { name: "Reports", path: "/reports" },
+  { name: "Warehouse Monitor", path: "/warehouseworker" },
+  { name: "Human Resources", path: "/hr" },
+  { name: "Payroll Engine", path: "/payroll" },
+  { name: "Profit-Engine", path: "/profit-engine" },
+  { name: "Operating Expenses", path: "/expenseledger" },
 ];
 
 export default function Sidebar() {
