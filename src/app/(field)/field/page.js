@@ -20,7 +20,7 @@ export default function FieldPortal() {
   const [isAddingRetailer, setIsAddingRetailer] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isCatalogOpen, setIsCatalogOpen] = useState(false); 
-  const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false); // NEW
+  const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
 
   // Form States
   const [customerName, setCustomerName] = useState("");
@@ -31,7 +31,7 @@ export default function FieldPortal() {
   const [paymentAmount, setPaymentAmount] = useState("");
   const [catalogSearch, setCatalogSearch] = useState(""); 
   
-  // NEW: Expense State
+  // Expense State
   const [expenseData, setExpenseData] = useState({ 
     date: new Date().toISOString().split('T')[0], 
     category: "Petrol", 
@@ -45,15 +45,20 @@ export default function FieldPortal() {
     if (!session) return;
 
     const { data: rep } = await supabase
-      .from("salesmen")
+      .from("employees")
       .select("*")
       .eq("email", session.user.email.toLowerCase())
       .single();
 
-    if (rep) {
+    if (rep && (rep.role?.toLowerCase() === 'salesman' || rep.role?.toLowerCase() === 'sales')) {
       loginAsRep(rep);
     } else {
-      const { data } = await supabase.from("salesmen").select("*").order("name", { ascending: true });
+      const { data } = await supabase
+        .from("employees")
+        .select("*")
+        .in("role", ["salesman", "sales", "Salesman"])
+        .order("name", { ascending: true });
+        
       setSalesmen(data || []);
       setIsLoading(false);
     }
@@ -80,7 +85,6 @@ export default function FieldPortal() {
     router.push("/login"); 
   };
 
-  // --- NEW: EXPENSE HANDLER ---
   const handleLogExpense = async (e) => {
     e.preventDefault();
     if (!currentRep) return;
@@ -300,21 +304,32 @@ export default function FieldPortal() {
     p.sku.toLowerCase().includes(catalogSearch.toLowerCase())
   );
 
+  // ==========================================
+  // RENDER: ADMIN OVERRIDE / SELECTION SCREEN
+  // ==========================================
   if (!currentRep) {
     return (
-      <div className="min-h-screen bg-black text-white p-6 flex flex-col justify-center items-center">
-        <h1 className="text-4xl font-black italic tracking-tighter mb-2 text-cyan-400">CONQRETE</h1>
-        <p className="text-[10px] text-gray-500 uppercase tracking-[0.3em] font-bold mb-10 text-center">Admin Access Only</p>
-        <div className="w-full max-w-sm bg-[#0a0a0a] border border-gray-800 p-8 rounded-3xl shadow-2xl">
-          <p className="text-xs text-gray-400 uppercase tracking-widest font-bold mb-6 text-center">Select Profile to View</p>
+      <div className="min-h-screen bg-[#050505] text-[#eeeef0] p-6 flex flex-col justify-center items-center font-sans">
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Manrope:wght@200;300;400;500;600;700;800&display=swap');
+          .font-headline { font-family: 'Space Grotesk', sans-serif; }
+          .font-label { font-family: 'Manrope', sans-serif; }
+          .glass-card { background: rgba(35, 38, 41, 0.4); backdrop-filter: blur(24px); border: 1px solid rgba(161, 250, 255, 0.1); }
+        `}</style>
+        
+        <h1 className="text-4xl md:text-5xl font-black tracking-tighter mb-2 text-transparent bg-clip-text bg-gradient-to-r from-[#a1faff] to-[#00f4fe] font-headline uppercase">CONQRETE CORE</h1>
+        <p className="text-[10px] text-[#aaabad] uppercase tracking-[0.4em] font-bold mb-10 text-center font-label">Field Agent Override</p>
+        
+        <div className="w-full max-w-md glass-card p-8 rounded-3xl shadow-[0_0_40px_rgba(0,0,0,0.8)]">
+          <p className="text-xs text-[#a1faff] uppercase tracking-widest font-bold mb-6 text-center font-label">Select Active Roster</p>
           {isLoading ? (
-            <div className="text-cyan-400 animate-pulse text-center font-mono text-sm">Loading Roster...</div>
+            <div className="text-[#a1faff] animate-pulse text-center font-mono text-sm">Synchronizing Database...</div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-2 [&::-webkit-scrollbar]:hidden">
               {salesmen.map(rep => (
-                <button key={rep.id} onClick={() => loginAsRep(rep)} className="w-full bg-[#111] border border-gray-800 hover:border-cyan-400 text-left p-5 rounded-2xl flex justify-between items-center group transition-all">
-                  <span className="font-bold text-white uppercase">{rep.name}</span>
-                  <span className="text-[10px] text-gray-500 font-mono group-hover:text-cyan-400">View →</span>
+                <button key={rep.id} onClick={() => loginAsRep(rep)} className="w-full bg-[#111418] border border-white/5 hover:border-[#a1faff]/50 hover:bg-white/5 text-left p-5 rounded-2xl flex justify-between items-center group transition-all">
+                  <span className="font-bold text-white uppercase font-headline tracking-wide">{rep.name}</span>
+                  <span className="text-[10px] text-slate-500 font-label tracking-widest uppercase group-hover:text-[#a1faff] transition-colors">Initialize →</span>
                 </button>
               ))}
             </div>
@@ -324,70 +339,100 @@ export default function FieldPortal() {
     );
   }
 
+  // ==========================================
+  // RENDER: MAIN FIELD PORTAL
+  // ==========================================
   return (
-    <div className="min-h-screen bg-black text-white pb-32">
-      <div className="bg-[#0a0a0a]/90 border-b border-gray-800 p-6 pt-10 sticky top-0 z-10 backdrop-blur-xl">
-        <div className="flex justify-between items-center">
-          <div>
-            <p className="text-[10px] text-cyan-500 uppercase font-black tracking-widest">Active Session</p>
-            <h1 className="text-2xl font-black uppercase tracking-tight">{currentRep.name}</h1>
-          </div>
-          <button onClick={handleLogOut} className="text-[10px] bg-red-900/20 border border-red-900/50 text-red-500 px-4 py-2 rounded-full font-bold uppercase active:scale-95 transition-transform">Log Out</button>
-        </div>
-      </div>
+    <div className="min-h-screen bg-[#0c0e10] text-[#eeeef0] pb-32 font-sans selection:bg-[#a1faff]/30">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Manrope:wght@200;300;400;500;600;700;800&display=swap');
+        .font-headline { font-family: 'Space Grotesk', sans-serif; }
+        .font-label { font-family: 'Manrope', sans-serif; }
+        .glass-card { background: rgba(35, 38, 41, 0.4); backdrop-filter: blur(24px); border: 1px solid rgba(161, 250, 255, 0.1); }
+        .glass-modal { background: rgba(12, 14, 16, 0.95); backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.1); }
+      `}</style>
 
-      <div className="p-4 md:p-6">
-        <div className="bg-gradient-to-br from-[#111] to-black border border-gray-800 rounded-3xl p-6 mb-8 shadow-2xl">
-          <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest mb-4">My Performance</p>
-          <div className="flex justify-between items-end mb-2">
+      {/* TOP HEADER */}
+      <header className="w-full h-24 sticky top-0 z-30 bg-[#0c0e10]/80 backdrop-blur-md border-b border-[#a1faff]/5 flex justify-between items-center px-6 md:px-12 max-w-[1920px] mx-auto shadow-sm">
+        <div className="flex items-center gap-4">
+          <nav className="flex text-[10px] md:text-xs font-label uppercase tracking-widest gap-2 md:gap-3">
+            <span className="text-slate-500">CONQRETE</span>
+            <span className="text-slate-700">/</span>
+            <span className="text-[#a1faff] border-b border-[#a1faff]/50 pb-1">FIELD_PORTAL</span>
+          </nav>
+        </div>
+        <div className="flex items-center gap-4 md:gap-8">
+          <div className="text-right hidden sm:block">
+            <p className="text-[11px] font-bold font-headline text-white leading-none uppercase">{currentRep.name}</p>
+            <p className="text-[9px] text-slate-400 font-label tracking-widest mt-1 uppercase">Active Agent</p>
+          </div>
+          <button onClick={handleLogOut} className="text-[9px] font-bold uppercase tracking-widest border border-[#ff716c]/30 text-[#ff716c] hover:bg-[#ff716c]/10 px-4 py-2 rounded-full transition-all">
+            Disconnect
+          </button>
+        </div>
+      </header>
+
+      {/* MAIN CONTENT CANVAS */}
+      <div className="p-4 md:p-8 max-w-[1200px] mx-auto mt-4">
+        
+        {/* Performance Glass Card */}
+        <div className="glass-card rounded-3xl p-6 md:p-8 mb-10 shadow-[0_0_40px_rgba(0,0,0,0.5)] relative overflow-hidden group">
+          <div className="absolute -right-10 -top-10 w-40 h-40 bg-[#a1faff]/5 rounded-full blur-3xl group-hover:bg-[#a1faff]/10 transition-colors"></div>
+          
+          <p className="text-[10px] text-[#aaabad] font-label uppercase tracking-widest mb-6">Agent Performance Metrics</p>
+          
+          <div className="flex justify-between items-end mb-4 relative z-10">
             <div>
-              <p className="text-[10px] text-gray-500 uppercase font-bold">Total Sales</p>
-              <p className="text-3xl font-mono text-white font-black tracking-tighter">₹{myTotalSales.toLocaleString()}</p>
+              <p className="text-[10px] text-slate-500 font-label uppercase tracking-widest font-bold mb-1">Total Volume</p>
+              <p className="text-4xl md:text-5xl font-headline text-white font-black tracking-tighter">₹{myTotalSales.toLocaleString()}</p>
             </div>
             <div className="text-right">
-              <p className="text-[10px] text-emerald-700 uppercase font-bold">Commission</p>
-              <p className="text-xl font-mono text-emerald-400 font-black tracking-tighter">₹{Math.round(myCommission).toLocaleString()}</p>
+              <p className="text-[10px] text-emerald-600 font-label uppercase tracking-widest font-bold mb-1">Accrued Comm.</p>
+              <p className="text-xl md:text-2xl font-headline text-emerald-400 font-black tracking-tighter">₹{Math.round(myCommission).toLocaleString()}</p>
             </div>
           </div>
-          <div className="mt-4">
-            <div className="w-full bg-gray-900 rounded-full h-2 overflow-hidden">
-              <div className="bg-cyan-400 h-full rounded-full" style={{ width: `${progress}%` }}></div>
+          
+          <div className="mt-6 relative z-10">
+            <div className="w-full bg-white/5 rounded-full h-1.5 overflow-hidden">
+              <div className="bg-gradient-to-r from-[#a1faff] to-[#00f4fe] h-full rounded-full shadow-[0_0_10px_#00f4fe]" style={{ width: `${progress}%` }}></div>
             </div>
-            <p className="text-[9px] text-gray-500 font-mono mt-2 text-right">{Math.round(progress)}% of Target</p>
+            <p className="text-[9px] text-slate-500 font-label tracking-widest uppercase mt-3 text-right">{Math.round(progress)}% of Target Required</p>
           </div>
         </div>
 
-        <h2 className="text-xs text-gray-500 uppercase font-black tracking-widest mb-4 pl-2">My Recent Punches</h2>
+        {/* Recent Punches Section */}
+        <h2 className="text-[11px] text-[#a1faff] font-label uppercase font-black tracking-[0.3em] mb-6 pl-2">Recent Field Dispatches</h2>
+        
         <div className="space-y-4">
           {myOrders.map(o => {
             const isPaid = o.payment_status === 'Paid';
             const remaining = Number(o.total_amount) - Number(o.amount_paid || 0);
 
             return (
-              <div key={o.id} className="bg-[#0a0a0a] border border-gray-800 p-5 rounded-2xl shadow-lg">
-                <div className="flex justify-between items-start mb-3 border-b border-gray-800/50 pb-3">
+              <div key={o.id} className="glass-card p-5 md:p-6 rounded-2xl shadow-lg transition-all hover:border-white/20">
+                <div className="flex justify-between items-start mb-4 border-b border-white/5 pb-4">
                   <div>
-                    <p className="text-sm font-bold text-white uppercase">{o.customer_name}</p>
-                    <p className="text-[10px] text-gray-600 font-mono mt-1">{o.order_number}</p>
+                    <p className="text-sm md:text-base font-bold text-white uppercase font-headline tracking-wide">{o.customer_name}</p>
+                    <p className="text-[10px] text-slate-500 font-mono mt-1 tracking-widest">{o.order_number}</p>
                   </div>
-                  <div className="text-right flex items-center gap-3">
+                  <div className="text-right flex items-center gap-4">
                     <div>
-                      <p className="text-base font-mono font-black text-cyan-400">₹{Number(o.total_amount).toLocaleString()}</p>
-                      <div className="flex gap-2 justify-end mt-1">
-                        <span className={`text-[8px] uppercase font-black px-2 py-0.5 rounded border ${o.status === 'Pending' ? 'text-orange-500 border-orange-500/20' : 'text-emerald-500 border-emerald-500/20'}`}>{o.status}</span>
-                        <span className={`text-[8px] uppercase font-black px-2 py-0.5 rounded border ${isPaid ? 'text-emerald-500 border-emerald-500/20' : 'text-red-400 border-red-400/20'}`}>{o.payment_status || 'Unpaid'}</span>
+                      <p className="text-lg md:text-xl font-headline font-black text-[#a1faff]">₹{Number(o.total_amount).toLocaleString()}</p>
+                      <div className="flex gap-2 justify-end mt-2">
+                        <span className={`text-[8px] font-label uppercase tracking-widest font-black px-2 py-1 rounded border ${o.status === 'Pending' ? 'text-orange-400 border-orange-400/20 bg-orange-400/5' : 'text-[#a1faff] border-[#a1faff]/20 bg-[#a1faff]/5'}`}>{o.status}</span>
+                        <span className={`text-[8px] font-label uppercase tracking-widest font-black px-2 py-1 rounded border ${isPaid ? 'text-emerald-400 border-emerald-400/20 bg-emerald-400/5' : 'text-[#ff716c] border-[#ff716c]/20 bg-[#ff716c]/5'}`}>{o.payment_status || 'Unpaid'}</span>
                       </div>
                     </div>
-                    <button onClick={() => handleDeletePunch(o.id, o.order_number, o.total_amount, o.customer_name)} className="text-gray-600 hover:text-red-500 transition-colors p-2 text-lg">🗑️</button>
+                    <button onClick={() => handleDeletePunch(o.id, o.order_number, o.total_amount, o.customer_name)} className="text-slate-600 hover:text-[#ff716c] transition-colors p-2 text-lg active:scale-90">🗑️</button>
                   </div>
                 </div>
 
                 {!isPaid && (
                   <div className="flex justify-between items-center mt-2">
-                    <p className="text-[10px] font-mono text-gray-500">Due: ₹{remaining.toLocaleString()}</p>
+                    <p className="text-[10px] font-label uppercase tracking-widest text-slate-400 font-bold">Due: <span className="text-white">₹{remaining.toLocaleString()}</span></p>
                     <button 
                       onClick={() => openPaymentModal(o)}
-                      className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all"
+                      className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-5 py-2.5 rounded-xl text-[9px] font-label font-black uppercase tracking-widest hover:bg-emerald-500/20 active:scale-95 transition-all"
                     >
                       Receive Cash
                     </button>
@@ -396,45 +441,49 @@ export default function FieldPortal() {
               </div>
             );
           })}
-          {myOrders.length === 0 && <p className="text-center text-xs text-gray-600 font-mono py-10">No orders punched yet.</p>}
+          {myOrders.length === 0 && <p className="text-center text-xs text-slate-600 font-label tracking-widest uppercase py-10">No dispatches recorded.</p>}
         </div>
       </div>
 
-      {/* FIXED BOTTOM BAR (3 Buttons now) */}
-      <div className="fixed bottom-6 right-4 left-4 flex gap-3 z-20">
+      {/* FIXED BOTTOM ACTION BAR */}
+      <div className="fixed bottom-6 right-4 left-4 md:right-12 md:left-auto md:w-[600px] flex gap-3 z-20">
         <button 
           onClick={() => setIsCatalogOpen(true)} 
-          className="flex-1 bg-[#111] border border-gray-700 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-[9px] shadow-2xl active:scale-95 transition-transform flex items-center justify-center gap-1"
+          className="flex-1 glass-card bg-[#0c0e10]/90 text-white py-4 md:py-5 rounded-2xl font-label font-black uppercase tracking-[0.2em] text-[9px] shadow-2xl active:scale-95 transition-transform hover:border-[#a1faff]/40"
         >
           Catalog
         </button>
         <button 
           onClick={() => setIsExpenseModalOpen(true)} 
-          className="flex-1 bg-[#111] border border-orange-900/50 text-orange-400 py-4 rounded-2xl font-black uppercase tracking-widest text-[9px] shadow-2xl active:scale-95 transition-transform flex items-center justify-center gap-1"
+          className="flex-1 glass-card bg-[#0c0e10]/90 border-orange-900/40 text-orange-400 py-4 md:py-5 rounded-2xl font-label font-black uppercase tracking-[0.2em] text-[9px] shadow-2xl active:scale-95 transition-transform hover:border-orange-500/50"
         >
           Expenses
         </button>
         <button 
           onClick={() => setIsCreatingOrder(true)} 
-          className="flex-[1.5] bg-cyan-400 text-black py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-[0_10px_40px_rgba(34,211,238,0.4)] active:scale-95 transition-transform"
+          className="flex-[1.5] bg-gradient-to-r from-[#a1faff] to-[#00f4fe] text-[#002222] py-4 md:py-5 rounded-2xl font-label font-black uppercase tracking-[0.2em] text-[10px] shadow-[0_0_25px_rgba(0,242,255,0.4)] active:scale-95 hover:scale-[1.02] transition-all"
         >
           + Punch Order
         </button>
       </div>
 
-      {/* NEW: LOG EXPENSE MODAL */}
+      {/* ========================================== */}
+      {/* MODALS - UPGRADED TO GLASSMORPHISM         */}
+      {/* ========================================== */}
+
+      {/* EXPENSE MODAL */}
       {isExpenseModalOpen && (
-        <div className="fixed inset-0 bg-black/95 z-[90] flex items-end justify-center sm:items-center sm:p-6 backdrop-blur-xl">
-          <div className="bg-[#0a0a0a] border border-gray-800 p-6 rounded-t-3xl sm:rounded-3xl w-full max-w-sm shadow-2xl animate-slide-up">
-            <div className="flex justify-between items-center mb-6 border-b border-gray-800 pb-4">
-              <h2 className="text-lg font-black text-orange-400 uppercase tracking-widest">Log Expense</h2>
-              <button onClick={() => setIsExpenseModalOpen(false)} className="text-gray-500 hover:text-white text-xl bg-gray-900 w-8 h-8 rounded-full flex items-center justify-center">×</button>
+        <div className="fixed inset-0 bg-black/80 z-[90] flex items-end justify-center sm:items-center sm:p-6 backdrop-blur-md">
+          <div className="glass-modal p-8 rounded-t-3xl sm:rounded-3xl w-full max-w-sm shadow-[0_0_50px_rgba(0,0,0,0.8)] animate-slide-up border-orange-500/20">
+            <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
+              <h2 className="text-xl font-black font-headline text-orange-400 uppercase tracking-tighter">Log Expense</h2>
+              <button onClick={() => setIsExpenseModalOpen(false)} className="text-slate-500 hover:text-white text-2xl leading-none active:scale-90 transition-transform">×</button>
             </div>
             
-            <form onSubmit={handleLogExpense} className="space-y-5">
+            <form onSubmit={handleLogExpense} className="space-y-6">
               <div>
-                <label className="block text-[10px] text-gray-500 mb-2 uppercase font-black">Category</label>
-                <select value={expenseData.category} onChange={e => setExpenseData({...expenseData, category: e.target.value})} className="w-full bg-[#111] border border-gray-800 p-4 rounded-xl text-white text-sm outline-none focus:border-orange-500">
+                <label className="block text-[10px] text-slate-400 mb-2 uppercase font-label tracking-widest font-bold">Category</label>
+                <select value={expenseData.category} onChange={e => setExpenseData({...expenseData, category: e.target.value})} className="w-full bg-[#050505] border border-white/10 p-4 rounded-xl text-white font-label text-sm outline-none focus:border-orange-500 transition-colors">
                   <option value="Petrol">Petrol / Fuel</option>
                   <option value="Hotel">Hotel Stay</option>
                   <option value="Meals">Food / Meals</option>
@@ -444,16 +493,16 @@ export default function FieldPortal() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] text-gray-500 mb-2 uppercase font-black">Date</label>
-                  <input required type="date" value={expenseData.date} onChange={e => setExpenseData({...expenseData, date: e.target.value})} className="w-full bg-[#111] border border-gray-800 p-4 rounded-xl text-white text-sm outline-none focus:border-orange-500 [&::-webkit-calendar-picker-indicator]:invert" />
+                  <label className="block text-[10px] text-slate-400 mb-2 uppercase font-label tracking-widest font-bold">Date</label>
+                  <input required type="date" value={expenseData.date} onChange={e => setExpenseData({...expenseData, date: e.target.value})} className="w-full bg-[#050505] border border-white/10 p-4 rounded-xl text-white font-label text-sm outline-none focus:border-orange-500 [&::-webkit-calendar-picker-indicator]:invert transition-colors" />
                 </div>
                 <div>
-                  <label className="block text-[10px] text-gray-500 mb-2 uppercase font-black">Amount (₹)</label>
-                  <input required type="number" value={expenseData.amount} onChange={e => setExpenseData({...expenseData, amount: e.target.value})} className="w-full bg-[#111] border border-orange-900/30 p-4 rounded-xl text-orange-400 font-mono text-base font-black outline-none focus:border-orange-500" placeholder="0.00" />
+                  <label className="block text-[10px] text-slate-400 mb-2 uppercase font-label tracking-widest font-bold">Amount (₹)</label>
+                  <input required type="number" value={expenseData.amount} onChange={e => setExpenseData({...expenseData, amount: e.target.value})} className="w-full bg-[#050505] border border-orange-500/30 p-4 rounded-xl text-orange-400 font-headline text-lg font-black outline-none focus:border-orange-500 transition-colors placeholder:text-orange-900/50" placeholder="0" />
                 </div>
               </div>
 
-              <button type="submit" disabled={isLoading} className="w-full bg-orange-500 text-black py-5 rounded-2xl font-black uppercase text-xs tracking-widest active:scale-95 transition-transform shadow-[0_10px_30px_rgba(249,115,22,0.2)]">
+              <button type="submit" disabled={isLoading} className="w-full bg-orange-500 hover:bg-orange-400 text-black py-5 rounded-2xl font-label font-black uppercase text-[10px] tracking-[0.2em] active:scale-95 transition-all shadow-[0_0_20px_rgba(249,115,22,0.3)] mt-4">
                 {isLoading ? "Submitting..." : "Submit Claim"}
               </button>
             </form>
@@ -461,31 +510,33 @@ export default function FieldPortal() {
         </div>
       )}
 
-      {/* CATALOG MODAL */}
+      {/* DIGITAL CATALOG MODAL */}
       {isCatalogOpen && (
-        <div className="fixed inset-0 bg-[#050505] z-[80] overflow-y-auto pb-20 animate-slide-up">
-          <div className="bg-[#0a0a0a]/95 border-b border-gray-800 p-6 pt-10 sticky top-0 z-10 backdrop-blur-xl flex justify-between items-center">
+        <div className="fixed inset-0 bg-[#0c0e10]/95 z-[80] overflow-y-auto pb-20 animate-slide-up backdrop-blur-xl">
+          <div className="bg-[#0c0e10]/80 border-b border-[#a1faff]/10 p-6 pt-10 sticky top-0 z-10 backdrop-blur-2xl flex justify-between items-center max-w-[1200px] mx-auto">
             <div>
-              <h2 className="text-xl font-black text-white uppercase tracking-widest">Digital Catalog</h2>
-              <p className="text-[10px] text-cyan-500 uppercase font-bold mt-1 tracking-widest">Client Presentation Mode</p>
+              <h2 className="text-2xl font-black font-headline text-white uppercase tracking-tighter">Digital Catalog</h2>
+              <p className="text-[9px] text-[#a1faff] uppercase font-label tracking-widest mt-1">Client Presentation Mode</p>
             </div>
-            <button onClick={() => setIsCatalogOpen(false)} className="bg-gray-900 border border-gray-800 w-10 h-10 rounded-full text-white font-black flex items-center justify-center text-lg active:scale-95 transition-transform">×</button>
+            <button onClick={() => setIsCatalogOpen(false)} className="text-slate-500 hover:text-white text-3xl leading-none active:scale-90 transition-transform">×</button>
           </div>
-          <div className="p-4 md:p-6">
-            <input type="text" placeholder="Search products..." value={catalogSearch} onChange={(e) => setCatalogSearch(e.target.value)} className="w-full bg-[#111] border border-gray-800 p-4 rounded-2xl text-white text-sm outline-none focus:border-cyan-400 mb-6" />
-            <div className="space-y-4">
+          
+          <div className="p-4 md:p-8 max-w-[1200px] mx-auto">
+            <input type="text" placeholder="SEARCH SKU OR NAME..." value={catalogSearch} onChange={(e) => setCatalogSearch(e.target.value)} className="w-full bg-[#050505] border border-white/10 p-5 rounded-2xl text-white font-label text-sm outline-none focus:border-[#a1faff] mb-8 placeholder:text-slate-700 placeholder:tracking-widest uppercase transition-colors" />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {filteredCatalog.map(product => (
-                <div key={product.id} className="bg-[#0a0a0a] border border-gray-800 p-5 rounded-3xl shadow-lg flex gap-5 items-center">
-                  <div className="w-16 h-16 bg-[#111] border border-gray-800 rounded-2xl flex items-center justify-center text-3xl shrink-0">{product.image}</div>
+                <div key={product.id} className="glass-card p-6 rounded-3xl shadow-lg flex gap-6 items-center hover:border-white/20 transition-colors">
+                  <div className="w-20 h-20 bg-[#050505] border border-white/5 rounded-2xl flex items-center justify-center text-4xl shrink-0 shadow-inner">{product.image}</div>
                   <div className="flex-1">
                     <div className="flex justify-between items-start mb-1">
-                      <h3 className="text-white font-black text-sm uppercase tracking-tight">{product.name}</h3>
-                      <span className={`text-[8px] uppercase font-black px-2 py-1 rounded border ${product.stock > 0 ? 'text-emerald-400 border-emerald-500/20 bg-emerald-500/10' : 'text-red-400 border-red-500/20 bg-red-500/10'}`}>{product.stock > 0 ? 'In Stock' : 'Out of Stock'}</span>
+                      <h3 className="text-white font-black font-headline text-base uppercase tracking-tight">{product.name}</h3>
+                      <span className={`text-[8px] uppercase font-label tracking-widest font-black px-2 py-1 rounded border ${product.stock > 0 ? 'text-emerald-400 border-emerald-500/20 bg-emerald-500/5' : 'text-[#ff716c] border-[#ff716c]/20 bg-[#ff716c]/5'}`}>{product.stock > 0 ? 'In Stock' : 'Out of Stock'}</span>
                     </div>
-                    <p className="text-[10px] text-gray-500 font-mono mb-3">{product.sku}</p>
-                    <div className="grid grid-cols-2 gap-2 mt-2 pt-3 border-t border-gray-800/50">
-                      <div><p className="text-[8px] text-gray-500 uppercase tracking-widest font-bold mb-1">Retailer Price</p><p className="text-white font-mono font-bold text-sm">₹{Number(product.pricing?.retailer || 0).toLocaleString()}</p></div>
-                      <div><p className="text-[8px] text-gray-500 uppercase tracking-widest font-bold mb-1">Distributor Price</p><p className="text-cyan-400 font-mono font-bold text-sm">₹{Number(product.pricing?.distributor || 0).toLocaleString()}</p></div>
+                    <p className="text-[10px] text-slate-500 font-label tracking-widest uppercase mb-4">{product.sku}</p>
+                    <div className="grid grid-cols-2 gap-2 mt-2 pt-4 border-t border-white/5">
+                      <div><p className="text-[8px] text-slate-500 uppercase font-label tracking-widest font-bold mb-1">Retailer</p><p className="text-white font-headline font-bold text-base">₹{Number(product.pricing?.retailer || 0).toLocaleString()}</p></div>
+                      <div><p className="text-[8px] text-[#a1faff]/60 uppercase font-label tracking-widest font-bold mb-1">Distributor</p><p className="text-[#a1faff] font-headline font-bold text-base">₹{Number(product.pricing?.distributor || 0).toLocaleString()}</p></div>
                     </div>
                   </div>
                 </div>
@@ -495,74 +546,96 @@ export default function FieldPortal() {
         </div>
       )}
 
-      {/* NEW SHOP MODAL */}
+      {/* REGISTER NEW SHOP MODAL */}
       {isAddingRetailer && (
-        <div className="fixed inset-0 bg-black/95 z-[60] flex items-end justify-center sm:items-center sm:p-6 backdrop-blur-xl">
-          <div className="bg-[#0a0a0a] border border-gray-800 p-6 rounded-t-3xl sm:rounded-3xl w-full shadow-2xl animate-slide-up">
-            <h3 className="text-lg font-black uppercase text-white mb-6 tracking-tighter border-b border-gray-800 pb-4">Register New Shop</h3>
-            <form onSubmit={handleAddNewShop} className="space-y-4">
-              <div><label className="block text-[10px] text-gray-500 mb-2 uppercase font-black">Store Name</label><input required autoFocus type="text" value={newShop.store_name} onChange={e => setNewShop({...newShop, store_name: e.target.value})} className="w-full bg-[#111] border border-gray-800 p-4 rounded-xl text-white text-sm outline-none focus:border-cyan-400" placeholder="e.g. Mobile Hub" /></div>
-              <div><label className="block text-[10px] text-gray-500 mb-2 uppercase font-black">Location</label><input required type="text" value={newShop.location} onChange={e => setNewShop({...newShop, location: e.target.value})} className="w-full bg-[#111] border border-gray-800 p-4 rounded-xl text-white text-sm outline-none focus:border-cyan-400" placeholder="e.g. Main Market" /></div>
+        <div className="fixed inset-0 bg-black/80 z-[95] flex items-end justify-center sm:items-center sm:p-6 backdrop-blur-md">
+          <div className="glass-modal p-8 rounded-t-3xl sm:rounded-3xl w-full max-w-md shadow-[0_0_50px_rgba(0,0,0,0.8)] animate-slide-up border-emerald-500/20">
+            <h3 className="text-2xl font-black font-headline uppercase text-white mb-6 tracking-tighter border-b border-white/10 pb-4">Register Shop</h3>
+            <form onSubmit={handleAddNewShop} className="space-y-5">
+              <div><label className="block text-[10px] text-slate-400 mb-2 uppercase font-label tracking-widest font-bold">Store Name</label><input required autoFocus type="text" value={newShop.store_name} onChange={e => setNewShop({...newShop, store_name: e.target.value})} className="w-full bg-[#050505] border border-white/10 p-4 rounded-xl text-white font-label text-sm outline-none focus:border-emerald-500 transition-colors" placeholder="e.g. Mobile Hub" /></div>
+              <div><label className="block text-[10px] text-slate-400 mb-2 uppercase font-label tracking-widest font-bold">Location</label><input required type="text" value={newShop.location} onChange={e => setNewShop({...newShop, location: e.target.value})} className="w-full bg-[#050505] border border-white/10 p-4 rounded-xl text-white font-label text-sm outline-none focus:border-emerald-500 transition-colors" placeholder="e.g. Main Market" /></div>
               <div className="grid grid-cols-2 gap-4">
-                <div><label className="block text-[10px] text-gray-500 mb-2 uppercase font-black">Phone</label><input type="tel" value={newShop.phone} onChange={e => setNewShop({...newShop, phone: e.target.value})} className="w-full bg-[#111] border border-gray-800 p-4 rounded-xl text-white text-sm outline-none focus:border-cyan-400 font-mono" placeholder="9922..." /></div>
-                <div><label className="block text-[10px] text-gray-500 mb-2 uppercase font-black">Email</label><input type="email" value={newShop.email} onChange={e => setNewShop({...newShop, email: e.target.value})} className="w-full bg-[#111] border border-gray-800 p-4 rounded-xl text-white text-sm outline-none focus:border-cyan-400" placeholder="shop@email.com" /></div>
+                <div><label className="block text-[10px] text-slate-400 mb-2 uppercase font-label tracking-widest font-bold">Phone</label><input type="tel" value={newShop.phone} onChange={e => setNewShop({...newShop, phone: e.target.value})} className="w-full bg-[#050505] border border-white/10 p-4 rounded-xl text-white font-label text-sm outline-none focus:border-emerald-500 transition-colors" placeholder="9922..." /></div>
+                <div><label className="block text-[10px] text-slate-400 mb-2 uppercase font-label tracking-widest font-bold">Email</label><input type="email" value={newShop.email} onChange={e => setNewShop({...newShop, email: e.target.value})} className="w-full bg-[#050505] border border-white/10 p-4 rounded-xl text-white font-label text-sm outline-none focus:border-emerald-500 transition-colors" placeholder="shop@email.com" /></div>
               </div>
-              <div className="flex gap-4 pt-4 border-t border-gray-800 mt-6">
-                <button type="button" onClick={() => setIsAddingRetailer(false)} className="flex-1 text-gray-500 text-xs font-bold uppercase py-4">Cancel</button>
-                <button type="submit" className="flex-1 bg-emerald-500 text-black py-4 rounded-xl font-black uppercase text-xs active:scale-95 transition-transform">Save Shop</button>
+              <div className="flex gap-4 pt-4 border-t border-white/10 mt-8">
+                <button type="button" onClick={() => setIsAddingRetailer(false)} className="flex-1 text-slate-500 text-[10px] font-label font-bold uppercase tracking-widest py-4 hover:text-white transition-colors">Cancel</button>
+                <button type="submit" className="flex-[2] bg-emerald-500 hover:bg-emerald-400 text-black py-4 rounded-xl font-label font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)]">Save Shop</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* CREATE ORDER MODAL */}
+      {/* CREATE ORDER MODAL (THE PUNCH INTERFACE) */}
       {isCreatingOrder && !isAddingRetailer && (
-        <div className="fixed inset-0 bg-black z-50 overflow-y-auto">
-          <div className="p-4 pt-8 md:p-6">
-            <div className="flex justify-between items-center mb-8 border-b border-gray-800 pb-4">
-              <h2 className="text-xl font-black uppercase italic tracking-tighter text-cyan-400">New Punch</h2>
-              <button onClick={() => setIsCreatingOrder(false)} className="text-gray-500 text-sm font-bold uppercase tracking-widest bg-gray-900 px-4 py-2 rounded-full">Cancel</button>
+        <div className="fixed inset-0 bg-[#0c0e10]/95 z-50 overflow-y-auto backdrop-blur-2xl">
+          <div className="max-w-[800px] mx-auto p-4 pt-8 md:p-8">
+            
+            <div className="flex justify-between items-center mb-8 border-b border-white/10 pb-6 sticky top-0 bg-[#0c0e10]/90 backdrop-blur-md z-10 pt-4">
+              <h2 className="text-3xl font-black font-headline uppercase tracking-tighter text-[#a1faff]">New Punch</h2>
+              <button onClick={() => setIsCreatingOrder(false)} className="text-slate-400 hover:text-white text-[10px] font-label font-bold uppercase tracking-widest bg-white/5 hover:bg-white/10 border border-white/10 px-5 py-2.5 rounded-full transition-all">Cancel</button>
             </div>
-            <form onSubmit={submitMobileOrder} className="space-y-6 pb-32">
-              <div className="space-y-4">
-                <div className="bg-[#111] p-5 rounded-2xl border border-gray-800">
-                  <div className="flex justify-between items-end mb-3">
-                    <label className="block text-[10px] text-gray-500 uppercase font-black tracking-widest">Retailer / Client</label>
-                    <button type="button" onClick={() => setIsAddingRetailer(true)} className="text-[10px] bg-emerald-500/10 text-emerald-400 px-3 py-1 rounded-lg font-bold uppercase">+ New Shop</button>
+            
+            <form onSubmit={submitMobileOrder} className="space-y-8 pb-40">
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="glass-card p-6 rounded-3xl">
+                  <div className="flex justify-between items-end mb-4">
+                    <label className="block text-[10px] text-slate-400 uppercase font-label font-black tracking-widest">Client Account</label>
+                    <button type="button" onClick={() => setIsAddingRetailer(true)} className="text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-lg font-label font-bold uppercase tracking-widest hover:bg-emerald-500/20 transition-colors">+ New Shop</button>
                   </div>
-                  <select required value={customerName} onChange={e => setCustomerName(e.target.value)} className="w-full bg-[#0a0a0a] text-white p-4 rounded-xl text-sm outline-none border border-gray-700 focus:border-cyan-400">
-                    <option value="" className="bg-[#0a0a0a] text-gray-500">Select Shop...</option>
-                    {retailers.map(r => <option key={r.id} value={r.store_name} className="bg-[#0a0a0a] text-white">{r.store_name}</option>)}
+                  <select required value={customerName} onChange={e => setCustomerName(e.target.value)} className="w-full bg-[#050505] text-white p-4 rounded-xl font-label text-sm outline-none border border-white/10 focus:border-[#a1faff] transition-colors">
+                    <option value="" className="text-slate-600">Select Registered Shop...</option>
+                    {retailers.map(r => <option key={r.id} value={r.store_name}>{r.store_name}</option>)}
                   </select>
                 </div>
-                <div className="bg-[#111] p-5 rounded-2xl border border-gray-800">
-                  <label className="block text-[10px] text-gray-500 mb-3 uppercase font-black tracking-widest">Pricing Tier</label>
-                  <select value={salesChannel} onChange={e => setSalesChannel(e.target.value)} className="w-full bg-[#0a0a0a] text-white p-4 rounded-xl text-sm outline-none border border-gray-700 focus:border-cyan-400">
-                    <option value="Retailer" className="bg-[#0a0a0a] text-white">Retailer (Standard)</option>
-                    <option value="Distributor" className="bg-[#0a0a0a] text-white">Distributor (Wholesale)</option>
+
+                <div className="glass-card p-6 rounded-3xl">
+                  <label className="block text-[10px] text-slate-400 mb-4 uppercase font-label font-black tracking-widest">Pricing Tier Definition</label>
+                  <select value={salesChannel} onChange={e => setSalesChannel(e.target.value)} className="w-full bg-[#050505] text-white p-4 rounded-xl font-label text-sm outline-none border border-white/10 focus:border-[#a1faff] transition-colors">
+                    <option value="Retailer">Retailer (Standard Volume)</option>
+                    <option value="Distributor">Distributor (High Volume)</option>
                   </select>
                 </div>
               </div>
-              <div className="pt-4 mt-6 border-t border-gray-800">
-                <p className="text-[10px] text-cyan-400 mb-4 uppercase font-black tracking-widest pl-2">Add Products</p>
+
+              <div className="pt-6 mt-8 border-t border-white/5">
+                <p className="text-[10px] text-[#a1faff] mb-6 uppercase font-label font-black tracking-widest pl-2">Line Items</p>
+                
                 {cart.map((item, index) => (
-                  <div key={index} className="bg-[#111] p-5 rounded-2xl border border-gray-800 mb-4 relative shadow-lg">
-                    <select required value={item.productId} onChange={e => updateCartItem(index, 'productId', e.target.value)} className="w-full bg-[#0a0a0a] text-white p-4 rounded-xl text-sm outline-none mb-4 border border-gray-700 focus:border-cyan-400">
-                      <option value="" className="bg-[#0a0a0a] text-gray-500">Choose item...</option>
-                      {products.map(p => (<option key={p.id} value={p.id} disabled={p.stock <= 0} className="bg-[#0a0a0a] text-white">{p.name} {p.stock <= 0 ? '(OUT OF STOCK)' : `(In Stock: ${p.stock})`}</option>))}
+                  <div key={index} className="glass-card p-6 rounded-3xl mb-4 relative shadow-lg border-l-4 border-l-[#a1faff]/50">
+                    <select required value={item.productId} onChange={e => updateCartItem(index, 'productId', e.target.value)} className="w-full bg-[#050505] text-white p-4 rounded-xl font-label text-sm outline-none mb-5 border border-white/10 focus:border-[#a1faff] transition-colors">
+                      <option value="" className="text-slate-600">Choose SKU...</option>
+                      {products.map(p => (<option key={p.id} value={p.id} disabled={p.stock <= 0}>{p.name} {p.stock <= 0 ? '(OUT OF STOCK)' : `(Stock: ${p.stock})`}</option>))}
                     </select>
-                    <div className="flex justify-between items-center bg-[#0a0a0a] p-3 rounded-xl border border-gray-800">
-                      <div className="flex items-center gap-4"><label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Qty</label><input type="number" min="1" value={item.quantity} onChange={e => updateCartItem(index, 'quantity', e.target.value)} className="w-16 bg-[#111] border border-gray-700 py-2 px-1 rounded-lg text-center text-white font-mono text-base outline-none focus:border-cyan-400" /></div>
-                      <button type="button" onClick={() => removeItem(index)} className="text-[10px] text-red-500 font-bold uppercase tracking-widest bg-red-500/10 px-4 py-2.5 rounded-lg active:scale-95 transition-transform">Remove</button>
+                    
+                    <div className="flex justify-between items-center bg-[#050505] p-3 rounded-2xl border border-white/5">
+                      <div className="flex items-center gap-4 pl-3">
+                        <label className="text-[10px] text-slate-500 font-label font-bold uppercase tracking-widest">Qty</label>
+                        <input type="number" min="1" value={item.quantity} onChange={e => updateCartItem(index, 'quantity', e.target.value)} className="w-20 bg-[#111] border border-white/10 py-2.5 px-2 rounded-xl text-center text-white font-headline text-lg outline-none focus:border-[#a1faff] transition-colors" />
+                      </div>
+                      <button type="button" onClick={() => removeItem(index)} className="text-[10px] text-[#ff716c] font-label font-bold uppercase tracking-widest bg-[#ff716c]/10 border border-[#ff716c]/20 px-5 py-3 rounded-xl active:scale-95 transition-all hover:bg-[#ff716c]/20">Drop</button>
                     </div>
                   </div>
                 ))}
-                <button type="button" onClick={handleAddItem} className="w-full border-2 border-dashed border-gray-800 hover:border-cyan-900 text-gray-400 hover:text-cyan-400 py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest mb-10 transition-colors">+ Add Another Product</button>
+                
+                <button type="button" onClick={handleAddItem} className="w-full border-2 border-dashed border-white/10 hover:border-[#a1faff]/50 bg-white/5 hover:bg-[#a1faff]/5 text-slate-400 hover:text-[#a1faff] py-6 rounded-3xl text-[10px] font-label font-black uppercase tracking-[0.2em] mb-10 transition-all">
+                  + Add Line Item
+                </button>
               </div>
-              <div className="fixed bottom-0 left-0 w-full bg-[#0a0a0a]/95 backdrop-blur-md border-t border-gray-800 p-5 pb-8 flex justify-between items-center z-40 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
-                <div><p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1">Total</p><p className="text-2xl font-mono text-white font-black tracking-tighter">₹{calculateTotal().toLocaleString()}</p></div>
-                <button type="submit" className="bg-cyan-400 text-black px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-[0_0_20px_rgba(34,211,238,0.3)] active:scale-95 transition-transform">Punch Order</button>
+
+              {/* STICKY BOTTOM TOTAL BAR */}
+              <div className="fixed bottom-0 left-0 w-full bg-[#0c0e10]/95 backdrop-blur-xl border-t border-[#a1faff]/10 p-5 md:p-6 pb-8 flex justify-between items-center z-40 shadow-[0_-20px_50px_rgba(0,0,0,0.8)]">
+                <div className="pl-4 md:pl-12">
+                  <p className="text-[10px] text-[#a1faff]/70 uppercase font-label font-bold tracking-[0.3em] mb-1">Invoice Total</p>
+                  <p className="text-3xl md:text-4xl font-headline text-white font-black tracking-tighter">₹{calculateTotal().toLocaleString()}</p>
+                </div>
+                <div className="pr-4 md:pr-12">
+                  <button type="submit" className="bg-gradient-to-r from-[#a1faff] to-[#00f4fe] text-[#002222] px-10 py-4 md:py-5 rounded-2xl font-label font-black uppercase tracking-[0.2em] text-[10px] md:text-xs shadow-[0_0_30px_rgba(0,242,255,0.3)] active:scale-95 hover:scale-[1.02] transition-all">
+                    Execute Punch
+                  </button>
+                </div>
               </div>
             </form>
           </div>
@@ -571,12 +644,22 @@ export default function FieldPortal() {
 
       {/* COLLECT PAYMENT MODAL */}
       {isPaymentModalOpen && selectedOrder && (
-        <div className="fixed inset-0 bg-black/95 flex items-end justify-center sm:items-center sm:p-6 z-[70] backdrop-blur-xl">
-          <div className="bg-[#0a0a0a] border border-gray-800 p-6 rounded-t-3xl sm:rounded-3xl w-full max-w-sm shadow-2xl animate-slide-up">
-            <div className="flex justify-between items-center mb-6 border-b border-gray-800 pb-4"><h2 className="text-lg font-black text-white uppercase tracking-widest">Receive Cash</h2><button onClick={() => setIsPaymentModalOpen(false)} className="text-gray-500 hover:text-white text-xl bg-gray-900 w-8 h-8 rounded-full flex items-center justify-center">×</button></div>
+        <div className="fixed inset-0 bg-black/80 flex items-end justify-center sm:items-center sm:p-6 z-[95] backdrop-blur-md">
+          <div className="glass-modal border-emerald-500/20 p-8 rounded-t-3xl sm:rounded-3xl w-full max-w-sm shadow-[0_0_50px_rgba(0,0,0,0.8)] animate-slide-up">
+            <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
+              <h2 className="text-xl font-headline font-black text-emerald-400 uppercase tracking-tighter">Receive Funds</h2>
+              <button onClick={() => setIsPaymentModalOpen(false)} className="text-slate-500 hover:text-white text-2xl leading-none active:scale-90 transition-transform">×</button>
+            </div>
+            
             <form onSubmit={handleLogPayment} className="space-y-6">
-              <div><label className="block text-[10px] text-gray-500 mb-2 uppercase font-black tracking-widest text-center">Amount Received (₹)</label><input type="number" autoFocus required min="1" max={Number(selectedOrder.total_amount) - Number(selectedOrder.amount_paid || 0)} value={paymentAmount} onChange={e => setPaymentAmount(e.target.value)} className="w-full bg-[#111] border border-gray-800 py-6 px-4 rounded-2xl text-emerald-400 text-4xl font-mono font-black outline-none focus:border-emerald-500 text-center" /><p className="text-[10px] text-gray-500 mt-3 font-mono text-center">Remaining Due: ₹{(Number(selectedOrder.total_amount) - Number(selectedOrder.amount_paid || 0)).toLocaleString()}</p></div>
-              <button type="submit" className="w-full bg-emerald-500 text-black py-5 rounded-2xl font-black uppercase text-sm tracking-widest active:scale-95 transition-transform shadow-[0_10px_30px_rgba(16,185,129,0.3)]">Log Payment</button>
+              <div>
+                <label className="block text-[10px] text-slate-400 mb-3 uppercase font-label font-black tracking-widest text-center">Collection Amount (₹)</label>
+                <input type="number" autoFocus required min="1" max={Number(selectedOrder.total_amount) - Number(selectedOrder.amount_paid || 0)} value={paymentAmount} onChange={e => setPaymentAmount(e.target.value)} className="w-full bg-[#050505] border border-emerald-500/30 py-6 px-4 rounded-2xl text-emerald-400 text-4xl font-headline font-black outline-none focus:border-emerald-400 text-center transition-colors shadow-inner" />
+                <p className="text-[10px] text-slate-500 mt-4 font-label uppercase tracking-widest text-center">Remaining Balance: <span className="text-white font-bold">₹{(Number(selectedOrder.total_amount) - Number(selectedOrder.amount_paid || 0)).toLocaleString()}</span></p>
+              </div>
+              <button type="submit" className="w-full bg-emerald-500 hover:bg-emerald-400 text-black py-5 rounded-2xl font-label font-black uppercase text-[10px] tracking-[0.2em] active:scale-95 transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] mt-2">
+                Log Ledger Entry
+              </button>
             </form>
           </div>
         </div>

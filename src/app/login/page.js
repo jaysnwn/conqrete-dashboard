@@ -55,34 +55,9 @@ export default function LoginPage() {
       
       await new Promise((resolve) => setTimeout(resolve, 800));
 
-      const userEmail = email.toLowerCase();
-
-      const { data: rep, error: repError } = await supabase
-        .from("salesmen")
-        .select("id")
-        .eq("email", userEmail)
-        .maybeSingle();
-
-      if (repError) throw repError;
-      
-      if (rep) {
-        router.push("/field");
-        return;
-      }
-
-      const { data: warehouse, error: warehouseError } = await supabase
-        .from("warehouse_workers")
-        .select("id")
-        .eq("email", userEmail)
-        .maybeSingle();
-
-      if (warehouseError) throw warehouseError;
-
-      if (warehouse) {
-        router.push("/warehouse");
-        return;
-      }
-
+      // UPDATED: We stripped out the old table checks here.
+      // We just push them to the dashboard, and AuthGuard will instantly 
+      // intercept them and send Salesmen to /field and Warehouse to /warehouse!
       router.push("/dashboard");
 
     } catch (err) {

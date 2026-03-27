@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation"; // NEW: For Logout routing
+import { useRouter } from "next/navigation"; 
 import { supabase } from "@/lib/supabase";
 
 export default function WarehousePage() {
-  const router = useRouter(); // NEW
+  const router = useRouter(); 
   
   // Navigation & Data State
   const [activeTab, setActiveTab] = useState("pending");
@@ -13,7 +13,7 @@ export default function WarehousePage() {
   const [shippedOrders, setShippedOrders] = useState([]);
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [workerName, setWorkerName] = useState("Loading..."); // NEW: Worker Name State
+  const [workerName, setWorkerName] = useState("Loading..."); 
   
   // UI & Animation State
   const [soundEnabled, setSoundEnabled] = useState(false);
@@ -27,17 +27,17 @@ export default function WarehousePage() {
 
   useEffect(() => {
     fetchWarehouseData();
-    fetchWorkerProfile(); // NEW: Fetch their name on load
+    fetchWorkerProfile(); 
   }, []);
 
-  // NEW: Fetch the logged in worker's name
+  // UPDATED: Fetch the logged in worker's name from the new EMPLOYEES table
   const fetchWorkerProfile = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.user?.email) {
       const { data } = await supabase
-        .from("warehouse_workers")
+        .from("employees")
         .select("name")
-        .eq("email", session.user.email)
+        .eq("email", session.user.email.toLowerCase())
         .maybeSingle();
       
       if (data) setWorkerName(data.name);
@@ -45,7 +45,6 @@ export default function WarehousePage() {
     }
   };
 
-  // NEW: Secure Logout Function
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push("/login");
@@ -74,7 +73,6 @@ export default function WarehousePage() {
           }
         }
       )
-      // NEW: Listener for DELETED orders
       .on(
         'postgres_changes',
         { event: 'DELETE', schema: 'public', table: 'orders' },
@@ -83,7 +81,6 @@ export default function WarehousePage() {
           const audio = new Audio("/delete-alert.mp3");
           audio.play().catch(() => console.log("Audio blocked."));
 
-          // Instantly rip it out of the UI without reloading
           setPendingOrders((prev) => prev.filter(o => o.id !== payload.old.id));
           setShippedOrders((prev) => prev.filter(o => o.id !== payload.old.id));
         }
@@ -189,7 +186,7 @@ export default function WarehousePage() {
         change_amount: Number(addQuantity),
         new_stock: newStockLevel,
         reason: "Warehouse Restock",
-        user_name: workerName // NEW: Stamps their actual name in the DB
+        user_name: workerName 
       }]);
 
       alert(`✅ Successfully added ${addQuantity} units to ${productData.name}!`);
@@ -208,190 +205,217 @@ export default function WarehousePage() {
   const displayOrders = activeTab === "pending" ? pendingOrders : shippedOrders;
 
   return (
-    <div className="p-8 text-white min-h-screen bg-black">
-      {/* HEADER SECTION */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6">
-        <div>
-          <h1 className="text-4xl font-black italic tracking-tighter uppercase text-emerald-400">CONQRETE WAREHOUSE</h1>
-          {/* NEW: Displays their name right under the header */}
-          <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.3em] mt-1">
-            Fulfillment Center <span className="mx-2">|</span> <span className="text-emerald-400">OPERATOR: {workerName}</span>
-          </p>
-        </div>
+    <div className="min-h-screen bg-[#0c0e10] text-[#eeeef0] pb-32 font-sans selection:bg-[#a1faff]/30">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Manrope:wght@200;300;400;500;600;700;800&display=swap');
+        .font-headline { font-family: 'Space Grotesk', sans-serif; }
+        .font-label { font-family: 'Manrope', sans-serif; }
+        .glass-card { background: rgba(35, 38, 41, 0.4); backdrop-filter: blur(24px); border: 1px solid rgba(161, 250, 255, 0.1); }
+        .glass-modal { background: rgba(12, 14, 16, 0.95); backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.1); }
         
-        <div className="flex gap-4 items-center">
-          <button
-            onClick={handleEnableSound}
-            className={`px-4 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all whitespace-nowrap border ${
-              soundEnabled
-                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                : 'bg-[#111] text-gray-500 border-gray-800 hover:text-white hover:border-gray-600'
+        @keyframes flashNew {
+          0% { box-shadow: 0 0 30px rgba(0, 244, 254, 0.6); border-color: #00f4fe; }
+          100% { box-shadow: none; border-color: rgba(161, 250, 255, 0.1); }
+        }
+        .new-arrival { animation: flashNew 3s ease-out; border: 1px solid #00f4fe; }
+        .shipping { opacity: 0.5; filter: grayscale(100%); transform: scale(0.98); transition: all 0.5s ease; }
+      `}</style>
+
+      {/* TOP HEADER */}
+      <header className="w-full h-24 sticky top-0 z-30 bg-[#0c0e10]/80 backdrop-blur-md border-b border-[#a1faff]/5 flex justify-between items-center px-6 md:px-12 max-w-[1920px] mx-auto shadow-sm">
+        <div className="flex items-center gap-4">
+          <nav className="flex text-[10px] md:text-xs font-label uppercase tracking-widest gap-2 md:gap-3">
+            <span className="text-slate-500">CONQRETE</span>
+            <span className="text-slate-700">/</span>
+            <span className="text-emerald-400 border-b border-emerald-400/50 pb-1">LOGISTICS_HUB</span>
+          </nav>
+        </div>
+        <div className="flex items-center gap-4 md:gap-8">
+          <div className="text-right hidden sm:block">
+            <p className="text-[11px] font-bold font-headline text-white leading-none uppercase">{workerName}</p>
+            <p className="text-[9px] text-slate-400 font-label tracking-widest mt-1 uppercase">Fulfillment Operator</p>
+          </div>
+          <div className="w-10 h-10 rounded-full border border-emerald-500/20 flex items-center justify-center bg-[#111] text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+          </div>
+        </div>
+      </header>
+
+      {/* MAIN CONTENT CANVAS */}
+      <div className="p-4 md:p-8 max-w-[1200px] mx-auto mt-4">
+        
+        {/* TABS NAVIGATION */}
+        <div className="flex gap-4 md:gap-8 border-b border-white/5 mb-8">
+          <button 
+            onClick={() => setActiveTab("pending")}
+            className={`pb-4 text-[10px] md:text-xs font-headline font-black uppercase tracking-[0.2em] transition-all flex-1 md:flex-none text-center ${
+              activeTab === "pending" ? "text-emerald-400 border-b-2 border-emerald-400" : "text-slate-500 hover:text-white"
             }`}
           >
-            {soundEnabled ? '🔊 Alerts On' : '🔇 Alerts Off'}
+            Dispatch Queue ({pendingOrders.length})
           </button>
-
-          <button
-            onClick={() => setIsInventoryOpen(true)}
-            className="bg-[#111] border border-gray-800 text-white hover:border-emerald-400 hover:text-emerald-400 px-6 py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all whitespace-nowrap"
+          <button 
+            onClick={() => setActiveTab("shipped")}
+            className={`pb-4 text-[10px] md:text-xs font-headline font-black uppercase tracking-[0.2em] transition-all flex-1 md:flex-none text-center ${
+              activeTab === "shipped" ? "text-[#a1faff] border-b-2 border-[#a1faff]" : "text-slate-500 hover:text-white"
+            }`}
           >
-            + Receive
+            History Log
           </button>
+        </div>
 
-          {/* NEW: Logout Button */}
-          <button
-            onClick={handleLogout}
-            className="bg-red-500/10 text-red-500 border border-red-500/30 hover:bg-red-500 hover:text-white px-6 py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all whitespace-nowrap"
-          >
-            Logout
-          </button>
+        {/* LOADING STATE */}
+        {isLoading && (
+          <div className="flex justify-center items-center py-20">
+             <div className="text-emerald-400 font-mono text-xs uppercase tracking-[0.4em] animate-pulse">Syncing Floor Data...</div>
+          </div>
+        )}
+
+        {/* EMPTY STATE */}
+        {displayOrders.length === 0 && !isLoading && (
+          <div className="glass-card rounded-3xl p-16 text-center border-dashed border-white/10">
+            <p className="text-slate-500 uppercase tracking-widest text-[10px] font-label font-bold">
+              {activeTab === "pending" ? "All clear. Warehouse is optimized." : "No shipment history found."}
+            </p>
+          </div>
+        )}
+
+        {/* ORDERS CARDS (Mobile-First Pick Tickets) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {displayOrders.map((o) => {
+            const isShipping = shippingIds.includes(o.id);
+            const isNew = newArrivalIds.includes(o.id);
+
+            let cardClass = "glass-card p-6 md:p-8 rounded-3xl flex flex-col transition-all relative overflow-hidden group ";
+            if (isShipping) cardClass += "shipping ";
+            if (isNew) cardClass += "new-arrival ";
+
+            return (
+              <div key={o.id} className={cardClass}>
+                {/* Pick Ticket Header */}
+                <div className="flex justify-between items-start mb-6 border-b border-white/5 pb-6">
+                  <div>
+                    <p className="text-[10px] text-slate-500 font-label uppercase tracking-widest font-bold mb-1">Destination</p>
+                    <p className="text-lg md:text-xl font-bold text-white uppercase font-headline tracking-wide leading-tight">{o.customer_name}</p>
+                    <p className={`font-mono text-xs mt-2 ${activeTab === 'pending' ? 'text-emerald-400' : 'text-slate-500'}`}>
+                      {o.order_number}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className={`text-[9px] font-label uppercase tracking-widest font-black px-3 py-1.5 rounded-full border ${
+                      activeTab === 'pending' ? 'text-orange-400 border-orange-400/20 bg-orange-400/5' : 'text-slate-400 border-slate-700 bg-white/5'
+                    }`}>
+                      {activeTab === 'pending' ? 'Awaiting Pack' : 'Dispatched'}
+                    </span>
+                    <p className="text-[9px] text-slate-600 font-mono mt-3 uppercase">{new Date(o.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                  </div>
+                </div>
+
+                {/* Items to Pick */}
+                <div className="flex-1 space-y-3 mb-8">
+                  <p className="text-[9px] text-[#a1faff] font-label uppercase tracking-[0.2em] font-black pl-1">Pull List</p>
+                  {o.order_items && o.order_items.map((item, idx) => (
+                    <div key={idx} className="flex justify-between items-center bg-[#050505] p-4 rounded-2xl border border-white/5">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-headline font-black text-sm border ${
+                          activeTab === 'pending' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-white/5 text-slate-400 border-white/10'
+                        }`}>
+                          x{item.quantity}
+                        </div>
+                        <div>
+                          <p className={`text-xs font-bold uppercase font-headline ${activeTab === 'pending' ? 'text-white' : 'text-slate-400'}`}>
+                            {item.product_name}
+                          </p>
+                          <p className="text-[9px] text-slate-500 font-mono tracking-widest mt-1">SKU: {item.sku}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Action Button */}
+                {activeTab === "pending" && (
+                  <button
+                    onClick={() => handleShipOrder(o)}
+                    disabled={isShipping}
+                    className="w-full bg-emerald-500 hover:bg-emerald-400 text-black py-4 md:py-5 rounded-2xl font-label font-black uppercase tracking-[0.2em] text-[10px] md:text-xs shadow-[0_0_20px_rgba(16,185,129,0.3)] active:scale-95 disabled:opacity-50 disabled:scale-100 transition-all"
+                  >
+                    {isShipping ? 'Processing Dispatch...' : 'Confirm Packed & Shipped'}
+                  </button>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      {/* TABS NAVIGATION */}
-      <div className="flex gap-8 border-b border-gray-800 mb-6">
+      {/* FIXED BOTTOM ACTION BAR */}
+      <div className="fixed bottom-6 right-4 left-4 md:right-12 md:left-auto md:w-[600px] flex gap-3 z-20">
         <button 
-          onClick={() => setActiveTab("pending")}
-          className={`pb-4 text-xs font-black uppercase tracking-widest transition-all ${
-            activeTab === "pending" ? "text-emerald-400 border-b-2 border-emerald-400" : "text-gray-600 hover:text-white"
+          onClick={handleEnableSound} 
+          className={`flex-1 glass-card border py-4 md:py-5 rounded-2xl font-label font-black uppercase tracking-[0.2em] text-[9px] shadow-2xl active:scale-95 transition-all flex justify-center items-center ${
+            soundEnabled ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-[#0c0e10]/90 text-slate-400 border-white/5 hover:text-white hover:border-white/20'
           }`}
         >
-          Pending Queue ({pendingOrders.length})
+          {soundEnabled ? '🔊 Alerts On' : '🔇 Alerts Off'}
         </button>
         <button 
-          onClick={() => setActiveTab("shipped")}
-          className={`pb-4 text-xs font-black uppercase tracking-widest transition-all ${
-            activeTab === "shipped" ? "text-gray-300 border-b-2 border-gray-300" : "text-gray-600 hover:text-white"
-          }`}
+          onClick={() => setIsInventoryOpen(true)} 
+          className="flex-[2] bg-gradient-to-r from-[#a1faff] to-[#00f4fe] text-[#002222] py-4 md:py-5 rounded-2xl font-label font-black uppercase tracking-[0.2em] text-[10px] shadow-[0_0_25px_rgba(0,242,255,0.4)] active:scale-95 hover:scale-[1.02] transition-all"
         >
-          Shipping History
+          + Receive Freight
+        </button>
+        <button 
+          onClick={handleLogout} 
+          className="flex-none bg-[#0c0e10]/90 border border-[#ff716c]/30 text-[#ff716c] px-6 py-4 md:py-5 rounded-2xl font-label font-black uppercase tracking-[0.2em] text-[9px] shadow-2xl active:scale-95 transition-all hover:bg-[#ff716c]/10"
+        >
+          Exit
         </button>
       </div>
 
-      {/* ORDERS TABLE */}
-      <div className="bg-[#0a0a0a] border border-gray-800 rounded-2xl overflow-hidden shadow-2xl">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-[#111] text-[10px] text-gray-500 uppercase font-black tracking-widest border-b border-gray-800">
-              <th className="p-6">Order Info</th>
-              <th className="p-6">Destination / Store</th>
-              <th className="p-6">Items to Pack</th>
-              <th className="p-6 text-center">Status / Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-800/50">
-            {displayOrders.length === 0 && !isLoading && (
-              <tr>
-                <td colSpan="4" className="p-12 text-center text-gray-500 uppercase tracking-widest text-xs font-bold">
-                  {activeTab === "pending" ? "No pending orders. Queue is clear! 🎯" : "No shipped history found."}
-                </td>
-              </tr>
-            )}
-
-            {displayOrders.map((o) => {
-              const isShipping = shippingIds.includes(o.id);
-              const isNew = newArrivalIds.includes(o.id);
-
-              let rowClass = "hover:bg-white/[0.02] transition-colors group ";
-              if (isShipping) rowClass += "shipping ";
-              if (isNew) rowClass += "new-arrival ";
-
-              return (
-                <tr key={o.id} className={rowClass}>
-                  <td className="p-6 align-top w-1/4">
-                    <p className={`font-mono font-bold text-sm ${activeTab === 'pending' ? 'text-emerald-400' : 'text-gray-400'}`}>
-                      {o.order_number}
-                    </p>
-                    <p className="text-[10px] text-gray-600 mt-1 uppercase">{new Date(o.created_at).toLocaleString()}</p>
-                  </td>
-                  <td className="p-6 align-top w-1/4">
-                    <p className="text-sm font-bold text-gray-200 uppercase tracking-tight">{o.customer_name}</p>
-                  </td>
-                  <td className="p-6 w-2/4">
-                    <div className="space-y-2">
-                      {o.order_items && o.order_items.map((item, idx) => (
-                        <div key={idx} className="flex justify-between items-center bg-[#111] p-3 rounded-lg border border-gray-800">
-                          <div>
-                            <p className={`text-xs font-bold uppercase ${activeTab === 'pending' ? 'text-white' : 'text-gray-400'}`}>
-                              {item.product_name}
-                            </p>
-                            <p className="text-[9px] text-gray-500 font-mono mt-0.5">SKU: {item.sku}</p>
-                          </div>
-                          <div className={`font-black font-mono text-sm px-3 py-1 rounded border ${
-                            activeTab === 'pending' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-gray-800/50 border-gray-700 text-gray-400'
-                          }`}>
-                            x{item.quantity}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </td>
-                  <td className="p-6 text-center align-middle">
-                    {activeTab === "pending" ? (
-                      <button
-                        onClick={() => handleShipOrder(o)}
-                        disabled={isShipping}
-                        className="bg-emerald-600 hover:bg-emerald-500 text-black px-6 py-4 rounded-xl font-black uppercase text-xs tracking-widest transition-all active:scale-95 disabled:opacity-50 whitespace-nowrap"
-                      >
-                        {isShipping ? 'Shipping...' : 'Mark Shipped'}
-                      </button>
-                    ) : (
-                      <span className="text-[9px] font-black px-3 py-1 rounded-full uppercase border text-gray-400 border-gray-700 bg-gray-800/50">
-                        Dispatched
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      {/* RECEIVE INVENTORY MODAL */}
+      {/* RECEIVE INVENTORY MODAL (SLIDE UP) */}
       {isInventoryOpen && (
-        <div className="fixed inset-0 bg-black/95 flex items-center justify-center p-4 z-50 backdrop-blur-xl">
-          <div className="bg-[#0a0a0a] border border-gray-800 p-10 rounded-3xl w-full max-w-md shadow-2xl">
-            <div className="flex justify-between items-center mb-8 border-b border-gray-800 pb-4">
-              <h2 className="text-xl font-black italic text-emerald-400 uppercase tracking-tighter">Receive Stock</h2>
-              <button onClick={() => setIsInventoryOpen(false)} className="text-gray-500 hover:text-white text-2xl">×</button>
+        <div className="fixed inset-0 bg-black/80 z-[90] flex items-end justify-center sm:items-center sm:p-6 backdrop-blur-md">
+          <div className="glass-modal p-8 rounded-t-3xl sm:rounded-3xl w-full max-w-md shadow-[0_0_50px_rgba(0,0,0,0.8)] animate-slide-up border-[#00f4fe]/20">
+            <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
+              <h2 className="text-xl font-black font-headline text-[#00f4fe] uppercase tracking-tighter">Log Incoming Freight</h2>
+              <button onClick={() => setIsInventoryOpen(false)} className="text-slate-500 hover:text-white text-2xl leading-none active:scale-90 transition-transform">×</button>
             </div>
 
             <form onSubmit={handleReceiveInventory} className="space-y-6">
               <div>
-                <label className="block text-[10px] text-gray-500 mb-2 uppercase font-black tracking-widest">Select Product</label>
+                <label className="block text-[10px] text-slate-400 mb-2 uppercase font-label tracking-widest font-bold">Target SKU</label>
                 <select 
                   required
                   value={selectedProduct} 
                   onChange={e => setSelectedProduct(e.target.value)}
-                  className="w-full bg-black border border-gray-800 p-4 rounded-xl text-white text-sm outline-none focus:border-emerald-400"
+                  className="w-full bg-[#050505] border border-white/10 p-4 rounded-xl text-white font-label text-sm outline-none focus:border-[#00f4fe] transition-colors"
                 >
-                  <option value="" disabled>Choose a product...</option>
-                  <option value="ALL">📦 RESTOCK ALL ITEMS</option>
+                  <option value="" disabled className="text-slate-600">Scan or select product...</option>
                   {products.map(p => (
-                    <option key={p.id} value={p.id}>{p.name} (Current: {p.stock})</option>
+                    <option key={p.id} value={p.id}>{p.name} (Floor Stock: {p.stock})</option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-[10px] text-gray-500 mb-2 uppercase font-black tracking-widest">Quantity Received</label>
+                <label className="block text-[10px] text-slate-400 mb-2 uppercase font-label tracking-widest font-bold">Units Received</label>
                 <input 
                   type="number" 
                   min="1"
                   required
                   value={addQuantity} 
                   onChange={e => setAddQuantity(e.target.value)}
-                  className="w-full bg-black border border-gray-800 p-4 rounded-xl text-white font-mono text-sm outline-none focus:border-emerald-400"
+                  className="w-full bg-[#050505] border border-[#00f4fe]/30 p-4 rounded-xl text-[#00f4fe] font-headline text-2xl font-black outline-none focus:border-[#00f4fe] transition-colors"
                 />
               </div>
 
-              <div className="pt-6">
+              <div className="pt-4 mt-2">
                 <button 
                   type="submit"
-                  className="w-full bg-emerald-500 text-black py-4 rounded-xl font-black uppercase text-xs tracking-widest hover:bg-emerald-400 active:scale-95 transition-all"
+                  className="w-full bg-gradient-to-r from-[#a1faff] to-[#00f4fe] text-[#002222] py-5 rounded-2xl font-label font-black uppercase text-[10px] tracking-[0.2em] active:scale-95 transition-all shadow-[0_0_20px_rgba(0,242,255,0.3)]"
                 >
-                  Confirm & Update DB
+                  Commit to Inventory
                 </button>
               </div>
             </form>

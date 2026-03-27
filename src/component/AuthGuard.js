@@ -21,31 +21,44 @@ export default function AuthGuard({ children }) {
 
       const userEmail = session.user.email?.toLowerCase();
 
-      // Bouncer Logic 1: Kick salesmen out of everything except /field
-      const { data: rep } = await supabase
-        .from("salesmen")
-        .select("id")
+      // Look up the user in the single 'employees' table
+      // IMPORTANT: Change "role" to whatever your actual column name is (e.g., "job_title", "department")
+      const { data: employee, error } = await supabase
+        .from("employees")
+        .select("role") 
         .eq("email", userEmail)
         .maybeSingle();
 
-      if (rep && !pathname.startsWith("/field")) {
-        router.push("/field");
-        return;
+      if (error) {
+        console.error("AuthGuard Error fetching employee:", error);
       }
 
-      // Bouncer Logic 2: Kick warehouse workers out of everything except /warehouse
-      const { data: warehouse } = await supabase
-        .from("warehouse_workers")
-        .select("id")
-        .eq("email", userEmail)
-        .maybeSingle();
+      // If the employee exists in the table, check their role
+      if (employee) {
+        const userRole = employee.role?.toLowerCase();
 
-      if (warehouse && !pathname.startsWith("/warehouse")) {
-        router.push("/warehouse");
-        return;
+        // Bouncer Logic 1: Salesmen go to /field
+        // Change 'salesman' to match whatever exact text is in your database
+        if (userRole === 'salesman' || userRole === 'sales') {
+          if (!pathname.startsWith("/field")) {
+            router.push("/field");
+            return;
+          }
+        }
+        
+        // Bouncer Logic 2: Warehouse workers go to /warehouse
+        // Change 'warehouse' to match whatever exact text is in your database
+        else if (userRole === 'warehouse' || userRole === 'warehouse_worker') {
+          if (!pathname.startsWith("/warehouse")) {
+            router.push("/warehouse");
+            return;
+          }
+        }
+        
+        // If they are an Admin (or any other role), they bypass the redirects 
+        // and go straight to whatever page they clicked (like /dashboard)
       }
 
-      // If they pass the checks (either they are an Admin, or they are a worker on their correct page)
       setIsAuthenticated(true);
       setIsLoading(false);
     };
@@ -61,9 +74,9 @@ export default function AuthGuard({ children }) {
 
   if (isLoading) {
     return (
-      <div className="h-screen w-screen bg-black flex flex-col justify-center items-center">
-        <div className="w-12 h-12 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-cyan-400 font-mono text-xs uppercase tracking-[0.3em] animate-pulse">Verifying Security Clearance...</p>
+      <div className="h-screen w-screen bg-[#050505] flex flex-col justify-center items-center">
+        <div className="w-12 h-12 border-4 border-[#00f2ff] border-t-transparent rounded-full animate-spin mb-4 shadow-[0_0_15px_#00f2ff]"></div>
+        <p className="text-[#00f2ff] font-mono text-xs uppercase tracking-[0.3em] animate-pulse">Verifying Security Clearance...</p>
       </div>
     );
   }
