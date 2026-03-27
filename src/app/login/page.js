@@ -24,78 +24,83 @@ export default function LoginPage() {
     };
   }, []);
 
- // Replace the handleLogin function in login/page.js
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    if (isScanning) return;
 
-const handleLogin = async (e) => {
-  e.preventDefault();
-  if (isScanning) return;
+    setIsScanning(true);
+    setError(null);
+    setDecryptText("AWAITING INPUT");
 
-  setIsScanning(true);
-  setError(null);
-  setDecryptText("AWAITING INPUT");
+    scrambleIntervalRef.current = setInterval(() => {
+      setDecryptText(Math.random().toString(16).substring(2, 12).toUpperCase());
+    }, 50);
 
-  scrambleIntervalRef.current = setInterval(() => {
-    setDecryptText(Math.random().toString(16).substring(2, 12).toUpperCase());
-  }, 50);
+    try {
+      const [authResponse] = await Promise.all([
+        supabase.auth.signInWithPassword({ email, password }),
+        new Promise((resolve) => setTimeout(resolve, 2500)),
+      ]);
 
-  try {
-    const [authResponse] = await Promise.all([
-      supabase.auth.signInWithPassword({ email, password }),
-      new Promise((resolve) => setTimeout(resolve, 2500)),
-    ]);
+      clearInterval(scrambleIntervalRef.current);
 
-    clearInterval(scrambleIntervalRef.current);
+      if (authResponse.error) {
+        setIsScanning(false);
+        setDecryptText("AWAITING INPUT");
+        setError("AUTH_FAILED: " + authResponse.error.message);
+        return;
+      }
 
-    if (authResponse.error) {
+      setDecryptText("ACCESS GRANTED");
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      const userEmail = authResponse.data.session.user.email?.toLowerCase();
+      const { data: employee } = await supabase
+        .from("employees")
+        .select("role")
+        .eq("work_email", userEmail)
+        .maybeSingle();
+
+      const userRole = employee?.role?.toLowerCase();
+
+      if (userRole === "salesman" || userRole === "sales") {
+        router.push("/field");
+      } else if (userRole === "warehouse" || userRole === "warehouse_worker") {
+        router.push("/warehouse");
+      } else {
+        router.push("/dashboard");
+      }
+
+    } catch (err) {
+      console.error("Login Route Error:", err);
+      clearInterval(scrambleIntervalRef.current);
       setIsScanning(false);
       setDecryptText("AWAITING INPUT");
-      setError("AUTH_FAILED: " + authResponse.error.message);
-      return;
+      setError("SYSTEM CRITICAL FAILURE");
     }
-
-    setDecryptText("ACCESS GRANTED");
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
-    // ✅ FIXED: Check role here and route to the correct page directly
-    const userEmail = authResponse.data.session.user.email?.toLowerCase();
-    const { data: employee } = await supabase
-      .from("employees")
-      .select("role")
-      .eq("work_email", userEmail)
-      .maybeSingle();
-
-    const userRole = employee?.role?.toLowerCase();
-
-    if (userRole === "salesman" || userRole === "sales") {
-      router.push("/field");
-    } else if (userRole === "warehouse" || userRole === "warehouse_worker") {
-      router.push("/warehouse");
-    } else {
-      router.push("/dashboard"); // admin or fallback
-    }
-
-  } catch (err) {
-    console.error("Login Route Error:", err);
-    clearInterval(scrambleIntervalRef.current);
-    setIsScanning(false);
-    setDecryptText("AWAITING INPUT");
-    setError("SYSTEM CRITICAL FAILURE");
-  }
-};
+  };
 
   return (
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap');
 
-        /* STRICT SCROLL LOCK */
+        /* STRICT SCROLL LOCK & NO ZOOM */
         html, body {
           margin: 0;
           padding: 0;
           width: 100%;
           height: 100%;
           overflow: hidden !important;
-          touch-action: none; /* Prevents mobile pull-to-refresh & bounce */
+          touch-action: none;
+          user-select: none;
+          -webkit-user-select: none;
+          -webkit-touch-callout: none;
+        }
+
+        /* PREVENT MOBILE ZOOM ON INPUT FOCUS */
+        input, textarea, select {
+          font-size: 16px !important;
         }
 
         @keyframes scanline {
@@ -136,6 +141,7 @@ const handleLogin = async (e) => {
           outline: none;
           transition: all 0.3s ease;
           font-family: 'Space Grotesk', sans-serif;
+          font-size: 16px !important;
         }
         .input-field:focus {
           background: rgba(35, 38, 41, 0.9);
