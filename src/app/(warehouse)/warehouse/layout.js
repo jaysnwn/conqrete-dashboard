@@ -1,6 +1,6 @@
 import AuthGuard from "../../../component/AuthGuard";
 
-export default function FieldLayout({ children }) {
+export default function WarehouseLayout({ children }) {
   return (
     <AuthGuard>
       <div style={{

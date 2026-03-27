@@ -37,7 +37,7 @@ export default function WarehousePage() {
       const { data } = await supabase
         .from("employees")
         .select("name")
-        .eq("email", session.user.email.toLowerCase())
+        .eq("work_email", session.user.email.toLowerCase())
         .maybeSingle();
       
       if (data) setWorkerName(data.name);

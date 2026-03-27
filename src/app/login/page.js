@@ -24,50 +24,64 @@ export default function LoginPage() {
     };
   }, []);
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    if (isScanning) return; 
+ // Replace the handleLogin function in login/page.js
 
-    setIsScanning(true);
-    setError(null);
-    setDecryptText("AWAITING INPUT");
+const handleLogin = async (e) => {
+  e.preventDefault();
+  if (isScanning) return;
 
-    scrambleIntervalRef.current = setInterval(() => {
-      setDecryptText(Math.random().toString(16).substring(2, 12).toUpperCase());
-    }, 50);
+  setIsScanning(true);
+  setError(null);
+  setDecryptText("AWAITING INPUT");
 
-    try {
-      const [authResponse] = await Promise.all([
-        supabase.auth.signInWithPassword({ email, password }),
-        new Promise((resolve) => setTimeout(resolve, 2500)), 
-      ]);
+  scrambleIntervalRef.current = setInterval(() => {
+    setDecryptText(Math.random().toString(16).substring(2, 12).toUpperCase());
+  }, 50);
 
-      clearInterval(scrambleIntervalRef.current);
+  try {
+    const [authResponse] = await Promise.all([
+      supabase.auth.signInWithPassword({ email, password }),
+      new Promise((resolve) => setTimeout(resolve, 2500)),
+    ]);
 
-      if (authResponse.error) {
-        setIsScanning(false);
-        setDecryptText("AWAITING INPUT");
-        setError("AUTH_FAILED: " + authResponse.error.message);
-        return;
-      }
+    clearInterval(scrambleIntervalRef.current);
 
-      setDecryptText("ACCESS GRANTED");
-      
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
-      // UPDATED: We stripped out the old table checks here.
-      // We just push them to the dashboard, and AuthGuard will instantly 
-      // intercept them and send Salesmen to /field and Warehouse to /warehouse!
-      router.push("/dashboard");
-
-    } catch (err) {
-      console.error("Login Route Error:", err);
-      clearInterval(scrambleIntervalRef.current);
+    if (authResponse.error) {
       setIsScanning(false);
       setDecryptText("AWAITING INPUT");
-      setError("SYSTEM CRITICAL FAILURE");
+      setError("AUTH_FAILED: " + authResponse.error.message);
+      return;
     }
-  };
+
+    setDecryptText("ACCESS GRANTED");
+    await new Promise((resolve) => setTimeout(resolve, 800));
+
+    // ✅ FIXED: Check role here and route to the correct page directly
+    const userEmail = authResponse.data.session.user.email?.toLowerCase();
+    const { data: employee } = await supabase
+      .from("employees")
+      .select("role")
+      .eq("work_email", userEmail)
+      .maybeSingle();
+
+    const userRole = employee?.role?.toLowerCase();
+
+    if (userRole === "salesman" || userRole === "sales") {
+      router.push("/field");
+    } else if (userRole === "warehouse" || userRole === "warehouse_worker") {
+      router.push("/warehouse");
+    } else {
+      router.push("/dashboard"); // admin or fallback
+    }
+
+  } catch (err) {
+    console.error("Login Route Error:", err);
+    clearInterval(scrambleIntervalRef.current);
+    setIsScanning(false);
+    setDecryptText("AWAITING INPUT");
+    setError("SYSTEM CRITICAL FAILURE");
+  }
+};
 
   return (
     <>

@@ -13,7 +13,7 @@ export default function AuthGuard({ children }) {
   useEffect(() => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (!session) {
         router.push("/login");
         return;
@@ -21,44 +21,39 @@ export default function AuthGuard({ children }) {
 
       const userEmail = session.user.email?.toLowerCase();
 
-      // Look up the user in the single 'employees' table
-      // IMPORTANT: Change "role" to whatever your actual column name is (e.g., "job_title", "department")
       const { data: employee, error } = await supabase
         .from("employees")
-        .select("role") 
-        .eq("email", userEmail)
+        .select("role")
+        .eq("work_email", userEmail)
         .maybeSingle();
 
       if (error) {
         console.error("AuthGuard Error fetching employee:", error);
       }
 
-      // If the employee exists in the table, check their role
       if (employee) {
         const userRole = employee.role?.toLowerCase();
 
-        // Bouncer Logic 1: Salesmen go to /field
-        // Change 'salesman' to match whatever exact text is in your database
-        if (userRole === 'salesman' || userRole === 'sales') {
+        if (userRole === "salesman" || userRole === "sales") {
           if (!pathname.startsWith("/field")) {
             router.push("/field");
-            return;
           }
+          // ✅ FIXED: Always set loading false so the redirect completes
+          setIsLoading(false);
+          return;
         }
-        
-        // Bouncer Logic 2: Warehouse workers go to /warehouse
-        // Change 'warehouse' to match whatever exact text is in your database
-        else if (userRole === 'warehouse' || userRole === 'warehouse_worker') {
+
+        if (userRole === "warehouse" || userRole === "warehouse_worker") {
           if (!pathname.startsWith("/warehouse")) {
             router.push("/warehouse");
-            return;
           }
+          // ✅ FIXED: Always set loading false so the redirect completes
+          setIsLoading(false);
+          return;
         }
-        
-        // If they are an Admin (or any other role), they bypass the redirects 
-        // and go straight to whatever page they clicked (like /dashboard)
       }
 
+      // Admin or any unrecognized role — allow through
       setIsAuthenticated(true);
       setIsLoading(false);
     };
