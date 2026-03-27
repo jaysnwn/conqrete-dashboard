@@ -38,7 +38,7 @@ export default function AuthGuard({ children }) {
           if (!pathname.startsWith("/field")) {
             router.push("/field");
           }
-          // ✅ FIXED: Always set loading false so the redirect completes
+          setIsAuthenticated(true);
           setIsLoading(false);
           return;
         }
@@ -47,7 +47,7 @@ export default function AuthGuard({ children }) {
           if (!pathname.startsWith("/warehouse")) {
             router.push("/warehouse");
           }
-          // ✅ FIXED: Always set loading false so the redirect completes
+          setIsAuthenticated(true);
           setIsLoading(false);
           return;
         }

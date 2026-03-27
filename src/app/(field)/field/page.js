@@ -56,7 +56,6 @@ export default function FieldPortal() {
       const userEmail = session.user.email.toLowerCase();
       console.log("Checking DB for email:", userEmail);
 
-      // FIX 1: Use .maybeSingle() to prevent crash if email is missing in table
       const { data: rep, error: repError } = await supabase
         .from("employees")
         .select("*")
@@ -65,11 +64,10 @@ export default function FieldPortal() {
 
       if (repError) console.error("Database Query Error:", repError);
 
-      // FIX 2: Check if role exists and match variations of "salesman"
       const isSalesRole = rep?.role?.toLowerCase() === 'salesman' || rep?.role?.toLowerCase() === 'sales';
 
       if (rep && isSalesRole) {
-        console.log("Successfully logged in as Rep:", rep.name);
+        console.log("Successfully logged in as Rep:", rep.full_name);
         await loginAsRep(rep);
       } else {
         console.warn("User is not a salesman or missing from employees table. Showing override list.");
@@ -77,14 +75,13 @@ export default function FieldPortal() {
           .from("employees")
           .select("*")
           .in("role", ["salesman", "sales", "Salesman"])
-          .order("name", { ascending: true });
+          .order("full_name", { ascending: true });
           
         setSalesmen(data || []);
       }
     } catch (err) {
       console.error("Critical error in FieldPortal:", err);
     } finally {
-      // FIX 3: Always turn off loading so the page isn't blank
       setIsLoading(false);
     }
   };
@@ -92,11 +89,10 @@ export default function FieldPortal() {
   const loginAsRep = async (rep) => {
     setCurrentRep(rep);
     
-    // Fetch related data for this specific salesman
     const [prodRes, retRes, ordRes] = await Promise.all([
       supabase.from("products").select("*").order("name", { ascending: true }),
       supabase.from("retailers").select("*").order("store_name", { ascending: true }),
-      supabase.from("orders").select("*").eq("sales_rep", rep.name).order("created_at", { ascending: false })
+      supabase.from("orders").select("*").eq("sales_rep", rep.full_name).order("created_at", { ascending: false })
     ]);
 
     setProducts(prodRes.data || []);
@@ -109,8 +105,6 @@ export default function FieldPortal() {
     router.push("/login"); 
   };
 
-  // ... (Rest of your handler functions: handleLogExpense, handleAddNewShop, etc. stay exactly the same)
-
   const handleLogExpense = async (e) => {
     e.preventDefault();
     if (!currentRep) return;
@@ -119,7 +113,7 @@ export default function FieldPortal() {
     try {
       const { error } = await supabase.from("expense_claims").insert([{
         employee_id: currentRep.id,
-        employee_name: currentRep.name,
+        employee_name: currentRep.full_name,
         date: expenseData.date,
         category: expenseData.category,
         amount: expenseData.amount,
@@ -191,7 +185,7 @@ export default function FieldPortal() {
     try {
       const { data: newOrder, error: orderErr } = await supabase.from("orders").insert([{
         order_number: orderNum, customer_name: customerName, sales_channel: salesChannel,
-        total_amount: grandTotal, status: "Pending", sales_rep: currentRep.name
+        total_amount: grandTotal, status: "Pending", sales_rep: currentRep.full_name
       }]).select().single();
 
       if (orderErr) throw orderErr;
@@ -217,7 +211,7 @@ export default function FieldPortal() {
           change_amount: -deductQty,
           new_stock: newStock,
           reason: `Field Punch: ${orderNum}`,
-          user_name: currentRep.name
+          user_name: currentRep.full_name
         }]);
       }
 
@@ -260,7 +254,7 @@ export default function FieldPortal() {
               change_amount: item.quantity,
               new_stock: restoredStock,
               reason: `Order Pulled Back: ${orderNum}`,
-              user_name: currentRep.name
+              user_name: currentRep.full_name
             }]);
           }
         }
@@ -360,7 +354,7 @@ export default function FieldPortal() {
           <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-2 [&::-webkit-scrollbar]:hidden">
             {salesmen.map(rep => (
               <button key={rep.id} onClick={() => loginAsRep(rep)} className="w-full bg-[#111418] border border-white/5 hover:border-[#a1faff]/50 hover:bg-white/5 text-left p-5 rounded-2xl flex justify-between items-center group transition-all">
-                <span className="font-bold text-white uppercase font-headline tracking-wide">{rep.name}</span>
+                <span className="font-bold text-white uppercase font-headline tracking-wide">{rep.full_name}</span>
                 <span className="text-[10px] text-slate-500 font-label tracking-widest uppercase group-hover:text-[#a1faff] transition-colors">Initialize →</span>
               </button>
             ))}
@@ -393,7 +387,7 @@ export default function FieldPortal() {
         </div>
         <div className="flex items-center gap-4 md:gap-8">
           <div className="text-right hidden sm:block">
-            <p className="text-[11px] font-bold font-headline text-white leading-none uppercase">{currentRep.name}</p>
+            <p className="text-[11px] font-bold font-headline text-white leading-none uppercase">{currentRep.full_name}</p>
             <p className="text-[9px] text-slate-400 font-label tracking-widest mt-1 uppercase">Active Agent</p>
           </div>
           <button onClick={handleLogOut} className="text-[9px] font-bold uppercase tracking-widest border border-[#ff716c]/30 text-[#ff716c] hover:bg-[#ff716c]/10 px-4 py-2 rounded-full transition-all">
@@ -497,9 +491,287 @@ export default function FieldPortal() {
         </button>
       </div>
 
-      {/* MODALS (EXPENSE, CATALOG, SHOP, ORDER, PAYMENT) */}
-      {/* (These remain same as in your original file but now work because loading/rep data is solid) */}
-      {/* ... */}
+      {/* EXPENSE MODAL */}
+      {isExpenseModalOpen && (
+        <div className="fixed inset-0 bg-black/80 z-[90] flex items-center justify-center backdrop-blur-md p-4">
+          <div className="glass-modal p-8 rounded-3xl w-full max-w-md shadow-[0_0_50px_rgba(0,0,0,0.8)]">
+            <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
+              <h2 className="text-xl font-black font-headline text-[#00f4fe] uppercase tracking-tighter">Log Expense Claim</h2>
+              <button onClick={() => setIsExpenseModalOpen(false)} className="text-slate-500 hover:text-white text-2xl leading-none">×</button>
+            </div>
+            <form onSubmit={handleLogExpense} className="space-y-6">
+              <div>
+                <label className="block text-[10px] text-slate-400 mb-2 uppercase font-label tracking-widest font-bold">Date</label>
+                <input 
+                  type="date" 
+                  value={expenseData.date}
+                  onChange={(e) => setExpenseData({...expenseData, date: e.target.value})}
+                  className="w-full bg-[#050505] border border-white/10 p-4 rounded-xl text-white outline-none focus:border-[#00f4fe]"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] text-slate-400 mb-2 uppercase font-label tracking-widest font-bold">Category</label>
+                <select 
+                  value={expenseData.category}
+                  onChange={(e) => setExpenseData({...expenseData, category: e.target.value})}
+                  className="w-full bg-[#050505] border border-white/10 p-4 rounded-xl text-white outline-none focus:border-[#00f4fe]"
+                >
+                  <option>Petrol</option>
+                  <option>Food</option>
+                  <option>Stay</option>
+                  <option>Travel</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-[10px] text-slate-400 mb-2 uppercase font-label tracking-widest font-bold">Amount (₹)</label>
+                <input 
+                  type="number" 
+                  min="1"
+                  required
+                  value={expenseData.amount}
+                  onChange={(e) => setExpenseData({...expenseData, amount: e.target.value})}
+                  className="w-full bg-[#050505] border border-[#00f4fe]/30 p-4 rounded-xl text-[#00f4fe] font-headline text-2xl font-black outline-none focus:border-[#00f4fe]"
+                />
+              </div>
+              <button 
+                type="submit"
+                className="w-full bg-gradient-to-r from-[#a1faff] to-[#00f4fe] text-[#002222] py-5 rounded-2xl font-label font-black uppercase text-[10px] tracking-[0.2em] active:scale-95 transition-all"
+              >
+                Submit Claim
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* PAYMENT MODAL */}
+      {isPaymentModalOpen && selectedOrder && (
+        <div className="fixed inset-0 bg-black/80 z-[90] flex items-center justify-center backdrop-blur-md p-4">
+          <div className="glass-modal p-8 rounded-3xl w-full max-w-md shadow-[0_0_50px_rgba(0,0,0,0.8)]">
+            <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
+              <h2 className="text-xl font-black font-headline text-emerald-400 uppercase tracking-tighter">Receive Payment</h2>
+              <button onClick={() => setIsPaymentModalOpen(false)} className="text-slate-500 hover:text-white text-2xl">×</button>
+            </div>
+            <form onSubmit={handleLogPayment} className="space-y-6">
+              <div>
+                <p className="text-[10px] text-slate-500 uppercase font-label">Order: {selectedOrder.order_number}</p>
+                <p className="text-lg font-headline font-black text-white mt-2">₹{Number(selectedOrder.total_amount).toLocaleString()}</p>
+              </div>
+              <div>
+                <label className="block text-[10px] text-slate-400 mb-2 uppercase font-label tracking-widest font-bold">Amount Received (₹)</label>
+                <input 
+                  type="number" 
+                  min="1"
+                  required
+                  value={paymentAmount}
+                  onChange={(e) => setPaymentAmount(e.target.value)}
+                  className="w-full bg-[#050505] border border-emerald-500/30 p-4 rounded-xl text-emerald-400 font-headline text-2xl font-black outline-none focus:border-emerald-400"
+                />
+              </div>
+              <button 
+                type="submit"
+                className="w-full bg-gradient-to-r from-emerald-500 to-emerald-400 text-[#002222] py-5 rounded-2xl font-label font-black uppercase text-[10px] tracking-[0.2em]"
+              >
+                Confirm Payment
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* CREATE ORDER MODAL */}
+      {isCreatingOrder && (
+        <div className="fixed inset-0 bg-black/80 z-[90] flex items-end justify-center sm:items-center backdrop-blur-md p-4">
+          <div className="glass-modal p-8 rounded-t-3xl sm:rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-[0_0_50px_rgba(0,0,0,0.8)]">
+            <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4 sticky top-0">
+              <h2 className="text-xl font-black font-headline text-[#00f4fe] uppercase tracking-tighter">Punch New Order</h2>
+              <button onClick={() => setIsCreatingOrder(false)} className="text-slate-500 hover:text-white text-2xl">×</button>
+            </div>
+            <form onSubmit={submitMobileOrder} className="space-y-6">
+              <div>
+                <label className="block text-[10px] text-slate-400 mb-2 uppercase font-label tracking-widest font-bold">Customer</label>
+                <div className="flex gap-2">
+                  <select 
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    className="flex-1 bg-[#050505] border border-white/10 p-4 rounded-xl text-white outline-none focus:border-[#00f4fe]"
+                  >
+                    <option value="">Select Customer...</option>
+                    {retailers.map(r => (
+                      <option key={r.id} value={r.store_name}>{r.store_name}</option>
+                    ))}
+                  </select>
+                  <button 
+                    type="button"
+                    onClick={() => setIsAddingRetailer(true)}
+                    className="bg-[#a1faff]/10 text-[#a1faff] px-4 rounded-xl border border-[#a1faff]/30 hover:bg-[#a1faff]/20"
+                  >
+                    + New
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] text-slate-400 mb-2 uppercase font-label tracking-widest font-bold">Channel</label>
+                <select 
+                  value={salesChannel}
+                  onChange={(e) => setSalesChannel(e.target.value)}
+                  className="w-full bg-[#050505] border border-white/10 p-4 rounded-xl text-white outline-none focus:border-[#00f4fe]"
+                >
+                  <option>Retailer</option>
+                  <option>Distributor</option>
+                </select>
+              </div>
+
+              <div>
+                <div className="flex justify-between items-center mb-4">
+                  <label className="text-[10px] text-slate-400 uppercase font-label tracking-widest font-bold">Items</label>
+                  <button 
+                    type="button"
+                    onClick={handleAddItem}
+                    className="text-[#a1faff] text-sm hover:text-[#00f4fe]"
+                  >
+                    + Add Item
+                  </button>
+                </div>
+                {cart.map((item, idx) => (
+                  <div key={idx} className="flex gap-2 mb-3">
+                    <select 
+                      value={item.productId}
+                      onChange={(e) => updateCartItem(idx, "productId", e.target.value)}
+                      className="flex-1 bg-[#050505] border border-white/10 p-2 rounded-lg text-white text-sm outline-none"
+                    >
+                      <option value="">Product...</option>
+                      {products.map(p => (
+                        <option key={p.id} value={p.id}>{p.name}</option>
+                      ))}
+                    </select>
+                    <input 
+                      type="number"
+                      min="1"
+                      value={item.quantity}
+                      onChange={(e) => updateCartItem(idx, "quantity", e.target.value)}
+                      className="w-16 bg-[#050505] border border-white/10 p-2 rounded-lg text-white text-sm outline-none"
+                      placeholder="Qty"
+                    />
+                    {cart.length > 1 && (
+                      <button 
+                        type="button"
+                        onClick={() => removeItem(idx)}
+                        className="text-red-500 hover:text-red-400 px-2"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <div className="bg-white/5 p-4 rounded-xl">
+                <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-2">Total Amount</p>
+                <p className="text-3xl font-headline font-black text-[#a1faff]">₹{calculateTotal().toLocaleString()}</p>
+              </div>
+
+              <button 
+                type="submit"
+                className="w-full bg-gradient-to-r from-[#a1faff] to-[#00f4fe] text-[#002222] py-5 rounded-2xl font-label font-black uppercase text-[10px] tracking-[0.2em]"
+              >
+                Push Order to HQ
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ADD NEW RETAILER MODAL */}
+      {isAddingRetailer && (
+        <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center backdrop-blur-md p-4">
+          <div className="glass-modal p-8 rounded-3xl w-full max-w-md shadow-[0_0_50px_rgba(0,0,0,0.8)]">
+            <h2 className="text-xl font-black font-headline text-[#00f4fe] uppercase tracking-tighter mb-6">Add New Retailer</h2>
+            <form onSubmit={handleAddNewShop} className="space-y-6">
+              <input 
+                type="text"
+                placeholder="Store Name"
+                required
+                value={newShop.store_name}
+                onChange={(e) => setNewShop({...newShop, store_name: e.target.value})}
+                className="w-full bg-[#050505] border border-white/10 p-4 rounded-xl text-white outline-none focus:border-[#00f4fe]"
+              />
+              <input 
+                type="text"
+                placeholder="Location"
+                required
+                value={newShop.location}
+                onChange={(e) => setNewShop({...newShop, location: e.target.value})}
+                className="w-full bg-[#050505] border border-white/10 p-4 rounded-xl text-white outline-none focus:border-[#00f4fe]"
+              />
+              <input 
+                type="tel"
+                placeholder="Phone"
+                value={newShop.phone}
+                onChange={(e) => setNewShop({...newShop, phone: e.target.value})}
+                className="w-full bg-[#050505] border border-white/10 p-4 rounded-xl text-white outline-none focus:border-[#00f4fe]"
+              />
+              <input 
+                type="email"
+                placeholder="Email"
+                value={newShop.email}
+                onChange={(e) => setNewShop({...newShop, email: e.target.value})}
+                className="w-full bg-[#050505] border border-white/10 p-4 rounded-xl text-white outline-none focus:border-[#00f4fe]"
+              />
+              <div className="flex gap-4">
+                <button 
+                  type="button"
+                  onClick={() => setIsAddingRetailer(false)}
+                  className="flex-1 bg-slate-700 text-white py-3 rounded-xl font-label font-black uppercase text-sm"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  className="flex-1 bg-gradient-to-r from-[#a1faff] to-[#00f4fe] text-[#002222] py-3 rounded-xl font-label font-black uppercase text-sm"
+                >
+                  Add Store
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* CATALOG MODAL */}
+      {isCatalogOpen && (
+        <div className="fixed inset-0 bg-black/80 z-[90] flex items-end justify-center sm:items-center backdrop-blur-md p-4">
+          <div className="glass-modal p-8 rounded-t-3xl sm:rounded-3xl w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-white/10 sticky top-0">
+              <h2 className="text-xl font-black font-headline text-[#a1faff] uppercase">Product Catalog</h2>
+              <button onClick={() => setIsCatalogOpen(false)} className="text-slate-500 hover:text-white text-2xl">×</button>
+            </div>
+            <input 
+              type="text"
+              placeholder="Search products..."
+              value={catalogSearch}
+              onChange={(e) => setCatalogSearch(e.target.value)}
+              className="w-full bg-[#050505] border border-white/10 p-3 rounded-xl text-white mb-6 outline-none focus:border-[#a1faff]"
+            />
+            <div className="space-y-4">
+              {filteredCatalog.map(p => (
+                <div key={p.id} className="glass-card p-4 rounded-xl">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <p className="text-white font-headline font-black">{p.name}</p>
+                      <p className="text-[10px] text-slate-500 font-mono">{p.sku}</p>
+                    </div>
+                    <p className="text-[#a1faff] font-headline font-black">₹{Number(p.pricing?.retailer || 0).toLocaleString()}</p>
+                  </div>
+                  <p className="text-[10px] text-slate-400">Stock: {p.stock} units</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

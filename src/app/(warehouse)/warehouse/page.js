@@ -32,16 +32,21 @@ export default function WarehousePage() {
 
   // UPDATED: Fetch the logged in worker's name from the new EMPLOYEES table
   const fetchWorkerProfile = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session?.user?.email) {
-      const { data } = await supabase
-        .from("employees")
-        .select("name")
-        .eq("work_email", session.user.email.toLowerCase())
-        .maybeSingle();
-      
-      if (data) setWorkerName(data.name);
-      else setWorkerName("Warehouse Staff");
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.email) {
+        const { data } = await supabase
+          .from("employees")
+          .select("full_name")
+          .eq("work_email", session.user.email.toLowerCase())
+          .maybeSingle();
+        
+        if (data) setWorkerName(data.full_name);
+        else setWorkerName("Warehouse Staff");
+      }
+    } catch (err) {
+      console.error("Error fetching worker profile:", err);
+      setWorkerName("Warehouse Staff");
     }
   };
 
