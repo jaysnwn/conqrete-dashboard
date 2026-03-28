@@ -24,15 +24,20 @@ export default function RetailersPage() {
   };
 
   const handleSave = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
+  try {
     const { error } = await supabase.from("retailers").insert([formData]);
-    if (error) alert(error.message);
-    else {
-      fetchRetailers();
-      setIsModalOpen(false);
-      setFormData({ store_name: "", contact_person: "", phone: "", email: "", location: "", payment_cycle_days: 30 });
-    }
-  };
+    if (error) throw error;
+    
+    // ✅ NEW: Add success message
+    alert(`✅ Retailer "${formData.store_name}" added successfully!`);
+    fetchRetailers();
+    setIsModalOpen(false);
+    setFormData({ store_name: "", contact_person: "", phone: "", email: "", location: "", payment_cycle_days: 30 });
+  } catch (err) {
+    alert(`Error: ${err.message}`);
+  }
+};
 
   // --- NEW: CONTACT HANDLER ---
   const handleContact = (retailer) => {

@@ -111,63 +111,84 @@ export default function OrdersPage() {
 
   // The 2-Step Deletion Logic (WITH INVENTORY RESTORATION)
   const handleDeleteClick = (orderId) => {
-    // 1. Play the warning sound
-    const deleteAudio = new Audio("/delete-alert.mp3");
-    deleteAudio.play().catch(() => console.log("Audio blocked."));
+  const deleteAudio = new Audio("/delete-alert.mp3");
+  deleteAudio.play().catch(() => console.log("Audio blocked."));
 
-    // 2. Add ID to array to trigger the red CSS animation instantly
-    setDeletingIds((prev) => [...prev, orderId]);
+  setDeletingIds((prev) => [...prev, orderId]);
 
-    // 3. Wait 2 seconds so the animation plays, then process database actions
-    setTimeout(async () => {
-      try {
-        // STEP A: Fetch the items inside this order so we know what to restore
-        const { data: itemsToRestore, error: fetchErr } = await supabase
-          .from("order_items")
-          .select("product_id, quantity")
-          .eq("order_id", orderId);
+  setTimeout(async () => {
+    try {
+      // 1. Get the order details first
+      const orderToDelete = orders.find(o => o.id === orderId);
+      if (!orderToDelete) throw new Error("Order not found");
 
-        if (fetchErr) throw fetchErr;
+      // 2. Get order items to restore stock
+      const { data: items } = await supabase
+        .from("order_items")
+        .select("*")
+        .eq("order_id", orderId);
 
-        // STEP B: Loop through the items and add the stock back to the products table
-        if (itemsToRestore && itemsToRestore.length > 0) {
-          for (const item of itemsToRestore) {
-            const { data: productData } = await supabase
+      // ✅ NEW: Restore inventory for each item
+      if (items && items.length > 0) {
+        for (const item of items) {
+          const { data: product } = await supabase
+            .from("products")
+            .select("stock")
+            .eq("id", item.product_id)
+            .single();
+
+          if (product) {
+            const restoredStock = Number(product.stock) + Number(item.quantity);
+            await supabase
               .from("products")
-              .select("stock")
-              .eq("id", item.product_id)
-              .single();
+              .update({ stock: restoredStock })
+              .eq("id", item.product_id);
 
-            if (productData) {
-              const restoredStock = Number(productData.stock) + Number(item.quantity);
-              
-              await supabase
-                .from("products")
-                .update({ stock: restoredStock })
-                .eq("id", item.product_id);
-            }
+            // Log the restoration
+            await supabase
+              .from("inventory_logs")
+              .insert([{
+                product_id: item.product_id,
+                product_name: item.product_name,
+                change_amount: Number(item.quantity),
+                new_stock: restoredStock,
+                reason: `Order Deleted: ${orderToDelete.order_number}`,
+                user_name: "Admin"
+              }]);
           }
         }
-
-        // STEP C: Now delete the actual order
-        const { error } = await supabase.from("orders").delete().eq("id", orderId);
-        if (error) throw error;
-
-        // Remove from the local UI
-        setOrders((currentOrders) => currentOrders.filter(o => o.id !== orderId));
-        
-        // Refresh data to show updated product stock in your UI
-        fetchInitialData();
-
-      } catch (err) {
-        console.error("Failed to delete order and restore stock:", err);
-        alert("Could not process deletion completely.");
-      } finally {
-        // Always clean up the animation state array
-        setDeletingIds((prev) => prev.filter(id => id !== orderId));
       }
-    }, 2000);
-  };
+
+      // ✅ NEW: Update retailer totals
+      const retailer = retailers.find(r => r.store_name === orderToDelete.customer_name);
+      if (retailer) {
+        const newLifetime = Math.max(0, Number(retailer.total_lifetime_sales || 0) - Number(orderToDelete.total_amount));
+        const newPending = Math.max(0, Number(retailer.total_pending || 0) - Number(orderToDelete.total_amount));
+        await supabase
+          .from("retailers")
+          .update({ total_lifetime_sales: newLifetime, total_pending: newPending })
+          .eq("id", retailer.id);
+      }
+
+      // 3. Delete order items
+      await supabase.from("order_items").delete().eq("order_id", orderId);
+
+      // 4. Delete order
+      await supabase.from("orders").delete().eq("id", orderId);
+
+      // 5. Remove from UI
+      setOrders((prev) => prev.filter(o => o.id !== orderId));
+      setDeletingIds((prev) => prev.filter(id => id !== orderId));
+
+      alert(`✅ Order ${orderToDelete.order_number} deleted and inventory restored!`);
+      fetchInitialData();
+    } catch (err) {
+      console.error("Delete failed:", err);
+      alert("Error deleting order: " + err.message);
+      setDeletingIds((prev) => prev.filter(id => id !== orderId));
+    }
+  }, 2000);
+};
 
   const handleAddItem = () => {
     setCart([...cart, { productId: "", quantity: 1, unitPrice: 0, totalPrice: 0 }]);

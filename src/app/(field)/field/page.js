@@ -191,12 +191,18 @@ export default function FieldPortal() {
       if (orderErr) throw orderErr;
 
       for (const item of cart) {
-        const product = products.find(p => p.id === item.productId);
-        const price = salesChannel === "Distributor" ? product.pricing.distributor : product.pricing.retailer;
-        
-        const currentStock = Number(product.stock) || 0;
-        const deductQty = Number(item.quantity) || 0;
-        const newStock = currentStock - deductQty;
+  const product = products.find(p => p.id === item.productId);
+  
+  // ✅ NEW: Add null check
+  if (!product || !product.pricing) {
+    throw new Error(`Product or pricing data missing for product ID: ${item.productId}`);
+  }
+  
+  const price = salesChannel === "Distributor" ? product.pricing.distributor : product.pricing.retailer;
+  
+  const currentStock = Number(product.stock) || 0;
+  const deductQty = Number(item.quantity) || 0;
+  const newStock = currentStock - deductQty;
 
         await supabase.from("order_items").insert([{
           order_id: newOrder.id, product_id: product.id, product_name: product.name,
