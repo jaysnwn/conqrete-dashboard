@@ -1,0 +1,16 @@
+{
+  "name": "CONQRETE Field",
+  "short_name": "CONQRETE",
+  "description": "Field Sales Portal for CONQRETE Agents",
+  "start_url": "/field",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#00f4fe",
+  "icons": [
+    {
+      "src": "/globe.svg", 
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ]
+}
