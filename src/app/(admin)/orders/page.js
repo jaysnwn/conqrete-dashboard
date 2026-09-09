@@ -111,84 +111,84 @@ export default function OrdersPage() {
 
   // The 2-Step Deletion Logic (WITH INVENTORY RESTORATION)
   const handleDeleteClick = (orderId) => {
-  const deleteAudio = new Audio("/delete-alert.mp3");
-  deleteAudio.play().catch(() => console.log("Audio blocked."));
+    const deleteAudio = new Audio("/delete-alert.mp3");
+    deleteAudio.play().catch(() => console.log("Audio blocked."));
 
-  setDeletingIds((prev) => [...prev, orderId]);
+    setDeletingIds((prev) => [...prev, orderId]);
 
-  setTimeout(async () => {
-    try {
-      // 1. Get the order details first
-      const orderToDelete = orders.find(o => o.id === orderId);
-      if (!orderToDelete) throw new Error("Order not found");
+    setTimeout(async () => {
+      try {
+        // 1. Get the order details first
+        const orderToDelete = orders.find(o => o.id === orderId);
+        if (!orderToDelete) throw new Error("Order not found");
 
-      // 2. Get order items to restore stock
-      const { data: items } = await supabase
-        .from("order_items")
-        .select("*")
-        .eq("order_id", orderId);
+        // 2. Get order items to restore stock
+        const { data: items } = await supabase
+          .from("order_items")
+          .select("*")
+          .eq("order_id", orderId);
 
-      // ✅ NEW: Restore inventory for each item
-      if (items && items.length > 0) {
-        for (const item of items) {
-          const { data: product } = await supabase
-            .from("products")
-            .select("stock")
-            .eq("id", item.product_id)
-            .single();
-
-          if (product) {
-            const restoredStock = Number(product.stock) + Number(item.quantity);
-            await supabase
+        // Restore inventory for each item
+        if (items && items.length > 0) {
+          for (const item of items) {
+            const { data: product } = await supabase
               .from("products")
-              .update({ stock: restoredStock })
-              .eq("id", item.product_id);
+              .select("stock")
+              .eq("id", item.product_id)
+              .single();
 
-            // Log the restoration
-            await supabase
-              .from("inventory_logs")
-              .insert([{
-                product_id: item.product_id,
-                product_name: item.product_name,
-                change_amount: Number(item.quantity),
-                new_stock: restoredStock,
-                reason: `Order Deleted: ${orderToDelete.order_number}`,
-                user_name: "Admin"
-              }]);
+            if (product) {
+              const restoredStock = Number(product.stock) + Number(item.quantity);
+              await supabase
+                .from("products")
+                .update({ stock: restoredStock })
+                .eq("id", item.product_id);
+
+              // Log the restoration
+              await supabase
+                .from("inventory_logs")
+                .insert([{
+                  product_id: item.product_id,
+                  product_name: item.product_name,
+                  change_amount: Number(item.quantity),
+                  new_stock: restoredStock,
+                  reason: `Order Deleted: ${orderToDelete.order_number}`,
+                  user_name: "Admin"
+                }]);
+            }
           }
         }
+
+        // Update retailer totals
+        const retailer = retailers.find(r => r.store_name === orderToDelete.customer_name);
+        if (retailer) {
+          const newLifetime = Math.max(0, Number(retailer.total_lifetime_sales || 0) - Number(orderToDelete.total_amount));
+          const newPending = Math.max(0, Number(retailer.total_pending || 0) - Number(orderToDelete.total_amount));
+          await supabase
+            .from("retailers")
+            .update({ total_lifetime_sales: newLifetime, total_pending: newPending })
+            .eq("id", retailer.id);
+        }
+
+        // 3. Delete order items
+        await supabase.from("order_items").delete().eq("order_id", orderId);
+
+        // 4. Delete order
+        await supabase.from("orders").delete().eq("id", orderId);
+
+        // 5. Remove from UI
+        setOrders((prev) => prev.filter(o => o.id !== orderId));
+        setDeletingIds((prev) => prev.filter(id => id !== orderId));
+
+        alert(`✅ Order ${orderToDelete.order_number} deleted and inventory restored!`);
+        fetchInitialData();
+      } catch (err) {
+        console.error("Delete failed:", err);
+        alert("Error deleting order: " + err.message);
+        setDeletingIds((prev) => prev.filter(id => id !== orderId));
       }
-
-      // ✅ NEW: Update retailer totals
-      const retailer = retailers.find(r => r.store_name === orderToDelete.customer_name);
-      if (retailer) {
-        const newLifetime = Math.max(0, Number(retailer.total_lifetime_sales || 0) - Number(orderToDelete.total_amount));
-        const newPending = Math.max(0, Number(retailer.total_pending || 0) - Number(orderToDelete.total_amount));
-        await supabase
-          .from("retailers")
-          .update({ total_lifetime_sales: newLifetime, total_pending: newPending })
-          .eq("id", retailer.id);
-      }
-
-      // 3. Delete order items
-      await supabase.from("order_items").delete().eq("order_id", orderId);
-
-      // 4. Delete order
-      await supabase.from("orders").delete().eq("id", orderId);
-
-      // 5. Remove from UI
-      setOrders((prev) => prev.filter(o => o.id !== orderId));
-      setDeletingIds((prev) => prev.filter(id => id !== orderId));
-
-      alert(`✅ Order ${orderToDelete.order_number} deleted and inventory restored!`);
-      fetchInitialData();
-    } catch (err) {
-      console.error("Delete failed:", err);
-      alert("Error deleting order: " + err.message);
-      setDeletingIds((prev) => prev.filter(id => id !== orderId));
-    }
-  }, 2000);
-};
+    }, 2000);
+  };
 
   const handleAddItem = () => {
     setCart([...cart, { productId: "", quantity: 1, unitPrice: 0, totalPrice: 0 }]);
@@ -208,8 +208,8 @@ export default function OrdersPage() {
       if (selectedProd) {
         item.productId = value;
         item.unitPrice = salesChannel === "Distributor"
-          ? selectedProd.pricing?.distributor || 0
-          : selectedProd.pricing?.retailer || 0;
+          ? selectedProd.pricing?.sellingPriceToDistributor || 0
+          : selectedProd.pricing?.retailSellingPrice || 0;
       }
     } else if (field === "quantity") {
       item.quantity = Number(value) || 0;
@@ -312,92 +312,92 @@ export default function OrdersPage() {
   );
 
   return (
-    <div className="p-8 text-white min-h-screen bg-black">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
+    <div className="w-full max-w-[1920px] mx-auto text-[#111827]">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
-          <h1 className="text-4xl font-black italic tracking-tighter uppercase text-white">CONQRETE SALES</h1>
-          <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.3em] mt-1">Transaction & Revenue Terminal</p>
+          <h1 className="text-2xl font-bold text-[#111827]">Sales Orders</h1>
+          <p className="text-[#6B7280] text-sm mt-1">Manage transactions and invoices</p>
         </div>
-        <div className="flex gap-4 w-full md:w-auto items-center">
+        <div className="flex gap-3 w-full md:w-auto items-center">
           <input
             type="text"
             placeholder="Search Orders..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="bg-[#111] border border-gray-800 px-4 py-3 rounded-xl text-xs outline-none focus:border-cyan-400 w-full"
+            className="bg-white border border-[#D1D5DB] px-4 py-2 rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#0EA5E9]/50 focus:border-[#0EA5E9] w-full"
           />
 
           <button
             onClick={handleEnableSound}
-            className={`px-4 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all whitespace-nowrap border ${
+            className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all whitespace-nowrap border ${
               soundEnabled
-                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                : 'bg-[#111] text-gray-500 border-gray-800 hover:text-white hover:border-gray-600'
+                ? 'bg-[#D1FAE5] text-[#065F46] border-[#A7F3D0]'
+                : 'bg-white text-[#374151] border-[#D1D5DB] hover:bg-[#F9FAFB]'
             }`}
           >
-            {soundEnabled ? '🔊 Alerts On' : '🔇 Enable Alerts'}
+            {soundEnabled ? '🔊 Alerts On' : '🔇 Alerts Off'}
           </button>
 
           <button
             onClick={() => setIsFormOpen(true)}
-            className="bg-cyan-400 text-black px-8 py-3 rounded-xl font-black uppercase text-xs tracking-widest hover:scale-105 transition-all shadow-lg shadow-cyan-400/20 whitespace-nowrap"
+            className="bg-[#0EA5E9] text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-[#0284C7] transition-colors shadow-sm whitespace-nowrap"
           >
-            + Create Invoice
+            New Sale
           </button>
         </div>
       </div>
 
-      <div className="bg-[#0a0a0a] border border-gray-800 rounded-2xl overflow-hidden shadow-2xl">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-[#111] text-[10px] text-gray-500 uppercase font-black tracking-widest border-b border-gray-800">
-              <th className="p-6">Order Reference</th>
-              <th className="p-6">Client Name</th>
-              <th className="p-6">Status</th>
-              <th className="p-6 text-right">Grand Total</th>
-              <th className="p-6 text-center">Actions</th>
+      <div className="bg-white border border-[#E5E7EB] rounded-lg shadow-sm overflow-hidden overflow-x-auto">
+        <table className="w-full text-left">
+          <thead className="bg-[#F9FAFB] border-b border-[#E5E7EB]">
+            <tr>
+              <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-[#6B7280]">Order Reference</th>
+              <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-[#6B7280]">Client Name</th>
+              <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-[#6B7280]">Status</th>
+              <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-[#6B7280] text-right">Grand Total</th>
+              <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-[#6B7280] text-center">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-800/50">
+          <tbody className="divide-y divide-[#E5E7EB]">
             {filteredOrders.map((o) => {
               const isDeleting = deletingIds.includes(o.id);
               const isNew = newArrivalIds.includes(o.id);
 
-              let rowClass = "hover:bg-white/[0.02] transition-colors group ";
+              let rowClass = "hover:bg-[#F9FAFB] transition-colors group ";
               if (isDeleting) rowClass += "deleting pointer-events-none ";
               if (isNew) rowClass += "new-arrival";
 
               return (
                 <tr key={o.id} className={rowClass}>
-                  <td className="p-6">
-                    <p className="font-mono text-cyan-400 font-bold text-sm">{o.order_number}</p>
-                    <p className="text-[10px] text-gray-600 mt-1 uppercase">{new Date(o.created_at).toLocaleDateString()}</p>
+                  <td className="px-6 py-4">
+                    <p className="font-semibold text-[#111827] text-sm">{o.order_number}</p>
+                    <p className="text-xs text-[#6B7280] mt-1">{new Date(o.created_at).toLocaleDateString()}</p>
                   </td>
-                  <td className="p-6">
-                    <p className="text-sm font-bold text-gray-200 uppercase tracking-tight">{o.customer_name}</p>
-                    <p className="text-[9px] text-gray-600 uppercase font-bold">{o.sales_channel}</p>
+                  <td className="px-6 py-4">
+                    <p className="text-sm font-medium text-[#111827]">{o.customer_name}</p>
+                    <p className="text-xs text-[#6B7280] uppercase mt-1">{o.sales_channel}</p>
                   </td>
-                  <td className="p-6">
-                    <span className={`text-[9px] font-black px-3 py-1 rounded-full uppercase border ${
-                      o.status === 'Pending' ? 'text-orange-500 border-orange-500/20 bg-orange-500/5' : 'text-emerald-500 border-emerald-500/20 bg-emerald-500/5'
+                  <td className="px-6 py-4">
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${
+                      o.status === 'Pending' ? 'text-[#92400E] border-[#FDE68A] bg-[#FEF3C7]' : 'text-[#065F46] border-[#A7F3D0] bg-[#D1FAE5]'
                     }`}>
                       {o.status}
                     </span>
                   </td>
-                  <td className="p-6 text-right font-mono text-white text-lg font-black">
+                  <td className="px-6 py-4 text-right font-medium text-[#111827] text-sm">
                     ₹{Number(o.total_amount).toLocaleString()}
                   </td>
-                  <td className="p-6 text-center flex justify-center gap-2 items-center h-full mt-2">
+                  <td className="px-6 py-4 text-center flex justify-center gap-2 items-center">
                     <button
                       onClick={() => handlePrint(o)}
-                      className="text-[9px] border border-gray-700 px-3 py-2 rounded-full text-gray-500 hover:text-white hover:border-cyan-400 transition-all font-black uppercase tracking-widest"
+                      className="px-3 py-1.5 rounded-md border border-[#D1D5DB] text-[#374151] hover:bg-[#F3F4F6] transition-colors text-xs font-semibold"
                     >
                       PDF
                     </button>
                     <button
                       onClick={() => handleDeleteClick(o.id)}
                       disabled={isDeleting}
-                      className="text-[9px] border border-gray-700 px-3 py-2 rounded-full text-gray-500 hover:text-white hover:border-red-500 hover:bg-red-500/10 transition-all font-black uppercase tracking-widest disabled:opacity-50"
+                      className="px-3 py-1.5 rounded-md border border-[#FECACA] text-[#991B1B] hover:bg-[#FEE2E2] transition-colors text-xs font-semibold disabled:opacity-50"
                     >
                       {isDeleting ? '...' : 'Del'}
                     </button>
@@ -405,28 +405,35 @@ export default function OrdersPage() {
                 </tr>
               );
             })}
+            {filteredOrders.length === 0 && (
+              <tr>
+                <td colSpan="5" className="px-6 py-8 text-center text-sm text-[#6B7280]">
+                  No orders found.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
 
       {isFormOpen && (
-        <div className="fixed inset-0 bg-black/95 flex items-center justify-center p-4 z-50 backdrop-blur-xl">
-          <div className="bg-[#0a0a0a] border border-gray-800 p-10 rounded-3xl w-full max-w-4xl shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-10 border-b border-gray-800 pb-6">
-              <h2 className="text-2xl font-black italic text-white uppercase tracking-tighter">New Sale Transaction</h2>
-              <button onClick={() => setIsFormOpen(false)} className="text-gray-500 hover:text-white text-2xl">×</button>
+        <div className="fixed inset-0 bg-[#111827]/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white border border-[#E5E7EB] p-8 rounded-xl w-full max-w-4xl shadow-xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6 border-b border-[#E5E7EB] pb-4">
+              <h2 className="text-xl font-bold text-[#111827]">New Sale Transaction</h2>
+              <button onClick={() => setIsFormOpen(false)} className="text-[#9CA3AF] hover:text-[#374151] text-2xl leading-none">&times;</button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-[10px] text-gray-500 mb-2 uppercase font-black tracking-widest">Customer / Store Name</label>
+                  <label className="block text-xs font-semibold text-[#374151] mb-2 uppercase tracking-wider">Customer / Store Name</label>
                   <input
                     list="retailers-list"
                     required
                     value={customerName}
                     onChange={e => setCustomerName(e.target.value)}
-                    className="w-full bg-black border border-gray-800 p-4 rounded-xl text-white text-sm outline-none focus:border-cyan-400"
+                    className="w-full bg-white border border-[#D1D5DB] px-4 py-2 rounded-lg text-sm text-[#111827] outline-none focus:ring-2 focus:ring-[#0EA5E9]/50 focus:border-[#0EA5E9]"
                     placeholder="Enter or select retailer..."
                   />
                   <datalist id="retailers-list">
@@ -434,11 +441,11 @@ export default function OrdersPage() {
                   </datalist>
                 </div>
                 <div>
-                  <label className="block text-[10px] text-gray-500 mb-2 uppercase font-black tracking-widest">Pricing Tier</label>
+                  <label className="block text-xs font-semibold text-[#374151] mb-2 uppercase tracking-wider">Pricing Tier</label>
                   <select
                     value={salesChannel}
                     onChange={e => setSalesChannel(e.target.value)}
-                    className="w-full bg-black border border-gray-800 p-4 rounded-xl text-white text-sm outline-none focus:border-cyan-400"
+                    className="w-full bg-white border border-[#D1D5DB] px-4 py-2 rounded-lg text-sm text-[#111827] outline-none focus:ring-2 focus:ring-[#0EA5E9]/50 focus:border-[#0EA5E9]"
                   >
                     <option value="Retailer">Retailer (Standard)</option>
                     <option value="Distributor">Distributor (Wholesale)</option>
@@ -449,19 +456,19 @@ export default function OrdersPage() {
 
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Itemized Cart</p>
-                  <button type="button" onClick={handleAddItem} className="text-cyan-400 text-[10px] font-black uppercase tracking-widest underline">+ Add Product</button>
+                  <p className="text-xs font-semibold text-[#374151] uppercase tracking-wider">Itemized Cart</p>
+                  <button type="button" onClick={handleAddItem} className="text-[#0EA5E9] text-xs font-semibold hover:text-[#0284C7]">+ Add Product</button>
                 </div>
 
                 {cart.map((item, index) => (
-                  <div key={index} className="flex flex-col md:flex-row gap-4 bg-black/50 p-6 rounded-2xl border border-gray-800 relative group">
+                  <div key={index} className="flex flex-col md:flex-row gap-4 bg-[#F9FAFB] p-4 rounded-lg border border-[#E5E7EB] relative group">
                     <div className="flex-1">
-                      <label className="block text-[8px] text-gray-700 mb-1 uppercase font-bold">Select Product</label>
+                      <label className="block text-[10px] text-[#6B7280] mb-1 uppercase font-semibold">Select Product</label>
                       <select
                         required
                         value={item.productId}
                         onChange={e => updateCartItem(index, 'productId', e.target.value)}
-                        className="w-full bg-transparent text-white text-xs outline-none"
+                        className="w-full bg-white border border-[#D1D5DB] rounded px-2 py-1 text-sm text-[#111827] outline-none"
                       >
                         <option value="">Choose item...</option>
                         {products.map(p => (
@@ -472,23 +479,23 @@ export default function OrdersPage() {
                       </select>
                     </div>
                     <div className="w-full md:w-24">
-                      <label className="block text-[8px] text-gray-700 mb-1 uppercase font-bold">Quantity</label>
+                      <label className="block text-[10px] text-[#6B7280] mb-1 uppercase font-semibold">Quantity</label>
                       <input
                         type="number"
                         min="1"
                         value={item.quantity}
                         onChange={e => updateCartItem(index, 'quantity', e.target.value)}
-                        className="w-full bg-transparent text-white font-mono text-xs border-b border-gray-800 pb-1 outline-none"
+                        className="w-full bg-white border border-[#D1D5DB] rounded px-2 py-1 text-sm text-[#111827] outline-none"
                       />
                     </div>
                     <div className="w-full md:w-32 text-right">
-                      <label className="block text-[8px] text-gray-700 mb-1 uppercase font-bold">Line Total</label>
-                      <p className="text-sm font-mono font-black text-emerald-400">₹{item.totalPrice.toLocaleString()}</p>
+                      <label className="block text-[10px] text-[#6B7280] mb-1 uppercase font-semibold">Line Total</label>
+                      <p className="text-sm font-semibold text-[#111827]">₹{item.totalPrice.toLocaleString()}</p>
                     </div>
                     <button
                       type="button"
                       onClick={() => removeItem(index)}
-                      className="absolute -right-2 -top-2 bg-red-500/10 text-red-500 w-6 h-6 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+                      className="absolute -right-2 -top-2 bg-[#FEE2E2] text-[#991B1B] w-6 h-6 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs border border-[#FECACA]"
                     >
                       ×
                     </button>
@@ -496,24 +503,24 @@ export default function OrdersPage() {
                 ))}
               </div>
 
-              <div className="flex flex-col md:flex-row justify-between items-end pt-10 border-t border-gray-800 mt-10 gap-8">
+              <div className="flex flex-col md:flex-row justify-between items-center pt-6 border-t border-[#E5E7EB] mt-6 gap-6">
                 <div>
-                  <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest mb-1">Total Billable Amount</p>
-                  <p className="text-5xl font-mono text-white font-black italic tracking-tighter">₹{grandTotal.toLocaleString()}</p>
+                  <p className="text-xs text-[#6B7280] uppercase font-semibold tracking-wider mb-1">Total Billable Amount</p>
+                  <p className="text-3xl font-bold text-[#111827]">₹{grandTotal.toLocaleString()}</p>
                 </div>
-                <div className="flex gap-6 w-full md:w-auto">
+                <div className="flex gap-4 w-full md:w-auto">
                   <button
                     type="button"
                     onClick={() => setIsFormOpen(false)}
-                    className="flex-1 md:flex-none text-gray-600 text-xs font-black uppercase tracking-widest"
+                    className="flex-1 md:flex-none px-6 py-2 border border-[#D1D5DB] bg-white text-[#374151] rounded-lg font-semibold text-sm hover:bg-[#F9FAFB] transition-colors"
                   >
                     Discard
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 md:flex-none bg-white text-black px-12 py-4 rounded-full font-black uppercase text-xs tracking-widest shadow-xl shadow-white/5 active:scale-95 transition-all"
+                    className="flex-1 md:flex-none bg-[#0EA5E9] text-white px-6 py-2 rounded-lg font-semibold text-sm hover:bg-[#0284C7] transition-colors shadow-sm"
                   >
-                    Confirm & Print Invoice
+                    Confirm & Print
                   </button>
                 </div>
               </div>

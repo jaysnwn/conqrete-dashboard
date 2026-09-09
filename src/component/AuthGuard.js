@@ -53,7 +53,7 @@ export default function AuthGuard({ children }) {
         }
       }
 
-      // Admin or any unrecognized role — allow through
+      // Admin or any unrecognized role â€” allow through
       setIsAuthenticated(true);
       setIsLoading(false);
     };
@@ -69,9 +69,22 @@ export default function AuthGuard({ children }) {
 
   if (isLoading) {
     return (
-      <div className="h-screen w-screen bg-[#050505] flex flex-col justify-center items-center">
-        <div className="w-12 h-12 border-4 border-[#00f2ff] border-t-transparent rounded-full animate-spin mb-4 shadow-[0_0_15px_#00f2ff]"></div>
-        <p className="text-[#00f2ff] font-mono text-xs uppercase tracking-[0.3em] animate-pulse">Verifying Security Clearance...</p>
+      <div style={{
+        height: "100vh", width: "100vw",
+        display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center", gap: "16px",
+        backgroundColor: "#F8F9FA",
+        fontFamily: "Inter, -apple-system, sans-serif"
+      }}>
+        <div style={{
+          width: "32px", height: "32px", borderRadius: "50%",
+          border: "2px solid #E5E7EB", borderTopColor: "#0EA5E9",
+          animation: "spin 0.8s linear infinite"
+        }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        <p style={{ color: "#6B7280", fontSize: "13px", fontWeight: 500, margin: 0 }}>
+          Verifying session...
+        </p>
       </div>
     );
   }

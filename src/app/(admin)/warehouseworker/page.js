@@ -32,69 +32,69 @@ export default function WarehouseMonitor() {
   };
 
   return (
-    <div className="p-8 text-white min-h-screen bg-black pb-20">
-      <div className="mb-10">
-        <h1 className="text-4xl font-black italic tracking-tighter uppercase text-white">Warehouse Monitor</h1>
-        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.3em] mt-1">Logistics & Inventory Overview</p>
+    <div className="p-8 min-h-screen bg-[#F8F9FA] text-[#111827] pb-20">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-[#111827]">Warehouse Monitor</h1>
+        <p className="text-sm text-[#6B7280] mt-1">Logistics & Inventory Overview</p>
       </div>
 
       {/* DASHBOARD STATS */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        <div className="bg-[#0a0a0a] border border-gray-800 p-6 rounded-3xl shadow-2xl">
-          <p className="text-[9px] text-gray-500 uppercase font-black tracking-widest mb-1">Orders Awaiting Dispatch</p>
-          <p className="text-4xl font-mono text-orange-500 font-black">{pendingOrders}</p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-white border border-[#E5E7EB] p-6 rounded-lg shadow-sm">
+          <p className="text-xs text-[#6B7280] uppercase font-semibold tracking-wider mb-2">Orders Awaiting Dispatch</p>
+          <p className="text-3xl font-bold text-[#111827]">{pendingOrders}</p>
         </div>
-        <div className="bg-[#0a0a0a] border border-gray-800 p-6 rounded-3xl shadow-2xl">
-          <p className="text-[9px] text-gray-500 uppercase font-black tracking-widest mb-1">Active Floor Staff</p>
-          <p className="text-4xl font-mono text-cyan-400 font-black">{workers.length}</p>
+        <div className="bg-white border border-[#E5E7EB] p-6 rounded-lg shadow-sm">
+          <p className="text-xs text-[#6B7280] uppercase font-semibold tracking-wider mb-2">Active Floor Staff</p>
+          <p className="text-3xl font-bold text-[#111827]">{workers.length}</p>
         </div>
-        <div className="bg-[#0a0a0a] border border-gray-800 p-6 rounded-3xl shadow-2xl">
-          <p className="text-[9px] text-gray-500 uppercase font-black tracking-widest mb-1">Low Stock Alerts</p>
-          <p className="text-4xl font-mono text-red-500 font-black">
+        <div className="bg-white border border-[#E5E7EB] p-6 rounded-lg shadow-sm">
+          <p className="text-xs text-[#6B7280] uppercase font-semibold tracking-wider mb-2">Low Stock Alerts</p>
+          <p className="text-3xl font-bold text-[#111827]">
             {inventory.filter(p => p.stock < 10).length}
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* WAREHOUSE PERSONNEL LIST */}
-        <div className="bg-[#0a0a0a] border border-gray-800 rounded-3xl overflow-hidden shadow-2xl">
-          <div className="p-6 border-b border-gray-800 bg-[#050505]">
-            <h3 className="text-base font-black italic text-cyan-400 uppercase tracking-widest">Active Floor Personnel</h3>
+        <div className="bg-white border border-[#E5E7EB] rounded-lg shadow-sm overflow-hidden">
+          <div className="p-4 border-b border-[#E5E7EB] bg-[#F9FAFB]">
+            <h3 className="text-sm font-semibold text-[#111827]">Active Floor Personnel</h3>
           </div>
-          <div className="divide-y divide-gray-900">
+          <div className="divide-y divide-[#E5E7EB]">
             {workers.map(worker => (
-              <div key={worker.id} className="p-5 flex justify-between items-center hover:bg-white/[0.02] transition-colors">
+              <div key={worker.id} className="p-4 flex justify-between items-center hover:bg-[#F9FAFB] transition-colors">
                 <div>
-                  <p className="font-bold text-white uppercase">{worker.full_name}</p>
-                  <p className="text-[10px] text-gray-500 font-mono">{worker.employee_id} • {worker.shift_timing || "General Shift"}</p>
+                  <p className="font-semibold text-[#111827]">{worker.full_name}</p>
+                  <p className="text-xs text-[#6B7280] mt-1">{worker.employee_id} • {worker.shift_timing || "General Shift"}</p>
                 </div>
-                <span className="text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-full uppercase font-black">
+                <span className="text-xs bg-[#D1FAE5] text-[#065F46] border border-[#A7F3D0] px-2.5 py-0.5 rounded-full font-medium">
                   Online
                 </span>
               </div>
             ))}
-            {workers.length === 0 && <p className="p-10 text-center text-gray-600 text-xs">Onboard floor staff in the HR Terminal.</p>}
+            {workers.length === 0 && <p className="p-8 text-center text-[#6B7280] text-sm">Onboard floor staff in the HR Terminal.</p>}
           </div>
         </div>
 
         {/* QUICK INVENTORY SNAPSHOT */}
-        <div className="bg-[#0a0a0a] border border-gray-800 rounded-3xl overflow-hidden shadow-2xl">
-          <div className="p-6 border-b border-gray-800 bg-[#050505]">
-            <h3 className="text-base font-black italic text-orange-400 uppercase tracking-widest">Live Inventory Snapshot</h3>
+        <div className="bg-white border border-[#E5E7EB] rounded-lg shadow-sm overflow-hidden">
+          <div className="p-4 border-b border-[#E5E7EB] bg-[#F9FAFB]">
+            <h3 className="text-sm font-semibold text-[#111827]">Live Inventory Snapshot</h3>
           </div>
-          <div className="divide-y divide-gray-900">
+          <div className="divide-y divide-[#E5E7EB]">
             {inventory.slice(0, 6).map(item => (
-              <div key={item.id} className="p-5 flex justify-between items-center hover:bg-white/[0.02] transition-colors">
+              <div key={item.id} className="p-4 flex justify-between items-center hover:bg-[#F9FAFB] transition-colors">
                 <div>
-                  <p className="font-bold text-white uppercase text-sm">{item.name}</p>
-                  <p className="text-[10px] text-gray-500 font-mono">{item.sku}</p>
+                  <p className="font-semibold text-[#111827]">{item.name}</p>
+                  <p className="text-xs text-[#6B7280] mt-1">{item.sku}</p>
                 </div>
                 <div className="text-right">
-                  <p className={`text-lg font-mono font-black ${item.stock < 10 ? 'text-red-500' : 'text-white'}`}>
+                  <p className={`text-lg font-bold ${item.stock < 10 ? 'text-[#991B1B]' : 'text-[#111827]'}`}>
                     {item.stock}
                   </p>
-                  <p className="text-[8px] text-gray-600 uppercase font-bold">Units</p>
+                  <p className="text-[10px] text-[#6B7280] uppercase font-semibold">Units</p>
                 </div>
               </div>
             ))}

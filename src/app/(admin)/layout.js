@@ -1,76 +1,87 @@
-"use client"; // Required for usePathname to handle dynamic routing
+"use client";
 
-import Sidebar from "../../component/sidebar/sidebar"; 
-import AuthGuard from "../../component/AuthGuard"; 
+import Sidebar from "../../component/sidebar/sidebar";
+import AuthGuard from "../../component/AuthGuard";
 import { usePathname } from "next/navigation";
+
+const PAGE_LABELS = {
+  "/dashboard": "Dashboard",
+  "/orders": "Orders",
+  "/products": "Products",
+  "/inventory": "Inventory",
+  "/finance": "Finance",
+  "/shipments": "Shipments",
+  "/retailers": "Retailers",
+  "/salesmen": "Salesmen",
+  "/warehouseworker": "Warehouse Monitor",
+  "/hr": "Human Resources",
+  "/payroll": "Payroll Engine",
+  "/profit-engine": "Profit Engine",
+  "/expenseledger": "Operating Expenses",
+};
 
 export default function AdminLayout({ children }) {
   const pathname = usePathname();
-  
-  // Magically formats the current URL path into a clean, uppercase breadcrumb
-  // (e.g., "/inventory" becomes "INVENTORY", "/" becomes "DASHBOARD")
-  const currentPage = pathname && pathname !== "/" 
-    ? pathname.replace('/', '').toUpperCase() 
-    : "DASHBOARD";
+  const currentPage = PAGE_LABELS[pathname] || (pathname !== "/" ? pathname.replace("/", "") : "Dashboard");
 
   return (
-    <AuthGuard> 
-      {/* Global Font Styles for the Header */}
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Manrope:wght@200;300;400;500;600;700;800&display=swap');
-      `}</style>
-
-      <div 
-        className="flex flex-col md:flex-row h-screen overflow-hidden bg-[#0c0e10] text-[#e0e0e0]" 
-        style={{ fontFamily: 'Inter, "Segoe UI", sans-serif' }}
+    <AuthGuard>
+      <div
+        className="flex h-screen overflow-hidden"
+        style={{ background: "#F8F9FA", fontFamily: "Inter, -apple-system, BlinkMacSystemFont, sans-serif" }}
       >
         <Sidebar />
 
-        <main 
-          className="flex-1 overflow-y-auto relative pt-16 md:pt-0 [&::-webkit-scrollbar]:hidden" 
-          style={{ 
-            background: "radial-gradient(circle at 20% 20%, #111 0%, #0a0a0a 100%)",
-            scrollbarWidth: "none",
-            msOverflowStyle: "none"
-          }}
-        >
-          
-          {/* --- GLOBAL STICKY NAVBAR --- */}
-          <header className="w-full h-24 sticky top-0 z-40 bg-[#0c0e10]/80 backdrop-blur-md border-b border-[#a1faff]/5 flex justify-between items-center px-6 md:px-12">
-            
-            {/* Dynamic Breadcrumbs */}
-            <div className="flex items-center gap-4">
-              <nav className="flex text-xs uppercase tracking-widest gap-3" style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 700 }}>
-                <span className="text-slate-500">CONQRETE</span>
-                <span className="text-slate-700">/</span>
-                <span className="text-[#a1faff] border-b border-[#a1faff]/50 pb-1">{currentPage}</span>
-              </nav>
+        <main className="flex-1 overflow-y-auto flex flex-col min-w-0" style={{ scrollbarWidth: "thin" }}>
+          {/* TOP BAR â€” hidden on mobile (sidebar handles mobile nav) */}
+          <header
+            className="hidden md:flex sticky top-0 z-40 items-center justify-between px-6"
+            style={{ background: "#fff", borderBottom: "1px solid #E5E7EB", height: 56, flexShrink: 0 }}
+          >
+            {/* Breadcrumb */}
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 500 }}>CONQRETE</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="2">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+              <span style={{ fontSize: 13, color: "#111827", fontWeight: 600 }}>{currentPage}</span>
             </div>
 
-            {/* Utility & Admin Profile */}
-            <div className="flex items-center gap-8">
-              <button className="text-slate-400 hover:text-[#a1faff] transition-colors hidden md:block">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+            {/* Right: user */}
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              <button style={{ background: "none", border: "none", cursor: "pointer", color: "#9CA3AF", display: "flex", alignItems: "center" }}
+                onMouseEnter={e => e.currentTarget.style.color = "#374151"}
+                onMouseLeave={e => e.currentTarget.style.color = "#9CA3AF"}
+              >
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                </svg>
               </button>
-              
-              <div className="flex items-center gap-4 pl-0 md:pl-8 md:border-l border-white/10">
-                <div className="text-right hidden md:block">
-                  <p className="text-[11px] font-bold text-white leading-none" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Administrator</p>
-                  <p className="text-[9px] text-slate-400 tracking-widest mt-1 uppercase" style={{ fontFamily: 'Manrope, sans-serif' }}>NEXUS PRIME</p>
+
+              <div style={{ display: "flex", alignItems: "center", gap: 10, paddingLeft: 16, borderLeft: "1px solid #E5E7EB" }}>
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "#111827", lineHeight: 1 }}>Administrator</div>
+                  <div style={{ fontSize: 10, color: "#9CA3AF", marginTop: 2 }}>CONQRETE ERP</div>
                 </div>
-                <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center bg-transparent text-[#a1faff]">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                <div style={{
+                  width: 32, height: 32, borderRadius: "50%",
+                  background: "#0EA5E9", display: "flex", alignItems: "center",
+                  justifyContent: "center", color: "white", fontSize: 13, fontWeight: 700
+                }}>
+                  A
                 </div>
               </div>
             </div>
           </header>
-          {/* --- END GLOBAL NAVBAR --- */}
 
-          {/* PAGE CONTENT CONTAINER */}
-          <div className="p-4 md:p-10 max-w-[1920px] mx-auto">
+          {/* MOBILE SPACER for fixed sidebar top bar */}
+          <div className="md:hidden" style={{ height: 52, flexShrink: 0 }} />
+
+          {/* PAGE CONTENT */}
+          <div style={{ flex: 1, padding: "24px" }}>
             {children}
           </div>
-
         </main>
       </div>
     </AuthGuard>

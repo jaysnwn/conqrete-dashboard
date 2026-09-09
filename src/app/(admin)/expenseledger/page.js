@@ -89,27 +89,27 @@ export default function ExpenseLedgerPage() {
     .reduce((sum, exp) => sum + Number(exp.amount), 0);
 
   return (
-    <div className="p-6 md:p-8 pt-28 md:pt-8 pb-32 md:pb-20 text-white min-h-screen bg-[#030303] selection:bg-cyan-500 selection:text-black font-sans">
+    <div className="p-6 md:p-8 pt-28 md:pt-8 pb-32 md:pb-20 min-h-screen bg-[#F8F9FA] text-[#111827] font-sans">
       
       {/* HEADER */}
-      <div className="mb-12 border-b border-gray-800 pb-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+      <div className="mb-8 border-b border-[#E5E7EB] pb-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div>
-          <h1 className="text-4xl font-black italic tracking-tighter uppercase text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">
-            OPERATING <span className="text-orange-500">EXPENSES</span>
+          <h1 className="text-3xl font-bold text-[#111827]">
+            Operating Expenses
           </h1>
-          <p className="text-gray-500 font-mono text-[10px] tracking-[0.4em] uppercase mt-2">
+          <p className="text-[#6B7280] text-sm mt-1">
             Corporate Liability & Outflow Ledger
           </p>
         </div>
         
         <div className="flex gap-4">
-          <div className="bg-[#111] border border-gray-800 px-6 py-4 rounded-2xl text-right">
-            <p className="text-[9px] text-gray-500 uppercase font-black tracking-widest">This Month Burn</p>
-            <p className="text-2xl font-mono text-orange-500 font-black">₹{thisMonthBurn.toLocaleString()}</p>
+          <div className="bg-white border border-[#E5E7EB] px-6 py-4 rounded-lg shadow-sm text-right">
+            <p className="text-xs text-[#6B7280] font-semibold uppercase tracking-wider mb-1">This Month Burn</p>
+            <p className="text-2xl font-bold text-[#111827]">₹{thisMonthBurn.toLocaleString()}</p>
           </div>
-          <div className="bg-[#0a0a0a] border border-gray-800 px-6 py-4 rounded-2xl text-right hidden sm:block">
-            <p className="text-[9px] text-gray-500 uppercase font-black tracking-widest">All-Time Outflow</p>
-            <p className="text-2xl font-mono text-white font-black">₹{totalBurn.toLocaleString()}</p>
+          <div className="bg-white border border-[#E5E7EB] px-6 py-4 rounded-lg shadow-sm text-right hidden sm:block">
+            <p className="text-xs text-[#6B7280] font-semibold uppercase tracking-wider mb-1">All-Time Outflow</p>
+            <p className="text-2xl font-bold text-[#111827]">₹{totalBurn.toLocaleString()}</p>
           </div>
         </div>
       </div>
@@ -118,35 +118,32 @@ export default function ExpenseLedgerPage() {
         
         {/* LEFT COLUMN: THE INPUT TERMINAL */}
         <div className="lg:col-span-1">
-          <div className="bg-[#0a0a0a] border border-gray-800 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
-            {/* Decorative Cyber Line */}
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-600 to-orange-400"></div>
+          <div className="bg-white border border-[#E5E7EB] rounded-lg p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-[#111827] mb-6">Log New Liability</h2>
             
-            <h2 className="text-sm font-black italic text-orange-400 uppercase tracking-widest mb-8">Log New Liability</h2>
-            
-            <form onSubmit={handleLogExpense} className="space-y-6">
+            <form onSubmit={handleLogExpense} className="space-y-5">
               
               {/* AMOUNT */}
               <div>
-                <label className="block text-[10px] text-gray-500 mb-2 uppercase font-black tracking-widest">Transaction Amount (₹)</label>
+                <label className="block text-sm font-medium text-[#6B7280] mb-1">Transaction Amount (₹)</label>
                 <input 
                   required 
                   type="number" 
                   step="0.01"
                   value={formData.amount} 
                   onChange={e => setFormData({...formData, amount: e.target.value})} 
-                  className="w-full bg-[#050505] border border-gray-800 p-4 rounded-xl text-orange-400 font-mono text-xl font-black outline-none focus:border-orange-500 transition-colors" 
+                  className="w-full px-4 py-2 bg-white border border-[#D1D5DB] rounded-md text-[#111827] focus:ring-2 focus:ring-[#0EA5E9]/50 focus:border-[#0EA5E9] outline-none transition-shadow"
                   placeholder="0.00" 
                 />
               </div>
 
               {/* CATEGORY DROPDOWN */}
               <div>
-                <label className="block text-[10px] text-gray-500 mb-2 uppercase font-black tracking-widest">Expense Category</label>
+                <label className="block text-sm font-medium text-[#6B7280] mb-1">Expense Category</label>
                 <select 
                   value={category} 
                   onChange={e => setCategory(e.target.value)} 
-                  className="w-full bg-[#050505] border border-gray-800 p-4 rounded-xl text-white text-sm outline-none focus:border-cyan-400 transition-colors"
+                  className="w-full px-4 py-2 bg-white border border-[#D1D5DB] rounded-md text-[#111827] focus:ring-2 focus:ring-[#0EA5E9]/50 focus:border-[#0EA5E9] outline-none transition-shadow"
                 >
                   <option value="Rent">Facility Rent</option>
                   <option value="Electricity">Electricity & Utilities</option>
@@ -161,13 +158,13 @@ export default function ExpenseLedgerPage() {
               {/* DYNAMIC "OTHER" FIELD */}
               {category === "Other" && (
                 <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                  <label className="block text-[10px] text-cyan-500 mb-2 uppercase font-black tracking-widest">Specify Category</label>
+                  <label className="block text-sm font-medium text-[#6B7280] mb-1">Specify Category</label>
                   <input 
                     required 
                     type="text" 
                     value={customCategory} 
                     onChange={e => setCustomCategory(e.target.value)} 
-                    className="w-full bg-[#050505] border border-cyan-900/50 p-4 rounded-xl text-cyan-400 font-mono text-sm outline-none focus:border-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.05)]" 
+                    className="w-full px-4 py-2 bg-white border border-[#D1D5DB] rounded-md text-[#111827] focus:ring-2 focus:ring-[#0EA5E9]/50 focus:border-[#0EA5E9] outline-none transition-shadow"
                     placeholder="e.g. Office Snacks, Packaging..." 
                   />
                 </div>
@@ -175,24 +172,24 @@ export default function ExpenseLedgerPage() {
 
               {/* DATE */}
               <div>
-                <label className="block text-[10px] text-gray-500 mb-2 uppercase font-black tracking-widest">Billing Date</label>
+                <label className="block text-sm font-medium text-[#6B7280] mb-1">Billing Date</label>
                 <input 
                   required 
                   type="date" 
                   value={formData.billing_date} 
                   onChange={e => setFormData({...formData, billing_date: e.target.value})} 
-                  className="w-full bg-[#050505] border border-gray-800 p-4 rounded-xl text-gray-400 font-mono text-sm outline-none focus:border-cyan-400 [&::-webkit-calendar-picker-indicator]:invert transition-colors" 
+                  className="w-full px-4 py-2 bg-white border border-[#D1D5DB] rounded-md text-[#111827] focus:ring-2 focus:ring-[#0EA5E9]/50 focus:border-[#0EA5E9] outline-none transition-shadow"
                 />
               </div>
 
               {/* NOTES */}
               <div>
-                <label className="block text-[10px] text-gray-500 mb-2 uppercase font-black tracking-widest">Notes / Reference (Optional)</label>
+                <label className="block text-sm font-medium text-[#6B7280] mb-1">Notes / Reference (Optional)</label>
                 <input 
                   type="text" 
                   value={formData.notes} 
                   onChange={e => setFormData({...formData, notes: e.target.value})} 
-                  className="w-full bg-[#050505] border border-gray-800 p-4 rounded-xl text-white text-sm outline-none focus:border-cyan-400 transition-colors" 
+                  className="w-full px-4 py-2 bg-white border border-[#D1D5DB] rounded-md text-[#111827] focus:ring-2 focus:ring-[#0EA5E9]/50 focus:border-[#0EA5E9] outline-none transition-shadow"
                   placeholder="Invoice # or Details" 
                 />
               </div>
@@ -200,9 +197,9 @@ export default function ExpenseLedgerPage() {
               <button 
                 type="submit" 
                 disabled={isSubmitting} 
-                className="w-full mt-6 bg-transparent border border-orange-500 text-orange-500 py-4 rounded-xl font-black uppercase text-xs tracking-widest hover:bg-orange-500 hover:text-black active:scale-95 transition-all shadow-[0_0_15px_rgba(249,115,22,0.1)] hover:shadow-[0_0_20px_rgba(249,115,22,0.4)] disabled:opacity-50"
+                className="w-full mt-4 bg-[#0EA5E9] text-white py-2.5 rounded-md font-semibold text-sm hover:bg-[#0284C7] active:scale-[0.98] transition-all disabled:opacity-50"
               >
-                {isSubmitting ? "PROCESSING..." : "COMMIT TO LEDGER"}
+                {isSubmitting ? "Processing..." : "Commit to Ledger"}
               </button>
             </form>
           </div>
@@ -210,47 +207,61 @@ export default function ExpenseLedgerPage() {
 
         {/* RIGHT COLUMN: THE LEDGER */}
         <div className="lg:col-span-2">
-          <div className="bg-[#0a0a0a] border border-gray-800 rounded-3xl overflow-hidden shadow-2xl min-h-[600px]">
-            <div className="p-6 border-b border-gray-800 bg-[#050505] flex justify-between items-center">
-              <h3 className="text-base font-black italic text-white uppercase tracking-widest">Transaction History</h3>
-              <span className="text-[10px] font-mono text-gray-500 bg-gray-900 px-3 py-1 rounded-full border border-gray-800">
-                {expenses.length} ENTRIES
+          <div className="bg-white border border-[#E5E7EB] rounded-lg shadow-sm overflow-hidden flex flex-col h-full min-h-[600px]">
+            <div className="px-6 py-4 border-b border-[#E5E7EB] bg-[#F9FAFB] flex justify-between items-center">
+              <h3 className="text-sm font-semibold text-[#111827]">Transaction History</h3>
+              <span className="text-xs text-[#065F46] bg-[#D1FAE5] border border-[#A7F3D0] px-2.5 py-0.5 rounded-full font-medium">
+                {expenses.length} Entries
               </span>
             </div>
             
             {isLoading ? (
-              <div className="flex justify-center items-center h-64 text-cyan-400 font-mono text-xs tracking-[0.3em] uppercase animate-pulse">
-                Decrypting Ledger...
+              <div className="flex-1 flex justify-center items-center h-64 text-[#6B7280] text-sm animate-pulse">
+                Loading ledger...
               </div>
             ) : expenses.length === 0 ? (
-              <div className="flex justify-center items-center h-64 text-gray-600 font-mono text-xs tracking-widest uppercase">
+              <div className="flex-1 flex justify-center items-center h-64 text-[#6B7280] text-sm">
                 No liabilities recorded.
               </div>
             ) : (
-              <div className="divide-y divide-gray-900/50 max-h-[700px] overflow-y-auto custom-scrollbar">
-                {expenses.map(exp => (
-                  <div key={exp.id} className="p-6 hover:bg-white/[0.02] transition-colors group flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <div className="flex-1">
-                      <p className="font-bold text-white uppercase text-sm tracking-widest">{exp.category}</p>
-                      {exp.notes && <p className="text-[10px] text-gray-500 mt-1 uppercase">{exp.notes}</p>}
-                    </div>
-                    
-                    <div className="flex-1 text-left sm:text-center">
-                      <p className="text-xs text-gray-400 font-mono">{new Date(exp.billing_date).toLocaleDateString('en-GB')}</p>
-                    </div>
-
-                    <div className="flex-1 text-left sm:text-right flex items-center justify-end gap-6 w-full sm:w-auto">
-                      <p className="text-lg font-mono font-black text-orange-400">₹{Number(exp.amount).toLocaleString()}</p>
-                      <button 
-                        onClick={() => handleDelete(exp.id, exp.category)} 
-                        className="text-[10px] text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                        title="Delete Record"
-                      >
-                        🗑️
-                      </button>
-                    </div>
-                  </div>
-                ))}
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-[#F9FAFB] text-[#6B7280] text-xs font-semibold uppercase tracking-wider border-b border-[#E5E7EB]">
+                      <th className="px-6 py-3">Category</th>
+                      <th className="px-6 py-3">Date</th>
+                      <th className="px-6 py-3 text-right">Amount</th>
+                      <th className="px-6 py-3 w-16"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#E5E7EB]">
+                    {expenses.map(exp => (
+                      <tr key={exp.id} className="hover:bg-[#F9FAFB] transition-colors group">
+                        <td className="px-6 py-4">
+                          <div className="font-medium text-[#111827]">{exp.category}</div>
+                          {exp.notes && <div className="text-xs text-[#6B7280] mt-0.5">{exp.notes}</div>}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-[#6B7280]">
+                          {new Date(exp.billing_date).toLocaleDateString('en-GB')}
+                        </td>
+                        <td className="px-6 py-4 text-sm font-medium text-[#111827] text-right">
+                          ₹{Number(exp.amount).toLocaleString()}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <button 
+                            onClick={() => handleDelete(exp.id, exp.category)} 
+                            className="text-[#6B7280] hover:text-[#991B1B] opacity-0 group-hover:opacity-100 transition-opacity"
+                            title="Delete Record"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>

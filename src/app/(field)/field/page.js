@@ -183,7 +183,7 @@ export default function FieldPortal() {
     return cart.reduce((sum, item) => {
       const product = products.find(p => p.id === item.productId);
       if (!product || !product.pricing) return sum;
-      const price = salesChannel === "Distributor" ? product.pricing.distributor : product.pricing.retailer;
+      const price = salesChannel === "Distributor" ? product.pricing.sellingPriceToDistributor : product.pricing.retailSellingPrice;
       return sum + (price * Number(item.quantity));
     }, 0);
   };
@@ -205,7 +205,7 @@ export default function FieldPortal() {
       for (const item of cart) {
         const product = products.find(p => p.id === item.productId);
         if (!product || !product.pricing) throw new Error(`Product data missing: ${item.productId}`);
-        const price = salesChannel === "Distributor" ? product.pricing.distributor : product.pricing.retailer;
+        const price = salesChannel === "Distributor" ? product.pricing.sellingPriceToDistributor : product.pricing.retailSellingPrice;
         const deductQty = Number(item.quantity) || 0;
         const newStock = (Number(product.stock) || 0) - deductQty;
 
@@ -327,24 +327,19 @@ export default function FieldPortal() {
   // AGENT SELECTION RENDER (OVERRIDE)
   if (!currentRep) {
     return (
-      <div className="min-h-screen bg-[#050505] text-[#eeeef0] p-6 flex flex-col justify-center items-center font-sans">
-        <style>{`
-          @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Manrope:wght@200;300;400;500;600;700;800&display=swap');
-          .font-headline { font-family: 'Space Grotesk', sans-serif; }
-          .font-label { font-family: 'Manrope', sans-serif; }
-          .glass-card { background: rgba(35, 38, 41, 0.4); backdrop-filter: blur(24px); border: 1px solid rgba(161, 250, 255, 0.1); }
-        `}</style>
+      <div className="min-h-screen bg-white text-[#111827] p-6 flex flex-col justify-center items-center font-sans">
         
-        <h1 className="text-4xl md:text-5xl font-black tracking-tighter mb-2 text-transparent bg-clip-text bg-gradient-to-r from-[#a1faff] to-[#00f4fe] font-headline uppercase">CONQRETE CORE</h1>
-        <p className="text-[10px] text-[#aaabad] uppercase tracking-[0.4em] font-bold mb-10 text-center font-label">Field Agent Override</p>
         
-        <div className="w-full max-w-md glass-card p-8 rounded-3xl shadow-[0_0_40px_rgba(0,0,0,0.8)]">
-          <p className="text-xs text-[#a1faff] uppercase tracking-widest font-bold mb-6 text-center font-label">Select Active Roster</p>
+        <h1 className="text-4xl md:text-5xl font-bold  mb-2 text-transparent bg-clip-text bg-gradient-to-r from-[#a1faff] to-[#00f4fe] font-headline uppercase">CONQRETE CORE</h1>
+        <p className="text-[10px] text-[#6B7280] uppercase tracking-[0.4em] font-bold mb-10 text-center font-label">Field Agent Override</p>
+        
+        <div className="w-full max-w-md bg-white border border-[#E5E7EB] rounded-lg shadow-sm p-8 rounded-3xl shadow-sm">
+          <p className="text-xs text-[#0EA5E9] uppercase tracking-wider font-bold mb-6 text-center font-label">Select Active Roster</p>
           <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-2 [&::-webkit-scrollbar]:hidden">
             {salesmen.map(rep => (
               <button key={rep.id} onClick={() => loginAsRep(rep)} className="w-full bg-[#111418] border border-white/5 hover:border-[#a1faff]/50 hover:bg-white/5 text-left p-5 rounded-2xl flex justify-between items-center group transition-all">
-                <span className="font-bold text-white uppercase font-headline tracking-wide">{rep.full_name}</span>
-                <span className="text-[10px] text-slate-500 font-label tracking-widest uppercase group-hover:text-[#a1faff] transition-colors">Initialize →</span>
+                <span className="font-bold text-[#111827] uppercase font-headline tracking-wide">{rep.full_name}</span>
+                <span className="text-[10px] text-slate-500 font-label tracking-wider uppercase group-hover:text-[#0EA5E9] transition-colors">Initialize →</span>
               </button>
             ))}
             {salesmen.length === 0 && <p className="text-center text-xs text-slate-500 uppercase">No salesmen records found.</p>}
@@ -355,28 +350,22 @@ export default function FieldPortal() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0c0e10] text-[#eeeef0] pb-32 font-sans selection:bg-[#a1faff]/30">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Manrope:wght@200;300;400;500;600;700;800&display=swap');
-        .font-headline { font-family: 'Space Grotesk', sans-serif; }
-        .font-label { font-family: 'Manrope', sans-serif; }
-        .glass-card { background: rgba(35, 38, 41, 0.4); backdrop-filter: blur(24px); border: 1px solid rgba(161, 250, 255, 0.1); }
-        .glass-modal { background: rgba(12, 14, 16, 0.95); backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.1); }
-      `}</style>
+    <div className="min-h-screen bg-[#F8F9FA] text-[#111827] pb-32 font-sans selection:bg-[#0EA5E9]/30">
+      
 
       {/* TOP HEADER */}
-      <header className="w-full h-24 sticky top-0 z-30 bg-[#0c0e10]/80 backdrop-blur-md border-b border-[#a1faff]/5 flex justify-between items-center px-6 md:px-12 max-w-[1920px] mx-auto shadow-sm">
+      <header className="w-full h-24 sticky top-0 z-30 bg-[#F8F9FA]/80 backdrop-blur-md border-b border-[#a1faff]/5 flex justify-between items-center px-6 md:px-12 max-w-[1920px] mx-auto shadow-sm">
         <div className="flex items-center gap-4">
-          <nav className="flex text-[10px] md:text-xs font-label uppercase tracking-widest gap-2 md:gap-3">
+          <nav className="flex text-[10px] md:text-xs font-label uppercase tracking-wider gap-2 md:gap-3">
             <span className="text-slate-500">CONQRETE</span>
             <span className="text-slate-700">/</span>
-            <span className="text-[#a1faff] border-b border-[#a1faff]/50 pb-1">FIELD_PORTAL</span>
+            <span className="text-[#0EA5E9] border-b border-[#a1faff]/50 pb-1">FIELD_PORTAL</span>
           </nav>
         </div>
         <div className="flex items-center gap-4 md:gap-8">
           <button onClick={() => setIsProfileOpen(true)} className="text-right hover:opacity-70 transition-opacity">
-            <p className="text-[11px] font-bold font-headline text-white leading-none uppercase">{currentRep.full_name}</p>
-            <p className="text-[9px] text-[#00f4fe] font-label tracking-widest mt-1 uppercase">Agent Dossier</p>
+            <p className="text-[11px] font-bold font-headline text-[#111827] leading-none uppercase">{currentRep.full_name}</p>
+            <p className="text-[9px] text-[#00f4fe] font-label tracking-wider mt-1 uppercase">Agent Dossier</p>
           </button>
         </div>
       </header>
@@ -385,16 +374,16 @@ export default function FieldPortal() {
       <div className="p-4 md:p-8 max-w-[1200px] mx-auto mt-4">
         
         {orderSuccessData && (
-          <div className="bg-emerald-500/10 border border-emerald-500/30 p-6 rounded-3xl mb-8 flex flex-col sm:flex-row justify-between items-center gap-4 animate-in slide-in-from-top-4">
+          <div className="bg-[#D1FAE5] border border-emerald-500/30 p-6 rounded-3xl mb-8 flex flex-col sm:flex-row justify-between items-center gap-4 animate-in slide-in-from-top-4">
             <div>
-              <p className="text-emerald-400 font-headline font-black uppercase tracking-wide">Order Pushed Successfully</p>
-              <p className="text-xs text-slate-400 font-label uppercase tracking-widest mt-1">
+              <p className="text-[#065F46] font-headline font-bold uppercase tracking-wide">Order Pushed Successfully</p>
+              <p className="text-xs text-slate-400 font-label uppercase tracking-wider mt-1">
                 {orderSuccessData.customerName} • ₹{orderSuccessData.grandTotal.toLocaleString()}
               </p>
             </div>
             <div className="flex gap-2 w-full sm:w-auto">
-              <button onClick={() => setOrderSuccessData(null)} className="flex-1 sm:flex-none px-4 py-3 bg-white/5 rounded-xl text-xs font-bold text-slate-400 uppercase tracking-widest">Close</button>
-              <button onClick={sendWhatsAppReceipt} className="flex-1 sm:flex-none px-6 py-3 bg-[#25D366] text-[#0c0e10] rounded-xl text-xs font-black uppercase tracking-widest hover:scale-105 transition-transform flex items-center justify-center gap-2">
+              <button onClick={() => setOrderSuccessData(null)} className="flex-1 sm:flex-none px-4 py-3 bg-white/5 rounded-xl text-xs font-bold text-slate-400 uppercase tracking-wider">Close</button>
+              <button onClick={sendWhatsAppReceipt} className="flex-1 sm:flex-none px-6 py-3 bg-[#25D366] text-[#0c0e10] rounded-xl text-xs font-bold uppercase tracking-wider hover:scale-105 transition-transform flex items-center justify-center gap-2">
                 💬 Send Receipt
               </button>
             </div>
@@ -402,44 +391,44 @@ export default function FieldPortal() {
         )}
 
         {/* Performance Glass Card */}
-        <div className="glass-card rounded-3xl p-6 md:p-8 mb-8 shadow-[0_0_40px_rgba(0,0,0,0.5)] relative overflow-hidden group">
-          <div className="absolute -right-10 -top-10 w-40 h-40 bg-[#a1faff]/5 rounded-full blur-3xl group-hover:bg-[#a1faff]/10 transition-colors"></div>
-          <p className="text-[10px] text-[#aaabad] font-label uppercase tracking-widest mb-6">Agent Performance Metrics</p>
+        <div className="bg-white border border-[#E5E7EB] rounded-lg shadow-sm rounded-3xl p-6 md:p-8 mb-8 shadow-sm relative overflow-hidden group">
+          <div className="absolute -right-10 -top-10 w-40 h-40 bg-[#0EA5E9]/5 rounded-full blur-3xl group-hover:bg-[#0EA5E9]/10 transition-colors"></div>
+          <p className="text-[10px] text-[#6B7280] font-label uppercase tracking-wider mb-6">Agent Performance Metrics</p>
           <div className="flex justify-between items-end mb-4 relative z-10">
             <div>
-              <p className="text-[10px] text-slate-500 font-label uppercase tracking-widest font-bold mb-1">Total Volume</p>
-              <p className="text-4xl md:text-5xl font-headline text-white font-black tracking-tighter">₹{myTotalSales.toLocaleString()}</p>
+              <p className="text-[10px] text-slate-500 font-label uppercase tracking-wider font-bold mb-1">Total Volume</p>
+              <p className="text-4xl md:text-5xl font-headline text-[#111827] font-bold ">₹{myTotalSales.toLocaleString()}</p>
             </div>
             <div className="text-right">
-              <p className="text-[10px] text-emerald-600 font-label uppercase tracking-widest font-bold mb-1">Accrued Comm.</p>
-              <p className="text-xl md:text-2xl font-headline text-emerald-400 font-black tracking-tighter">₹{Math.round(myCommission).toLocaleString()}</p>
+              <p className="text-[10px] text-emerald-600 font-label uppercase tracking-wider font-bold mb-1">Accrued Comm.</p>
+              <p className="text-xl md:text-2xl font-headline text-[#065F46] font-bold ">₹{Math.round(myCommission).toLocaleString()}</p>
             </div>
           </div>
           <div className="mt-6 relative z-10">
             <div className="w-full bg-white/5 rounded-full h-1.5 overflow-hidden">
-              <div className="bg-gradient-to-r from-[#a1faff] to-[#00f4fe] h-full rounded-full shadow-[0_0_10px_#00f4fe]" style={{ width: `${progress}%` }}></div>
+              <div className="bg-gradient-to-r from-[#a1faff] to-[#00f4fe] h-full rounded-full shadow-sm" style={{ width: `${progress}%` }}></div>
             </div>
-            <p className="text-[9px] text-slate-500 font-label tracking-widest uppercase mt-3 text-right">{Math.round(progress)}% of Target Required</p>
+            <p className="text-[9px] text-slate-500 font-label tracking-wider uppercase mt-3 text-right">{Math.round(progress)}% of Target Required</p>
           </div>
         </div>
 
         {/* PRIORITY ROUTE / BEAT */}
         {priorityRetailers.length > 0 && (
           <div className="mb-10">
-            <h2 className="text-[11px] text-[#ff716c] font-label uppercase font-black tracking-[0.3em] mb-4 pl-2 flex items-center gap-2">⚠️ Priority Route (Pending Balance)</h2>
+            <h2 className="text-[11px] text-[#ff716c] font-label uppercase font-bold tracking-[0.3em] mb-4 pl-2 flex items-center gap-2">⚠️ Priority Route (Pending Balance)</h2>
             <div className="flex overflow-x-auto pb-4 gap-4 hide-scrollbar">
               {priorityRetailers.map(r => (
-                <div key={r.id} className="min-w-[240px] glass-card p-5 rounded-2xl border-orange-500/20">
-                  <p className="text-sm font-bold text-white uppercase font-headline truncate">{r.store_name}</p>
-                  <p className="text-xs text-orange-400 font-mono mt-1 font-bold">Due: ₹{Number(r.total_pending).toLocaleString()}</p>
-                  <button onClick={() => { setIsCreatingOrder(true); setCustomerName(r.store_name); }} className="mt-4 w-full bg-orange-500/10 text-orange-400 py-2 rounded-lg text-[9px] uppercase tracking-widest font-black border border-orange-500/20">Target Shop</button>
+                <div key={r.id} className="min-w-[240px] bg-white border border-[#E5E7EB] rounded-lg shadow-sm p-5 rounded-2xl border-[#FDE68A]">
+                  <p className="text-sm font-bold text-[#111827] uppercase font-headline truncate">{r.store_name}</p>
+                  <p className="text-xs text-[#111827]  mt-1 font-bold">Due: ₹{Number(r.total_pending).toLocaleString()}</p>
+                  <button onClick={() => { setIsCreatingOrder(true); setCustomerName(r.store_name); }} className="mt-4 w-full bg-[#0EA5E9]/10 text-[#111827] py-2 rounded-lg text-[9px] uppercase tracking-wider font-bold border border-[#FDE68A]">Target Shop</button>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        <h2 className="text-[11px] text-[#a1faff] font-label uppercase font-black tracking-[0.3em] mb-6 pl-2">Recent Field Dispatches</h2>
+        <h2 className="text-[11px] text-[#0EA5E9] font-label uppercase font-bold tracking-[0.3em] mb-6 pl-2">Recent Field Dispatches</h2>
         
         <div className="space-y-4">
           {myOrders.map(o => {
@@ -448,19 +437,19 @@ export default function FieldPortal() {
             const remaining = Number(o.total_amount) - Number(o.amount_paid || 0);
 
             return (
-              <div key={o.id} className={`glass-card p-5 md:p-6 rounded-2xl shadow-lg transition-all hover:border-white/20 ${isZeroSale ? 'opacity-60 border-white/5' : ''}`}>
+              <div key={o.id} className={`bg-white border border-[#E5E7EB] rounded-lg shadow-sm p-5 md:p-6 rounded-2xl shadow-lg transition-all hover:border-white/20 ${isZeroSale ? 'opacity-60 border-white/5' : ''}`}>
                 <div className="flex justify-between items-start mb-4 border-b border-white/5 pb-4">
                   <div>
-                    <p className="text-sm md:text-base font-bold text-white uppercase font-headline tracking-wide">{o.customer_name}</p>
-                    <p className="text-[10px] text-slate-500 font-mono mt-1 tracking-widest">{o.order_number}</p>
+                    <p className="text-sm md:text-base font-bold text-[#111827] uppercase font-headline tracking-wide">{o.customer_name}</p>
+                    <p className="text-[10px] text-slate-500  mt-1 tracking-wider">{o.order_number}</p>
                   </div>
                   <div className="text-right flex items-center gap-4">
                     <div>
-                      <p className={`text-lg md:text-xl font-headline font-black ${isZeroSale ? 'text-slate-500' : 'text-[#a1faff]'}`}>₹{Number(o.total_amount).toLocaleString()}</p>
+                      <p className={`text-lg md:text-xl font-headline font-bold ${isZeroSale ? 'text-slate-500' : 'text-[#0EA5E9]'}`}>₹{Number(o.total_amount).toLocaleString()}</p>
                       <div className="flex gap-2 justify-end mt-2">
-                        <span className={`text-[8px] font-label uppercase tracking-widest font-black px-2 py-1 rounded border ${o.status === 'Pending' ? 'text-orange-400 border-orange-400/20 bg-orange-400/5' : isZeroSale ? 'text-slate-400 border-slate-400/20 bg-slate-400/5' : 'text-[#a1faff] border-[#a1faff]/20 bg-[#a1faff]/5'}`}>{o.status}</span>
+                        <span className={`text-[8px] font-label uppercase tracking-wider font-bold px-2 py-1 rounded border ${o.status === 'Pending' ? 'text-[#111827] border-orange-400/20 bg-orange-400/5' : isZeroSale ? 'text-slate-400 border-slate-400/20 bg-slate-400/5' : 'text-[#0EA5E9] border-[#a1faff]/20 bg-[#0EA5E9]/5'}`}>{o.status}</span>
                         {!isZeroSale && (
-                          <span className={`text-[8px] font-label uppercase tracking-widest font-black px-2 py-1 rounded border ${isPaid ? 'text-emerald-400 border-emerald-400/20 bg-emerald-400/5' : 'text-[#ff716c] border-[#ff716c]/20 bg-[#ff716c]/5'}`}>{o.payment_status || 'Unpaid'}</span>
+                          <span className={`text-[8px] font-label uppercase tracking-wider font-bold px-2 py-1 rounded border ${isPaid ? 'text-[#065F46] border-emerald-400/20 bg-emerald-400/5' : 'text-[#ff716c] border-[#ff716c]/20 bg-[#ff716c]/5'}`}>{o.payment_status || 'Unpaid'}</span>
                         )}
                       </div>
                     </div>
@@ -472,117 +461,117 @@ export default function FieldPortal() {
 
                 {!isPaid && !isZeroSale && (
                   <div className="flex justify-between items-center mt-2">
-                    <p className="text-[10px] font-label uppercase tracking-widest text-slate-400 font-bold">Due: <span className="text-white">₹{remaining.toLocaleString()}</span></p>
+                    <p className="text-[10px] font-label uppercase tracking-wider text-slate-400 font-bold">Due: <span className="text-[#111827]">₹{remaining.toLocaleString()}</span></p>
                     <button 
                       onClick={() => openPaymentModal(o)}
-                      className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-5 py-2.5 rounded-xl text-[9px] font-label font-black uppercase tracking-widest hover:bg-emerald-500/20 active:scale-95 transition-all"
+                      className="bg-[#D1FAE5] text-[#065F46] border border-[#A7F3D0] px-5 py-2.5 rounded-xl text-[9px] font-label font-bold uppercase tracking-wider hover:bg-emerald-500/20 active:scale-95 transition-all"
                     >
                       Receive Cash
                     </button>
                   </div>
                 )}
                 {isZeroSale && (
-                  <p className="text-[9px] text-slate-500 uppercase tracking-widest text-right">Reason: {o.payment_status}</p>
+                  <p className="text-[9px] text-slate-500 uppercase tracking-wider text-right">Reason: {o.payment_status}</p>
                 )}
               </div>
             );
           })}
-          {myOrders.length === 0 && <p className="text-center text-xs text-slate-600 font-label tracking-widest uppercase py-10">No dispatches recorded.</p>}
+          {myOrders.length === 0 && <p className="text-center text-xs text-slate-600 font-label tracking-wider uppercase py-10">No dispatches recorded.</p>}
         </div>
       </div>
 
       <div className="fixed bottom-6 right-4 left-4 md:right-12 md:left-auto md:w-[600px] flex gap-3 z-20">
-        <button onClick={() => setIsCatalogOpen(true)} className="flex-1 glass-card bg-[#0c0e10]/90 text-white py-4 md:py-5 rounded-2xl font-label font-black uppercase tracking-[0.2em] text-[9px] shadow-2xl active:scale-95 transition-transform hover:border-[#a1faff]/40">Catalog</button>
-        <button onClick={() => setIsCreatingOrder(true)} className="flex-[1.5] bg-gradient-to-r from-[#a1faff] to-[#00f4fe] text-[#002222] py-4 md:py-5 rounded-2xl font-label font-black uppercase tracking-[0.2em] text-[10px] shadow-[0_0_25px_rgba(0,242,255,0.4)] active:scale-95 hover:scale-[1.02] transition-all">+ Check In Store</button>
+        <button onClick={() => setIsCatalogOpen(true)} className="flex-1 bg-white border border-[#E5E7EB] rounded-lg shadow-sm bg-[#F8F9FA]/90 text-[#111827] py-4 md:py-5 rounded-2xl font-label font-bold uppercase tracking-[0.2em] text-[9px] shadow-sm active:scale-95 transition-transform hover:border-[#a1faff]/40">Catalog</button>
+        <button onClick={() => setIsCreatingOrder(true)} className="flex-[1.5] bg-gradient-to-r from-[#a1faff] to-[#00f4fe] text-[#002222] py-4 md:py-5 rounded-2xl font-label font-bold uppercase tracking-[0.2em] text-[10px] shadow-sm active:scale-95 hover:scale-[1.02] transition-all">+ Check In Store</button>
       </div>
 
       {/* ==================================================================================== */}
       {/* 🚀 BEAST MODE AGENT DOSSIER / PROFILE MODAL */}
       {/* ==================================================================================== */}
       {isProfileOpen && (
-        <div className="fixed inset-0 bg-black/80 z-[100] flex items-end justify-center sm:items-center backdrop-blur-md p-4">
-          <div className="glass-modal p-8 rounded-t-3xl sm:rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-[0_0_50px_rgba(0,0,0,0.8)] hide-scrollbar">
+        <div className="fixed inset-0 bg-white/80 z-[100] flex items-end justify-center sm:items-center backdrop-blur-md p-4">
+          <div className="glass-modal p-8 rounded-t-3xl sm:rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-sm hide-scrollbar">
             
             {/* Header */}
-            <div className="flex justify-between items-center mb-6 pb-4 border-b border-white/10 sticky top-0 bg-[#0c0e10]/90 backdrop-blur-md z-10">
-              <h2 className="text-xl font-black font-headline text-[#a1faff] uppercase tracking-tighter">Agent Dossier</h2>
-              <button onClick={() => setIsProfileOpen(false)} className="text-slate-500 hover:text-white text-2xl">×</button>
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-white/10 sticky top-0 bg-[#F8F9FA]/90 backdrop-blur-md z-10">
+              <h2 className="text-xl font-bold font-headline text-[#0EA5E9] uppercase ">Agent Dossier</h2>
+              <button onClick={() => setIsProfileOpen(false)} className="text-slate-500 hover:text-[#111827] text-2xl">×</button>
             </div>
             
             <div className="space-y-6">
               {/* Profile Identity */}
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-white/5 rounded-full border border-[#a1faff]/30 flex items-center justify-center shadow-[0_0_15px_rgba(161,250,255,0.1)]">
-                  <span className="text-2xl text-[#a1faff] font-headline font-black">{currentRep.full_name.charAt(0)}</span>
+                <div className="w-16 h-16 bg-white/5 rounded-full border border-[#a1faff]/30 flex items-center justify-center shadow-sm">
+                  <span className="text-2xl text-[#0EA5E9] font-headline font-bold">{currentRep.full_name.charAt(0)}</span>
                 </div>
                 <div>
-                  <h3 className="text-xl font-black font-headline text-white uppercase">{currentRep.full_name}</h3>
-                  <p className="text-[10px] text-slate-400 font-mono tracking-widest uppercase mt-1">{currentRep.employee_id || 'ID_PENDING'} • {currentRep.role}</p>
+                  <h3 className="text-xl font-bold font-headline text-[#111827] uppercase">{currentRep.full_name}</h3>
+                  <p className="text-[10px] text-slate-400  tracking-wider uppercase mt-1">{currentRep.employee_id || 'ID_PENDING'} • {currentRep.role}</p>
                 </div>
               </div>
 
               {/* 4. Gamification / Leaderboard */}
               <div className="bg-gradient-to-r from-[#a1faff]/10 to-[#00f4fe]/10 p-4 rounded-2xl border border-[#a1faff]/30 flex justify-between items-center">
                 <div>
-                  <p className="text-[9px] text-[#00f4fe] font-label uppercase tracking-widest font-bold">Current Status</p>
-                  <p className="text-lg text-white font-headline font-black tracking-tight">🏆 Active Agent</p>
+                  <p className="text-[9px] text-[#00f4fe] font-label uppercase tracking-wider font-bold">Current Status</p>
+                  <p className="text-lg text-[#111827] font-headline font-bold tracking-tight">🏆 Active Agent</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-[9px] text-[#00f4fe] font-label uppercase tracking-widest font-bold">Monthly Target</p>
-                  <p className="text-sm text-white font-mono uppercase font-bold">₹{(currentRep.monthly_target || 0).toLocaleString()}</p>
+                  <p className="text-[9px] text-[#00f4fe] font-label uppercase tracking-wider font-bold">Monthly Target</p>
+                  <p className="text-sm text-[#111827]  uppercase font-bold">₹{(currentRep.monthly_target || 0).toLocaleString()}</p>
                 </div>
               </div>
 
               {/* 2. Territory & Retailer Stats */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
-                  <p className="text-2xl text-white font-headline font-black">{retailers.length}</p>
-                  <p className="text-[9px] text-slate-400 font-label uppercase tracking-widest mt-1">Total Assigned Stores</p>
+                  <p className="text-2xl text-[#111827] font-headline font-bold">{retailers.length}</p>
+                  <p className="text-[9px] text-slate-400 font-label uppercase tracking-wider mt-1">Total Assigned Stores</p>
                 </div>
-                <div className="bg-orange-500/10 p-4 rounded-2xl border border-orange-500/20">
-                  <p className="text-2xl text-orange-400 font-headline font-black">{priorityRetailers.length}</p>
-                  <p className="text-[9px] text-orange-400 font-label uppercase tracking-widest mt-1">Stores Needing Visit</p>
+                <div className="bg-[#0EA5E9]/10 p-4 rounded-2xl border border-[#FDE68A]">
+                  <p className="text-2xl text-[#111827] font-headline font-bold">{priorityRetailers.length}</p>
+                  <p className="text-[9px] text-[#111827] font-label uppercase tracking-wider mt-1">Stores Needing Visit</p>
                 </div>
               </div>
 
               {/* 3. Financial Snapshot (Claims & Payouts) */}
               <div className="bg-white/5 p-5 rounded-2xl border border-white/5 space-y-4">
-                <h4 className="text-[10px] text-slate-500 font-label uppercase tracking-widest font-bold flex justify-between">
+                <h4 className="text-[10px] text-slate-500 font-label uppercase tracking-wider font-bold flex justify-between">
                   <span>Financial Ledger</span>
-                  <span className="text-emerald-400">{currentRep.commission_rate}% Comm. Rate</span>
+                  <span className="text-[#065F46]">{currentRep.commission_rate}% Comm. Rate</span>
                 </h4>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center border-b border-white/5 pb-2">
                     <span className="text-xs text-slate-300 font-label uppercase">Total Accrued (Est.)</span>
-                    <span className="text-sm text-emerald-400 font-mono font-bold">₹{Math.round(myCommission).toLocaleString()}</span>
+                    <span className="text-sm text-[#065F46]  font-bold">₹{Math.round(myCommission).toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-xs text-slate-400 font-label uppercase">Pending Claims</span>
-                    <span className="text-xs text-orange-400 font-mono">₹{pendingExpenses.toLocaleString()}</span>
+                    <span className="text-xs text-[#111827] ">₹{pendingExpenses.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-xs text-slate-400 font-label uppercase">Approved Claims</span>
-                    <span className="text-xs text-emerald-400 font-mono">₹{approvedExpenses.toLocaleString()}</span>
+                    <span className="text-xs text-[#065F46] ">₹{approvedExpenses.toLocaleString()}</span>
                   </div>
                 </div>
               </div>
 
               {/* 1. "Backpack" Sample Inventory */}
               <div className="bg-white/5 p-5 rounded-2xl border border-white/5">
-                <h4 className="text-[10px] text-slate-500 font-label uppercase tracking-widest font-bold mb-3">Backpack (Checked Out Samples)</h4>
+                <h4 className="text-[10px] text-slate-500 font-label uppercase tracking-wider font-bold mb-3">Backpack (Checked Out Samples)</h4>
                 <div className="space-y-2">
                   {/* Mock Data for now until a Samples table is built */}
-                  <div className="flex justify-between items-center bg-[#050505] p-3 rounded-xl border border-white/5">
-                    <span className="text-xs text-white font-headline">10000mAh Power Bank</span>
-                    <span className="text-[9px] bg-slate-800 text-slate-300 px-2 py-1 rounded-md font-mono uppercase tracking-widest">2 Units</span>
+                  <div className="flex justify-between items-center bg-white p-3 rounded-xl border border-white/5">
+                    <span className="text-xs text-[#111827] font-headline">10000mAh Power Bank</span>
+                    <span className="text-[9px] bg-slate-800 text-slate-300 px-2 py-1 rounded-md  uppercase tracking-wider">2 Units</span>
                   </div>
-                  <div className="flex justify-between items-center bg-[#050505] p-3 rounded-xl border border-white/5">
-                    <span className="text-xs text-white font-headline">Pro TWS Earbuds</span>
-                    <span className="text-[9px] bg-slate-800 text-slate-300 px-2 py-1 rounded-md font-mono uppercase tracking-widest">1 Unit</span>
+                  <div className="flex justify-between items-center bg-white p-3 rounded-xl border border-white/5">
+                    <span className="text-xs text-[#111827] font-headline">Pro TWS Earbuds</span>
+                    <span className="text-[9px] bg-slate-800 text-slate-300 px-2 py-1 rounded-md  uppercase tracking-wider">1 Unit</span>
                   </div>
-                  <div className="flex justify-between items-center bg-[#050505] p-3 rounded-xl border border-white/5">
-                    <span className="text-xs text-white font-headline">65W GaN Adapter</span>
-                    <span className="text-[9px] bg-slate-800 text-slate-300 px-2 py-1 rounded-md font-mono uppercase tracking-widest">1 Unit</span>
+                  <div className="flex justify-between items-center bg-white p-3 rounded-xl border border-white/5">
+                    <span className="text-xs text-[#111827] font-headline">65W GaN Adapter</span>
+                    <span className="text-[9px] bg-slate-800 text-slate-300 px-2 py-1 rounded-md  uppercase tracking-wider">1 Unit</span>
                   </div>
                 </div>
               </div>
@@ -591,13 +580,13 @@ export default function FieldPortal() {
               <div className="flex gap-3 pt-2">
                 <button 
                   onClick={() => { setIsProfileOpen(false); setIsExpenseModalOpen(true); }} 
-                  className="flex-1 bg-orange-500/10 border border-orange-500/30 text-orange-400 py-4 rounded-xl font-label font-black uppercase text-[10px] tracking-widest hover:bg-orange-500/20 transition-all"
+                  className="flex-1 bg-[#0EA5E9]/10 border border-orange-500/30 text-[#111827] py-4 rounded-xl font-label font-bold uppercase text-[10px] tracking-wider hover:bg-[#0EA5E9]/20 transition-all"
                 >
                   Log Expense
                 </button>
                 <button 
                   onClick={handleLogOut} 
-                  className="flex-[0.5] bg-[#ff716c]/10 text-[#ff716c] border border-[#ff716c]/30 py-4 rounded-xl font-label font-black uppercase text-[10px] tracking-widest hover:bg-[#ff716c]/20 transition-all"
+                  className="flex-[0.5] bg-[#ff716c]/10 text-[#ff716c] border border-[#ff716c]/30 py-4 rounded-xl font-label font-bold uppercase text-[10px] tracking-wider hover:bg-[#ff716c]/20 transition-all"
                 >
                   Logout
                 </button>
@@ -605,12 +594,12 @@ export default function FieldPortal() {
 
               {/* 5. System Health / Sync Status */}
               <div className="mt-4 flex flex-col items-center justify-center gap-1.5 pb-4">
-                <p className="text-[9px] text-emerald-500 uppercase tracking-widest font-mono flex items-center gap-2 font-bold">
-                  <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_#10b981]"></span> 
+                <p className="text-[9px] text-[#065F46] uppercase tracking-wider  flex items-center gap-2 font-bold">
+                  <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-sm"></span> 
                   Secure Link Active
                 </p>
-                <p className="text-[8px] text-slate-500 font-mono uppercase tracking-widest">Last Synced: {lastSynced || "Just now"}</p>
-                <p className="text-[8px] text-slate-700 font-mono uppercase tracking-widest">v1.2.0 • CONQRETE CORE</p>
+                <p className="text-[8px] text-slate-500  uppercase tracking-wider">Last Synced: {lastSynced || "Just now"}</p>
+                <p className="text-[8px] text-slate-700  uppercase tracking-wider">v1.2.0 • CONQRETE CORE</p>
               </div>
 
             </div>
@@ -620,18 +609,18 @@ export default function FieldPortal() {
 
       {/* CATALOG MODAL WITH CAMERA SCANNER */}
       {isCatalogOpen && (
-        <div className="fixed inset-0 bg-black/80 z-[90] flex items-end justify-center sm:items-center backdrop-blur-md p-4">
+        <div className="fixed inset-0 bg-white/80 z-[90] flex items-end justify-center sm:items-center backdrop-blur-md p-4">
           <div className="glass-modal p-8 rounded-t-3xl sm:rounded-3xl w-full max-w-2xl max-h-[85vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6 pb-4 border-b border-white/10 sticky top-0 bg-[#0c0e10]/90 backdrop-blur-md z-10">
-              <h2 className="text-xl font-black font-headline text-[#a1faff] uppercase">Product Catalog</h2>
-              <button onClick={() => { setIsCatalogOpen(false); setIsScanning(false); }} className="text-slate-500 hover:text-white text-2xl">×</button>
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-white/10 sticky top-0 bg-[#F8F9FA]/90 backdrop-blur-md z-10">
+              <h2 className="text-xl font-bold font-headline text-[#0EA5E9] uppercase">Product Catalog</h2>
+              <button onClick={() => { setIsCatalogOpen(false); setIsScanning(false); }} className="text-slate-500 hover:text-[#111827] text-2xl">×</button>
             </div>
 
             {isScanning && (
-              <div className="mb-6 bg-black rounded-2xl overflow-hidden border-2 border-[#00f4fe] shadow-[0_0_30px_rgba(0,244,254,0.3)] relative">
+              <div className="mb-6 bg-white rounded-2xl overflow-hidden border-2 border-[#00f4fe] shadow-sm relative">
                 <Scanner onScan={handleScan} />
                 <div className="absolute bottom-4 left-0 right-0 text-center pointer-events-none">
-                  <span className="bg-black/50 text-white text-[10px] px-4 py-2 rounded-full font-label tracking-widest uppercase border border-white/20">Point camera at barcode</span>
+                  <span className="bg-white/50 text-[#111827] text-[10px] px-4 py-2 rounded-full font-label tracking-wider uppercase border border-white/20">Point camera at barcode</span>
                 </div>
               </div>
             )}
@@ -639,11 +628,11 @@ export default function FieldPortal() {
             <div className="flex gap-2 mb-6">
               <input 
                 type="text" placeholder="Search SKU or Name..." value={catalogSearch} onChange={(e) => setCatalogSearch(e.target.value)}
-                className="flex-1 bg-[#050505] border border-white/10 p-4 rounded-xl text-white outline-none focus:border-[#a1faff]"
+                className="flex-1 bg-white border border-white/10 p-4 rounded-xl text-[#111827] outline-none focus:border-[#a1faff]"
               />
               <button 
                 onClick={() => setIsScanning(!isScanning)}
-                className={`px-5 rounded-xl font-label font-black uppercase tracking-widest text-[9px] border transition-all ${isScanning ? 'bg-[#ff716c]/10 text-[#ff716c] border-[#ff716c]/30' : 'bg-[#a1faff]/10 text-[#a1faff] border-[#a1faff]/30 hover:bg-[#a1faff]/20'}`}
+                className={`px-5 rounded-xl font-label font-bold uppercase tracking-wider text-[9px] border transition-all ${isScanning ? 'bg-[#ff716c]/10 text-[#ff716c] border-[#ff716c]/30' : 'bg-[#0EA5E9]/10 text-[#0EA5E9] border-[#a1faff]/30 hover:bg-[#0EA5E9]/20'}`}
               >
                 {isScanning ? 'Close Cam' : '📷 Scan'}
               </button>
@@ -651,13 +640,13 @@ export default function FieldPortal() {
 
             <div className="space-y-4">
               {filteredCatalog.map(p => (
-                <div key={p.id} className="glass-card p-4 rounded-xl flex justify-between items-center">
+                <div key={p.id} className="bg-white border border-[#E5E7EB] rounded-lg shadow-sm p-4 rounded-xl flex justify-between items-center">
                   <div>
-                    <p className="text-white font-headline font-black">{p.name}</p>
-                    <p className="text-[10px] text-slate-500 font-mono mt-1">{p.sku}</p>
+                    <p className="text-[#111827] font-headline font-bold">{p.name}</p>
+                    <p className="text-[10px] text-slate-500  mt-1">{p.sku}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-[#a1faff] font-headline font-black text-lg">₹{Number(p.pricing?.retailer || 0).toLocaleString()}</p>
+                    <p className="text-[#0EA5E9] font-headline font-bold text-lg">₹{Number(p.pricing?.retailSellingPrice || 0).toLocaleString()}</p>
                     <p className="text-[10px] text-slate-400 mt-1">Stock: {p.stock}</p>
                   </div>
                 </div>
@@ -669,69 +658,69 @@ export default function FieldPortal() {
 
       {/* CREATE ORDER / STORE CHECK-IN MODAL */}
       {isCreatingOrder && (
-        <div className="fixed inset-0 bg-black/80 z-[90] flex items-end justify-center sm:items-center backdrop-blur-md p-4">
-          <div className="glass-modal p-8 rounded-t-3xl sm:rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-[0_0_50px_rgba(0,0,0,0.8)]">
-            <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4 sticky top-0 bg-[#0c0e10]/90 backdrop-blur-md z-10">
-              <h2 className="text-xl font-black font-headline text-[#00f4fe] uppercase tracking-tighter">Store Check-in</h2>
-              <button onClick={() => setIsCreatingOrder(false)} className="text-slate-500 hover:text-white text-2xl">×</button>
+        <div className="fixed inset-0 bg-white/80 z-[90] flex items-end justify-center sm:items-center backdrop-blur-md p-4">
+          <div className="glass-modal p-8 rounded-t-3xl sm:rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-sm">
+            <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4 sticky top-0 bg-[#F8F9FA]/90 backdrop-blur-md z-10">
+              <h2 className="text-xl font-bold font-headline text-[#00f4fe] uppercase ">Store Check-in</h2>
+              <button onClick={() => setIsCreatingOrder(false)} className="text-slate-500 hover:text-[#111827] text-2xl">×</button>
             </div>
 
             <form onSubmit={submitMobileOrder} className="space-y-6">
               <div>
-                <label className="block text-[10px] text-slate-400 mb-2 uppercase font-label tracking-widest font-bold">Select Customer Location</label>
+                <label className="block text-[10px] text-slate-400 mb-2 uppercase font-label tracking-wider font-bold">Select Customer Location</label>
                 <div className="flex gap-2">
-                  <select value={customerName} onChange={(e) => setCustomerName(e.target.value)} className="flex-1 bg-[#050505] border border-white/10 p-4 rounded-xl text-white outline-none focus:border-[#00f4fe]">
+                  <select value={customerName} onChange={(e) => setCustomerName(e.target.value)} className="flex-1 bg-white border border-white/10 p-4 rounded-xl text-[#111827] outline-none focus:border-[#00f4fe]">
                     <option value="">Select Customer...</option>
                     {retailers.map(r => (<option key={r.id} value={r.store_name}>{r.store_name}</option>))}
                   </select>
-                  <button type="button" onClick={() => setIsAddingRetailer(true)} className="bg-[#a1faff]/10 text-[#a1faff] px-4 rounded-xl border border-[#a1faff]/30 hover:bg-[#a1faff]/20">+ New</button>
+                  <button type="button" onClick={() => setIsAddingRetailer(true)} className="bg-[#0EA5E9]/10 text-[#0EA5E9] px-4 rounded-xl border border-[#a1faff]/30 hover:bg-[#0EA5E9]/20">+ New</button>
                 </div>
               </div>
 
               {!isZeroSaleModalOpen ? (
                 <>
                   <div>
-                    <label className="block text-[10px] text-slate-400 mb-2 uppercase font-label tracking-widest font-bold">Channel</label>
-                    <select value={salesChannel} onChange={(e) => setSalesChannel(e.target.value)} className="w-full bg-[#050505] border border-white/10 p-4 rounded-xl text-white outline-none focus:border-[#00f4fe]">
+                    <label className="block text-[10px] text-slate-400 mb-2 uppercase font-label tracking-wider font-bold">Channel</label>
+                    <select value={salesChannel} onChange={(e) => setSalesChannel(e.target.value)} className="w-full bg-white border border-white/10 p-4 rounded-xl text-[#111827] outline-none focus:border-[#00f4fe]">
                       <option>Retailer</option><option>Distributor</option>
                     </select>
                   </div>
 
                   <div>
                     <div className="flex justify-between items-center mb-4">
-                      <label className="text-[10px] text-slate-400 uppercase font-label tracking-widest font-bold">Order Items</label>
-                      <button type="button" onClick={handleAddItem} className="text-[#a1faff] text-sm hover:text-[#00f4fe]">+ Add Item</button>
+                      <label className="text-[10px] text-slate-400 uppercase font-label tracking-wider font-bold">Order Items</label>
+                      <button type="button" onClick={handleAddItem} className="text-[#0EA5E9] text-sm hover:text-[#00f4fe]">+ Add Item</button>
                     </div>
                     {cart.map((item, idx) => (
                       <div key={idx} className="flex gap-2 mb-3">
-                        <select value={item.productId} onChange={(e) => updateCartItem(idx, "productId", e.target.value)} className="flex-1 bg-[#050505] border border-white/10 p-2 rounded-lg text-white text-sm outline-none">
+                        <select value={item.productId} onChange={(e) => updateCartItem(idx, "productId", e.target.value)} className="flex-1 bg-white border border-white/10 p-2 rounded-lg text-[#111827] text-sm outline-none">
                           <option value="">Product...</option>{products.map(p => (<option key={p.id} value={p.id}>{p.name}</option>))}
                         </select>
-                        <input type="number" min="1" value={item.quantity} onChange={(e) => updateCartItem(idx, "quantity", e.target.value)} className="w-16 bg-[#050505] border border-white/10 p-2 rounded-lg text-white text-sm outline-none" placeholder="Qty" />
-                        {cart.length > 1 && (<button type="button" onClick={() => removeItem(idx)} className="text-red-500 px-2">✕</button>)}
+                        <input type="number" min="1" value={item.quantity} onChange={(e) => updateCartItem(idx, "quantity", e.target.value)} className="w-16 bg-white border border-white/10 p-2 rounded-lg text-[#111827] text-sm outline-none" placeholder="Qty" />
+                        {cart.length > 1 && (<button type="button" onClick={() => removeItem(idx)} className="text-[#991B1B] px-2">✕</button>)}
                       </div>
                     ))}
                   </div>
 
                   <div className="bg-white/5 p-4 rounded-xl">
-                    <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-2">Total Amount</p>
-                    <p className="text-3xl font-headline font-black text-[#a1faff]">₹{calculateTotal().toLocaleString()}</p>
+                    <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-2">Total Amount</p>
+                    <p className="text-3xl font-headline font-bold text-[#0EA5E9]">₹{calculateTotal().toLocaleString()}</p>
                   </div>
                   
                   <div className="flex gap-2 mt-6">
-                    <button type="button" onClick={() => { if(!customerName) return alert("Select customer first"); setIsZeroSaleModalOpen(true); }} className="flex-1 bg-slate-800 text-slate-300 py-5 rounded-2xl font-label font-black uppercase text-[9px] tracking-widest border border-slate-700 hover:bg-slate-700 transition-colors">Log Zero Sale</button>
-                    <button type="submit" className="flex-[2] bg-gradient-to-r from-[#a1faff] to-[#00f4fe] text-[#002222] py-5 rounded-2xl font-label font-black uppercase text-[10px] tracking-[0.2em] shadow-[0_0_20px_rgba(0,242,255,0.3)] hover:scale-[1.02] transition-transform">Push Order to HQ</button>
+                    <button type="button" onClick={() => { if(!customerName) return alert("Select customer first"); setIsZeroSaleModalOpen(true); }} className="flex-1 bg-slate-800 text-slate-300 py-5 rounded-2xl font-label font-bold uppercase text-[9px] tracking-wider border border-slate-700 hover:bg-slate-700 transition-colors">Log Zero Sale</button>
+                    <button type="submit" className="flex-[2] bg-gradient-to-r from-[#a1faff] to-[#00f4fe] text-[#002222] py-5 rounded-2xl font-label font-bold uppercase text-[10px] tracking-[0.2em] shadow-sm hover:scale-[1.02] transition-transform">Push Order to HQ</button>
                   </div>
                 </>
               ) : (
                 <div className="bg-white/5 p-6 rounded-2xl border border-white/10 space-y-4 animate-in slide-in-from-bottom-4">
-                  <p className="text-xs text-white font-headline font-black uppercase">Log "Zero Sale" Visit</p>
-                  <select value={zeroSaleReason} onChange={(e) => setZeroSaleReason(e.target.value)} className="w-full bg-[#050505] border border-white/10 p-4 rounded-xl text-white outline-none focus:border-[#a1faff]">
+                  <p className="text-xs text-[#111827] font-headline font-bold uppercase">Log "Zero Sale" Visit</p>
+                  <select value={zeroSaleReason} onChange={(e) => setZeroSaleReason(e.target.value)} className="w-full bg-white border border-white/10 p-4 rounded-xl text-[#111827] outline-none focus:border-[#a1faff]">
                     <option>Overstocked</option><option>Owner Not Present</option><option>Price Objection</option><option>Competitor Stock Loaded</option><option>Store Closed</option>
                   </select>
                   <div className="flex gap-2">
-                    <button type="button" onClick={() => setIsZeroSaleModalOpen(false)} className="flex-1 bg-transparent border border-white/20 text-white py-3 rounded-xl font-label uppercase text-[10px] font-black hover:bg-white/5 transition-colors">Cancel</button>
-                    <button type="button" onClick={logZeroSaleVisit} className="flex-1 bg-slate-200 text-black py-3 rounded-xl font-label uppercase text-[10px] font-black hover:bg-white transition-colors">Confirm Visit</button>
+                    <button type="button" onClick={() => setIsZeroSaleModalOpen(false)} className="flex-1 bg-transparent border border-white/20 text-[#111827] py-3 rounded-xl font-label uppercase text-[10px] font-bold hover:bg-white/5 transition-colors">Cancel</button>
+                    <button type="button" onClick={logZeroSaleVisit} className="flex-1 bg-slate-200 text-black py-3 rounded-xl font-label uppercase text-[10px] font-bold hover:bg-white transition-colors">Confirm Visit</button>
                   </div>
                 </div>
               )}
@@ -742,24 +731,24 @@ export default function FieldPortal() {
 
       {/* EXPENSE MODAL */}
       {isExpenseModalOpen && (
-        <div className="fixed inset-0 bg-black/80 z-[90] flex items-center justify-center backdrop-blur-md p-4">
-          <div className="glass-modal p-8 rounded-3xl w-full max-w-md shadow-[0_0_50px_rgba(0,0,0,0.8)]">
+        <div className="fixed inset-0 bg-white/80 z-[90] flex items-center justify-center backdrop-blur-md p-4">
+          <div className="glass-modal p-8 rounded-3xl w-full max-w-md shadow-sm">
             <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
-              <h2 className="text-xl font-black font-headline text-orange-400 uppercase tracking-tighter">Log Expense</h2>
-              <button onClick={() => setIsExpenseModalOpen(false)} className="text-slate-500 hover:text-white text-2xl">×</button>
+              <h2 className="text-xl font-bold font-headline text-[#111827] uppercase ">Log Expense</h2>
+              <button onClick={() => setIsExpenseModalOpen(false)} className="text-slate-500 hover:text-[#111827] text-2xl">×</button>
             </div>
             <form onSubmit={handleLogExpense} className="space-y-6">
               <div>
-                <label className="block text-[10px] text-slate-400 mb-2 uppercase font-label tracking-widest font-bold">Category</label>
-                <select value={expenseData.category} onChange={(e) => setExpenseData({...expenseData, category: e.target.value})} className="w-full bg-[#050505] border border-white/10 p-4 rounded-xl text-white outline-none focus:border-orange-400">
+                <label className="block text-[10px] text-slate-400 mb-2 uppercase font-label tracking-wider font-bold">Category</label>
+                <select value={expenseData.category} onChange={(e) => setExpenseData({...expenseData, category: e.target.value})} className="w-full bg-white border border-white/10 p-4 rounded-xl text-[#111827] outline-none focus:border-orange-400">
                   <option>Petrol</option><option>Food</option><option>Travel</option><option>Other</option>
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] text-slate-400 mb-2 uppercase font-label tracking-widest font-bold">Amount (₹)</label>
-                <input type="number" min="1" required value={expenseData.amount} onChange={(e) => setExpenseData({...expenseData, amount: e.target.value})} className="w-full bg-[#050505] border border-orange-500/30 p-4 rounded-xl text-orange-400 font-headline text-2xl font-black outline-none focus:border-orange-400" />
+                <label className="block text-[10px] text-slate-400 mb-2 uppercase font-label tracking-wider font-bold">Amount (₹)</label>
+                <input type="number" min="1" required value={expenseData.amount} onChange={(e) => setExpenseData({...expenseData, amount: e.target.value})} className="w-full bg-white border border-orange-500/30 p-4 rounded-xl text-[#111827] font-headline text-2xl font-bold outline-none focus:border-orange-400" />
               </div>
-              <button type="submit" className="w-full bg-orange-500 text-black py-5 rounded-2xl font-label font-black uppercase text-[10px] tracking-[0.2em] hover:bg-orange-400 transition-colors">Submit Claim</button>
+              <button type="submit" className="w-full bg-[#0EA5E9] text-black py-5 rounded-2xl font-label font-bold uppercase text-[10px] tracking-[0.2em] hover:bg-orange-400 transition-colors">Submit Claim</button>
             </form>
           </div>
         </div>
@@ -767,22 +756,22 @@ export default function FieldPortal() {
 
       {/* PAYMENT MODAL */}
       {isPaymentModalOpen && selectedOrder && (
-        <div className="fixed inset-0 bg-black/80 z-[90] flex items-center justify-center backdrop-blur-md p-4">
-          <div className="glass-modal p-8 rounded-3xl w-full max-w-md shadow-[0_0_50px_rgba(0,0,0,0.8)]">
+        <div className="fixed inset-0 bg-white/80 z-[90] flex items-center justify-center backdrop-blur-md p-4">
+          <div className="glass-modal p-8 rounded-3xl w-full max-w-md shadow-sm">
             <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
-              <h2 className="text-xl font-black font-headline text-emerald-400 uppercase tracking-tighter">Receive Payment</h2>
-              <button onClick={() => setIsPaymentModalOpen(false)} className="text-slate-500 hover:text-white text-2xl">×</button>
+              <h2 className="text-xl font-bold font-headline text-[#065F46] uppercase ">Receive Payment</h2>
+              <button onClick={() => setIsPaymentModalOpen(false)} className="text-slate-500 hover:text-[#111827] text-2xl">×</button>
             </div>
             <form onSubmit={handleLogPayment} className="space-y-6">
               <div>
                 <p className="text-[10px] text-slate-500 uppercase font-label">Order: {selectedOrder.order_number}</p>
-                <p className="text-lg font-headline font-black text-white mt-2">₹{Number(selectedOrder.total_amount).toLocaleString()}</p>
+                <p className="text-lg font-headline font-bold text-[#111827] mt-2">₹{Number(selectedOrder.total_amount).toLocaleString()}</p>
               </div>
               <div>
-                <label className="block text-[10px] text-slate-400 mb-2 uppercase font-label tracking-widest font-bold">Amount Received (₹)</label>
-                <input type="number" min="1" required value={paymentAmount} onChange={(e) => setPaymentAmount(e.target.value)} className="w-full bg-[#050505] border border-emerald-500/30 p-4 rounded-xl text-emerald-400 font-headline text-2xl font-black outline-none focus:border-emerald-400" />
+                <label className="block text-[10px] text-slate-400 mb-2 uppercase font-label tracking-wider font-bold">Amount Received (₹)</label>
+                <input type="number" min="1" required value={paymentAmount} onChange={(e) => setPaymentAmount(e.target.value)} className="w-full bg-white border border-emerald-500/30 p-4 rounded-xl text-[#065F46] font-headline text-2xl font-bold outline-none focus:border-emerald-400" />
               </div>
-              <button type="submit" className="w-full bg-gradient-to-r from-emerald-500 to-emerald-400 text-[#002222] py-5 rounded-2xl font-label font-black uppercase text-[10px] tracking-[0.2em] hover:scale-[1.02] transition-transform">Confirm Payment</button>
+              <button type="submit" className="w-full bg-gradient-to-r from-emerald-500 to-emerald-400 text-[#002222] py-5 rounded-2xl font-label font-bold uppercase text-[10px] tracking-[0.2em] hover:scale-[1.02] transition-transform">Confirm Payment</button>
             </form>
           </div>
         </div>
@@ -790,17 +779,17 @@ export default function FieldPortal() {
       
       {/* ADD NEW RETAILER MODAL */}
       {isAddingRetailer && (
-        <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center backdrop-blur-md p-4">
-          <div className="glass-modal p-8 rounded-3xl w-full max-w-md shadow-[0_0_50px_rgba(0,0,0,0.8)]">
-            <h2 className="text-xl font-black font-headline text-[#00f4fe] uppercase tracking-tighter mb-6">Add Store</h2>
+        <div className="fixed inset-0 bg-white/80 z-[100] flex items-center justify-center backdrop-blur-md p-4">
+          <div className="glass-modal p-8 rounded-3xl w-full max-w-md shadow-sm">
+            <h2 className="text-xl font-bold font-headline text-[#00f4fe] uppercase  mb-6">Add Store</h2>
             <form onSubmit={handleAddNewShop} className="space-y-4">
-              <input type="text" placeholder="Store Name" required value={newShop.store_name} onChange={(e) => setNewShop({...newShop, store_name: e.target.value})} className="w-full bg-[#050505] border border-white/10 p-4 rounded-xl text-white outline-none focus:border-[#00f4fe]" />
-              <input type="text" placeholder="Location" required value={newShop.location} onChange={(e) => setNewShop({...newShop, location: e.target.value})} className="w-full bg-[#050505] border border-white/10 p-4 rounded-xl text-white outline-none focus:border-[#00f4fe]" />
-              <input type="tel" placeholder="Phone" value={newShop.phone} onChange={(e) => setNewShop({...newShop, phone: e.target.value})} className="w-full bg-[#050505] border border-white/10 p-4 rounded-xl text-white outline-none focus:border-[#00f4fe]" />
-              <input type="email" placeholder="Email" value={newShop.email} onChange={(e) => setNewShop({...newShop, email: e.target.value})} className="w-full bg-[#050505] border border-white/10 p-4 rounded-xl text-white outline-none focus:border-[#00f4fe]" />
+              <input type="text" placeholder="Store Name" required value={newShop.store_name} onChange={(e) => setNewShop({...newShop, store_name: e.target.value})} className="w-full bg-white border border-white/10 p-4 rounded-xl text-[#111827] outline-none focus:border-[#00f4fe]" />
+              <input type="text" placeholder="Location" required value={newShop.location} onChange={(e) => setNewShop({...newShop, location: e.target.value})} className="w-full bg-white border border-white/10 p-4 rounded-xl text-[#111827] outline-none focus:border-[#00f4fe]" />
+              <input type="tel" placeholder="Phone" value={newShop.phone} onChange={(e) => setNewShop({...newShop, phone: e.target.value})} className="w-full bg-white border border-white/10 p-4 rounded-xl text-[#111827] outline-none focus:border-[#00f4fe]" />
+              <input type="email" placeholder="Email" value={newShop.email} onChange={(e) => setNewShop({...newShop, email: e.target.value})} className="w-full bg-white border border-white/10 p-4 rounded-xl text-[#111827] outline-none focus:border-[#00f4fe]" />
               <div className="flex gap-4 mt-6">
-                <button type="button" onClick={() => setIsAddingRetailer(false)} className="flex-1 bg-slate-700 text-white py-3 rounded-xl font-label font-black uppercase text-sm hover:bg-slate-600 transition-colors">Cancel</button>
-                <button type="submit" className="flex-1 bg-gradient-to-r from-[#a1faff] to-[#00f4fe] text-[#002222] py-3 rounded-xl font-label font-black uppercase text-sm hover:scale-[1.02] transition-transform">Save</button>
+                <button type="button" onClick={() => setIsAddingRetailer(false)} className="flex-1 bg-slate-700 text-[#111827] py-3 rounded-xl font-label font-bold uppercase text-sm hover:bg-slate-600 transition-colors">Cancel</button>
+                <button type="submit" className="flex-1 bg-gradient-to-r from-[#a1faff] to-[#00f4fe] text-[#002222] py-3 rounded-xl font-label font-bold uppercase text-sm hover:scale-[1.02] transition-transform">Save</button>
               </div>
             </form>
           </div>

@@ -393,7 +393,7 @@ export default function HumanResources() {
     const blanks = Array.from({ length: firstDay }, (_, i) => (
       <div key={`blank-${i}`} style={{ 
         padding: "0.75rem", 
-        borderBottom: "1px solid rgba(161, 250, 255, 0.1)", 
+        borderBottom: "1px solid #E5E7EB", 
         minHeight: "100px",
         background: "transparent"
       }} />
@@ -415,7 +415,7 @@ export default function HumanResources() {
           onClick={() => handleDateClick(day)}
           style={{
             padding: "0.75rem",
-            borderBottom: "1px solid rgba(161, 250, 255, 0.1)",
+            borderBottom: "1px solid #E5E7EB",
             minHeight: "100px",
             background: isToday ? "rgba(161, 250, 255, 0.08)" : isInRange ? "rgba(34, 197, 94, 0.1)" : "transparent",
             borderLeft: isToday ? "3px solid rgba(161, 250, 255, 0.3)" : isRangeStart ? "3px solid rgba(34, 197, 94, 0.5)" : "none",
@@ -437,7 +437,7 @@ export default function HumanResources() {
           <p style={{ 
             fontSize: "0.875rem", 
             fontWeight: 700, 
-            color: isToday ? "#a1faff" : conflict ? "#ff716c" : "#aaabad", 
+            color: isToday ? "#0EA5E9" : conflict ? "#ff716c" : "#6B7280", 
             margin: "0 0 0.5rem 0" 
           }}>
             {day}
@@ -459,7 +459,7 @@ export default function HumanResources() {
               />
             ))}
             {dayLeaves.length > 3 && (
-              <span style={{ fontSize: "0.65rem", color: "#aaabad" }}>+{dayLeaves.length - 3}</span>
+              <span style={{ fontSize: "0.65rem", color: "#6B7280" }}>+{dayLeaves.length - 3}</span>
             )}
           </div>
 
@@ -467,10 +467,10 @@ export default function HumanResources() {
           {conflict && (
             <div style={{
               fontSize: "0.65rem",
-              color: "#ff716c",
+              color: "#991B1B",
               fontWeight: 700,
               textTransform: "uppercase",
-              background: "rgba(255, 113, 108, 0.1)",
+              background: "white",
               padding: "0.25rem",
               borderRadius: "0.2rem"
             }}>
@@ -482,7 +482,7 @@ export default function HumanResources() {
           {dayLeaves.length > 0 && (
             <div style={{
               fontSize: "0.6rem",
-              color: "#a1faff",
+              color: "#111827",
               marginTop: "0.5rem",
               maxHeight: "60px",
               overflow: "hidden",
@@ -501,75 +501,11 @@ export default function HumanResources() {
 
   return (
     <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
-        
-        .font-headline { font-family: 'Space Grotesk', sans-serif; }
-        
-        .glass-card {
-          background: rgba(23, 26, 28, 0.5);
-          backdrop-filter: blur(32px);
-          -webkit-backdrop-filter: blur(32px);
-          border: 1px solid rgba(161, 250, 255, 0.1);
-        }
-        
-        .glass-card:hover {
-          border-color: rgba(161, 250, 255, 0.2);
-          background: rgba(23, 26, 28, 0.6);
-        }
-
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes slideInFromRight {
-          from {
-            opacity: 0;
-            transform: translateX(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-
-        @keyframes spin {
-          to {
-            transform: rotate(360deg);
-          }
-        }
-
-        .animate-fade-in {
-          animation: fadeInUp 0.5s ease-out;
-        }
-
-        .animate-slide-in {
-          animation: slideInFromRight 0.4s ease-out;
-        }
-
-        @media (max-width: 768px) {
-          .employee-grid {
-            grid-template-columns: 1fr !important;
-          }
-          .admin-list {
-            grid-template-columns: 1fr !important;
-          }
-          .header-container {
-            flex-direction: column !important;
-          }
-        }
-      `}</style>
+      
 
       <main style={{
-        background: "#0c0e10",
-        color: "#eeeef0",
+        background: "#F8F9FA",
+        color: "#111827",
         minHeight: "100vh",
         padding: "1rem"
       }}>
@@ -580,7 +516,7 @@ export default function HumanResources() {
             fontSize: "clamp(1.75rem, 5vw, 2.75rem)",
             fontWeight: 700,
             letterSpacing: "-0.02em",
-            color: "#a1faff",
+            color: "#111827",
             margin: 0,
             marginBottom: "0.75rem"
           }}>
@@ -588,7 +524,7 @@ export default function HumanResources() {
           </h1>
           <p style={{ 
             fontSize: "clamp(0.8rem, 2vw, 0.95rem)", 
-            color: "#aaabad", 
+            color: "#6B7280", 
             margin: 0,
             fontWeight: 300
           }}>
@@ -596,7 +532,7 @@ export default function HumanResources() {
           </p>
           <p style={{ 
             fontSize: "0.75rem", 
-            color: "#06b6d4", 
+            color: "#0EA5E9", 
             margin: "0.75rem 0 0 0",
             fontFamily: "monospace"
           }}>
@@ -613,7 +549,7 @@ export default function HumanResources() {
           alignItems: "center",
           justifyContent: "space-between"
         }} className="header-container">
-          <div className="glass-card" style={{ 
+          <div className="bg-white border border-[#E5E7EB] rounded-lg shadow-sm" style={{ 
             display: "flex", 
             gap: "0.5rem", 
             padding: "0.5rem", 
@@ -627,21 +563,21 @@ export default function HumanResources() {
                 fontWeight: 700,
                 textTransform: "uppercase",
                 letterSpacing: "0.1em",
-                border: activeTab === "registry" ? "1px solid #06b6d4" : "1px solid transparent",
+                border: activeTab === "registry" ? "1px solid #0EA5E9" : "1px solid transparent",
                 background: activeTab === "registry" ? "rgba(6, 182, 212, 0.1)" : "transparent",
-                color: activeTab === "registry" ? "#06b6d4" : "#aaabad",
+                color: activeTab === "registry" ? "#0EA5E9" : "#6B7280",
                 borderRadius: "0.5rem",
                 cursor: "pointer",
                 transition: "all 0.2s ease"
               }}
               onMouseEnter={(e) => { 
                 if (activeTab !== "registry") {
-                  e.currentTarget.style.color = "#a1faff";
+                  e.currentTarget.style.color = "#111827";
                 }
               }}
               onMouseLeave={(e) => { 
                 if (activeTab !== "registry") {
-                  e.currentTarget.style.color = "#aaabad";
+                  e.currentTarget.style.color = "#6B7280";
                 }
               }}
             >
@@ -657,19 +593,19 @@ export default function HumanResources() {
                 letterSpacing: "0.1em",
                 border: activeTab === "calendar" ? "1px solid #10b981" : "1px solid transparent",
                 background: activeTab === "calendar" ? "rgba(16, 185, 129, 0.1)" : "transparent",
-                color: activeTab === "calendar" ? "#10b981" : "#aaabad",
+                color: activeTab === "calendar" ? "#10b981" : "#6B7280",
                 borderRadius: "0.5rem",
                 cursor: "pointer",
                 transition: "all 0.2s ease"
               }}
               onMouseEnter={(e) => { 
                 if (activeTab !== "calendar") {
-                  e.currentTarget.style.color = "#a1faff";
+                  e.currentTarget.style.color = "#111827";
                 }
               }}
               onMouseLeave={(e) => { 
                 if (activeTab !== "calendar") {
-                  e.currentTarget.style.color = "#aaabad";
+                  e.currentTarget.style.color = "#6B7280";
                 }
               }}
             >
@@ -690,27 +626,27 @@ export default function HumanResources() {
                   fontSize: "clamp(1.5rem, 3vw, 2rem)", 
                   fontFamily: "'Space Grotesk', monospace", 
                   fontWeight: 700, 
-                  color: "#a1faff", 
+                  color: "#111827", 
                   margin: 0 
                 }}>
                   {employees.length}
                 </p>
-                <p style={{ fontSize: "0.7rem", color: "#aaabad", margin: "0.25rem 0 0 0", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                <p style={{ fontSize: "0.7rem", color: "#6B7280", margin: "0.25rem 0 0 0", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                   Total Staff
                 </p>
               </div>
-              <div style={{ width: "1px", background: "rgba(161, 250, 255, 0.1)" }} />
+              <div style={{ width: "1px", background: "white" }} />
               <div>
                 <p style={{ 
                   fontSize: "clamp(1rem, 2.5vw, 1.5rem)", 
                   fontFamily: "'Space Grotesk', monospace", 
                   fontWeight: 700, 
-                  color: "#06b6d4", 
+                  color: "#0EA5E9", 
                   margin: 0 
                 }}>
                   {admins.length + salesmen.length + warehouse.length}
                 </p>
-                <p style={{ fontSize: "0.7rem", color: "#aaabad", margin: "0.25rem 0 0 0", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                <p style={{ fontSize: "0.7rem", color: "#6B7280", margin: "0.25rem 0 0 0", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                   Active
                 </p>
               </div>
@@ -720,8 +656,8 @@ export default function HumanResources() {
               onClick={() => { setIsEditing(false); setFormData(initialFormState); setIsWizardOpen(true); }}
               style={{
                 background: "transparent",
-                border: "1px solid #06b6d4",
-                color: "#06b6d4",
+                border: "1px solid #0EA5E9",
+                color: "#0EA5E9",
                 padding: "clamp(0.6rem, 1.5vw, 0.9rem) clamp(1rem, 2vw, 1.5rem)",
                 fontSize: "clamp(0.7rem, 1.5vw, 0.85rem)",
                 fontWeight: 700,
@@ -733,13 +669,13 @@ export default function HumanResources() {
                 whiteSpace: "nowrap"
               }}
               onMouseEnter={(e) => { 
-                e.currentTarget.style.background = "#06b6d4"; 
-                e.currentTarget.style.color = "#0c0e10";
+                e.currentTarget.style.background = "#0EA5E9"; 
+                e.currentTarget.style.color = "white";
                 e.currentTarget.style.boxShadow = "0 0 20px rgba(6, 182, 212, 0.3)";
               }}
               onMouseLeave={(e) => { 
                 e.currentTarget.style.background = "transparent"; 
-                e.currentTarget.style.color = "#06b6d4";
+                e.currentTarget.style.color = "#0EA5E9";
                 e.currentTarget.style.boxShadow = "none";
               }}
             >
@@ -751,12 +687,12 @@ export default function HumanResources() {
         {/* ERROR STATE */}
         {error && (
           <div style={{
-            background: "rgba(255, 113, 108, 0.1)",
+            background: "white",
             border: "1px solid rgba(255, 113, 108, 0.3)",
             borderRadius: "0.75rem",
             padding: "1rem 1.5rem",
             marginBottom: "1.5rem",
-            color: "#ff716c",
+            color: "#991B1B",
             animation: "fadeInUp 0.3s ease-out"
           }}>
             <p style={{ fontSize: "0.875rem", margin: 0, fontWeight: 600 }}>
@@ -767,7 +703,7 @@ export default function HumanResources() {
               style={{
                 marginTop: "0.75rem",
                 background: "#ff716c",
-                color: "white",
+                color: "#111827",
                 border: "none",
                 padding: "0.5rem 1rem",
                 borderRadius: "0.4rem",
@@ -786,15 +722,15 @@ export default function HumanResources() {
 
         {/* LOADING STATE */}
         {isLoading && (
-          <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#a1faff" }}>
+          <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#111827" }}>
             <div style={{
               display: "inline-block",
               width: "2.5rem",
               height: "2.5rem",
               borderRadius: "50%",
-              border: "3px solid rgba(161, 250, 255, 0.15)",
-              borderTopColor: "#a1faff",
-              borderRightColor: "#06b6d4",
+              border: "3px solid #E5E7EB",
+              borderTopColor: "#0EA5E9",
+              borderRightColor: "#0EA5E9",
               animation: "spin 0.8s linear infinite",
               marginBottom: "1.5rem"
             }} />
@@ -804,7 +740,7 @@ export default function HumanResources() {
               textTransform: "uppercase", 
               letterSpacing: "0.12em",
               margin: 0,
-              color: "#aaabad"
+              color: "#6B7280"
             }}>
               Syncing Workforce Data...
             </p>
@@ -815,18 +751,18 @@ export default function HumanResources() {
         {activeTab === "registry" && !isLoading && (
           <div style={{ display: "flex", flexDirection: "column", gap: "2.5rem" }} className="animate-fade-in">
             {employees.length === 0 ? (
-              <div className="glass-card" style={{
+              <div className="bg-white border border-[#E5E7EB] rounded-lg shadow-sm" style={{
                 textAlign: "center",
                 padding: "3rem 1.5rem",
                 borderRadius: "1rem",
-                border: "2px dashed rgba(161, 250, 255, 0.2)",
-                background: "rgba(6, 182, 212, 0.05)"
+                border: "2px dashed #D1D5DB",
+                background: "white"
               }}>
                 <div style={{ fontSize: "2.5rem", marginBottom: "1rem" }}>📭</div>
-                <p style={{ fontSize: "1rem", color: "white", margin: 0, fontWeight: 600, marginBottom: "0.5rem" }}>
+                <p style={{ fontSize: "1rem", color: "#111827", margin: 0, fontWeight: 600, marginBottom: "0.5rem" }}>
                   No employees recorded yet
                 </p>
-                <p style={{ fontSize: "0.8rem", color: "#a1faff", margin: 0 }}>
+                <p style={{ fontSize: "0.8rem", color: "#111827", margin: 0 }}>
                   Click "+ Onboard" to add your first team member
                 </p>
               </div>
@@ -834,13 +770,13 @@ export default function HumanResources() {
               <>
                 {/* ADMINS */}
                 {admins.length > 0 && (
-                  <div className="glass-card animate-slide-in" style={{ borderRadius: "1rem", overflow: "hidden" }}>
+                  <div className="bg-white border border-[#E5E7EB] rounded-lg shadow-sm animate-slide-in" style={{ borderRadius: "1rem", overflow: "hidden" }}>
                     <div style={{
                       padding: "1.25rem",
-                      background: "rgba(6, 182, 212, 0.1)",
-                      borderBottom: "1px solid rgba(6, 182, 212, 0.2)",
+                      background: "white",
+                      borderBottom: "1px solid #E5E7EB",
                       fontWeight: 700,
-                      color: "#06b6d4",
+                      color: "#0EA5E9",
                       fontSize: "clamp(0.9rem, 2vw, 1rem)",
                       textTransform: "uppercase",
                       letterSpacing: "0.05em"
@@ -857,8 +793,8 @@ export default function HumanResources() {
                         <div 
                           key={emp.id} 
                           style={{
-                            background: "rgba(23, 26, 28, 0.5)",
-                            border: "1px solid rgba(6, 182, 212, 0.2)",
+                            background: "white",
+                            border: "1px solid #E5E7EB",
                             borderRadius: "0.75rem",
                             padding: "1.25rem",
                             transition: "all 0.2s ease",
@@ -869,31 +805,31 @@ export default function HumanResources() {
                             e.currentTarget.style.background = "rgba(23, 26, 28, 0.7)";
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.borderColor = "rgba(6, 182, 212, 0.2)";
+                            e.currentTarget.style.borderColor = "#E5E7EB";
                             e.currentTarget.style.background = "rgba(23, 26, 28, 0.5)";
                           }}
                         >
                           <div style={{ marginBottom: "0.75rem" }}>
-                            <p style={{ fontSize: "1.1rem", fontWeight: 700, color: "white", margin: 0, marginBottom: "0.25rem" }}>
+                            <p style={{ fontSize: "1.1rem", fontWeight: 700, color: "#111827", margin: 0, marginBottom: "0.25rem" }}>
                               {emp.full_name}
                             </p>
-                            <p style={{ fontSize: "0.75rem", color: "#aaabad", margin: 0, fontFamily: "monospace", letterSpacing: "0.05em" }}>
+                            <p style={{ fontSize: "0.75rem", color: "#6B7280", margin: 0, fontFamily: "monospace", letterSpacing: "0.05em" }}>
                               {emp.employee_id}
                             </p>
                           </div>
                           
-                          <p style={{ fontSize: "0.8rem", color: "#06b6d4", margin: "0.75rem 0", fontFamily: "monospace" }}>
+                          <p style={{ fontSize: "0.8rem", color: "#0EA5E9", margin: "0.75rem 0", fontFamily: "monospace" }}>
                             {emp.work_email}
                           </p>
 
                           {emp.reporting_manager && (
-                            <p style={{ fontSize: "0.75rem", color: "#aaabad", margin: "0.5rem 0" }}>
+                            <p style={{ fontSize: "0.75rem", color: "#6B7280", margin: "0.5rem 0" }}>
                               👔 Manager: {emp.reporting_manager}
                             </p>
                           )}
 
                           {emp.department && (
-                            <p style={{ fontSize: "0.75rem", color: "#aaabad", margin: "0.5rem 0" }}>
+                            <p style={{ fontSize: "0.75rem", color: "#6B7280", margin: "0.5rem 0" }}>
                               📁 {emp.department}
                             </p>
                           )}
@@ -903,16 +839,16 @@ export default function HumanResources() {
                             gap: "0.75rem",
                             marginTop: "1rem",
                             paddingTop: "1rem",
-                            borderTop: "1px solid rgba(161, 250, 255, 0.1)"
+                            borderTop: "1px solid #E5E7EB"
                           }}>
                             <button 
                               onClick={() => handleEditClick(emp)} 
                               style={{
                                 flex: 1,
                                 padding: "0.65rem",
-                                background: "rgba(6, 182, 212, 0.1)",
+                                background: "white",
                                 border: "1px solid rgba(6, 182, 212, 0.3)",
-                                color: "#06b6d4",
+                                color: "#0EA5E9",
                                 borderRadius: "0.5rem",
                                 fontSize: "0.7rem",
                                 fontWeight: 700,
@@ -922,12 +858,12 @@ export default function HumanResources() {
                                 letterSpacing: "0.05em"
                               }}
                               onMouseEnter={(e) => {
-                                e.currentTarget.style.background = "#06b6d4";
-                                e.currentTarget.style.color = "#0c0e10";
+                                e.currentTarget.style.background = "#0EA5E9";
+                                e.currentTarget.style.color = "white";
                               }}
                               onMouseLeave={(e) => {
                                 e.currentTarget.style.background = "rgba(6, 182, 212, 0.1)";
-                                e.currentTarget.style.color = "#06b6d4";
+                                e.currentTarget.style.color = "#0EA5E9";
                               }}
                             >
                               Edit
@@ -937,7 +873,7 @@ export default function HumanResources() {
                               style={{
                                 flex: 1,
                                 padding: "0.65rem",
-                                background: "rgba(239, 68, 68, 0.1)",
+                                background: "white",
                                 border: "1px solid rgba(239, 68, 68, 0.3)",
                                 color: "#ef4444",
                                 borderRadius: "0.5rem",
@@ -968,10 +904,10 @@ export default function HumanResources() {
 
                 {/* SALESMEN */}
                 {salesmen.length > 0 && (
-                  <div className="glass-card animate-slide-in" style={{ borderRadius: "1rem", overflow: "hidden", animationDelay: "0.1s" }}>
+                  <div className="bg-white border border-[#E5E7EB] rounded-lg shadow-sm animate-slide-in" style={{ borderRadius: "1rem", overflow: "hidden", animationDelay: "0.1s" }}>
                     <div style={{
                       padding: "1.25rem",
-                      background: "rgba(34, 197, 94, 0.1)",
+                      background: "white",
                       borderBottom: "1px solid rgba(34, 197, 94, 0.2)",
                       fontWeight: 700,
                       color: "#22c55e",
@@ -991,7 +927,7 @@ export default function HumanResources() {
                         <div 
                           key={emp.id} 
                           style={{
-                            background: "rgba(23, 26, 28, 0.5)",
+                            background: "white",
                             border: "1px solid rgba(34, 197, 94, 0.2)",
                             borderRadius: "0.75rem",
                             padding: "1.25rem",
@@ -1008,10 +944,10 @@ export default function HumanResources() {
                           }}
                         >
                           <div style={{ marginBottom: "0.75rem" }}>
-                            <p style={{ fontSize: "1.1rem", fontWeight: 700, color: "white", margin: 0, marginBottom: "0.25rem" }}>
+                            <p style={{ fontSize: "1.1rem", fontWeight: 700, color: "#111827", margin: 0, marginBottom: "0.25rem" }}>
                               {emp.full_name}
                             </p>
-                            <p style={{ fontSize: "0.75rem", color: "#aaabad", margin: 0, fontFamily: "monospace", letterSpacing: "0.05em" }}>
+                            <p style={{ fontSize: "0.75rem", color: "#6B7280", margin: 0, fontFamily: "monospace", letterSpacing: "0.05em" }}>
                               {emp.employee_id}
                             </p>
                           </div>
@@ -1022,10 +958,10 @@ export default function HumanResources() {
                             gap: "0.75rem",
                             marginBottom: "1rem",
                             paddingBottom: "1rem",
-                            borderBottom: "1px solid rgba(161, 250, 255, 0.1)"
+                            borderBottom: "1px solid #E5E7EB"
                           }}>
                             <div>
-                              <p style={{ fontSize: "0.65rem", color: "#aaabad", textTransform: "uppercase", fontWeight: 700, margin: 0, marginBottom: "0.25rem", letterSpacing: "0.05em" }}>
+                              <p style={{ fontSize: "0.65rem", color: "#6B7280", textTransform: "uppercase", fontWeight: 700, margin: 0, marginBottom: "0.25rem", letterSpacing: "0.05em" }}>
                                 Territory
                               </p>
                               <p style={{ fontSize: "0.9rem", color: "#22c55e", fontWeight: 700, margin: 0 }}>
@@ -1033,17 +969,17 @@ export default function HumanResources() {
                               </p>
                             </div>
                             <div>
-                              <p style={{ fontSize: "0.65rem", color: "#aaabad", textTransform: "uppercase", fontWeight: 700, margin: 0, marginBottom: "0.25rem", letterSpacing: "0.05em" }}>
+                              <p style={{ fontSize: "0.65rem", color: "#6B7280", textTransform: "uppercase", fontWeight: 700, margin: 0, marginBottom: "0.25rem", letterSpacing: "0.05em" }}>
                                 Commission
                               </p>
-                              <p style={{ fontSize: "0.9rem", color: "#a1faff", fontFamily: "monospace", fontWeight: 700, margin: 0 }}>
+                              <p style={{ fontSize: "0.9rem", color: "#111827", fontFamily: "monospace", fontWeight: 700, margin: 0 }}>
                                 {emp.commission_rate || 0}%
                               </p>
                             </div>
                           </div>
 
                           {emp.reporting_manager && (
-                            <p style={{ fontSize: "0.75rem", color: "#aaabad", margin: "0.5rem 0" }}>
+                            <p style={{ fontSize: "0.75rem", color: "#6B7280", margin: "0.5rem 0" }}>
                               👔 {emp.reporting_manager}
                             </p>
                           )}
@@ -1054,7 +990,7 @@ export default function HumanResources() {
                               style={{
                                 flex: 1,
                                 padding: "0.65rem",
-                                background: "rgba(34, 197, 94, 0.1)",
+                                background: "white",
                                 border: "1px solid rgba(34, 197, 94, 0.3)",
                                 color: "#22c55e",
                                 borderRadius: "0.5rem",
@@ -1067,7 +1003,7 @@ export default function HumanResources() {
                               }}
                               onMouseEnter={(e) => {
                                 e.currentTarget.style.background = "#22c55e";
-                                e.currentTarget.style.color = "#0c0e10";
+                                e.currentTarget.style.color = "white";
                               }}
                               onMouseLeave={(e) => {
                                 e.currentTarget.style.background = "rgba(34, 197, 94, 0.1)";
@@ -1081,7 +1017,7 @@ export default function HumanResources() {
                               style={{
                                 flex: 1,
                                 padding: "0.65rem",
-                                background: "rgba(239, 68, 68, 0.1)",
+                                background: "white",
                                 border: "1px solid rgba(239, 68, 68, 0.3)",
                                 color: "#ef4444",
                                 borderRadius: "0.5rem",
@@ -1112,10 +1048,10 @@ export default function HumanResources() {
 
                 {/* WAREHOUSE */}
                 {warehouse.length > 0 && (
-                  <div className="glass-card animate-slide-in" style={{ borderRadius: "1rem", overflow: "hidden", animationDelay: "0.2s" }}>
+                  <div className="bg-white border border-[#E5E7EB] rounded-lg shadow-sm animate-slide-in" style={{ borderRadius: "1rem", overflow: "hidden", animationDelay: "0.2s" }}>
                     <div style={{
                       padding: "1.25rem",
-                      background: "rgba(249, 115, 22, 0.1)",
+                      background: "white",
                       borderBottom: "1px solid rgba(249, 115, 22, 0.2)",
                       fontWeight: 700,
                       color: "#f97316",
@@ -1135,7 +1071,7 @@ export default function HumanResources() {
                         <div 
                           key={emp.id} 
                           style={{
-                            background: "rgba(23, 26, 28, 0.5)",
+                            background: "white",
                             border: "1px solid rgba(249, 115, 22, 0.2)",
                             borderRadius: "0.75rem",
                             padding: "1.25rem",
@@ -1152,10 +1088,10 @@ export default function HumanResources() {
                           }}
                         >
                           <div style={{ marginBottom: "0.75rem" }}>
-                            <p style={{ fontSize: "1.1rem", fontWeight: 700, color: "white", margin: 0, marginBottom: "0.25rem" }}>
+                            <p style={{ fontSize: "1.1rem", fontWeight: 700, color: "#111827", margin: 0, marginBottom: "0.25rem" }}>
                               {emp.full_name}
                             </p>
-                            <p style={{ fontSize: "0.75rem", color: "#aaabad", margin: 0, fontFamily: "monospace", letterSpacing: "0.05em" }}>
+                            <p style={{ fontSize: "0.75rem", color: "#6B7280", margin: 0, fontFamily: "monospace", letterSpacing: "0.05em" }}>
                               {emp.employee_id}
                             </p>
                           </div>
@@ -1166,10 +1102,10 @@ export default function HumanResources() {
                             gap: "0.75rem",
                             marginBottom: "1rem",
                             paddingBottom: "1rem",
-                            borderBottom: "1px solid rgba(161, 250, 255, 0.1)"
+                            borderBottom: "1px solid #E5E7EB"
                           }}>
                             <div>
-                              <p style={{ fontSize: "0.65rem", color: "#aaabad", textTransform: "uppercase", fontWeight: 700, margin: 0, marginBottom: "0.25rem", letterSpacing: "0.05em" }}>
+                              <p style={{ fontSize: "0.65rem", color: "#6B7280", textTransform: "uppercase", fontWeight: 700, margin: 0, marginBottom: "0.25rem", letterSpacing: "0.05em" }}>
                                 Duty
                               </p>
                               <p style={{ fontSize: "0.9rem", color: "#f97316", fontWeight: 700, margin: 0 }}>
@@ -1177,17 +1113,17 @@ export default function HumanResources() {
                               </p>
                             </div>
                             <div>
-                              <p style={{ fontSize: "0.65rem", color: "#aaabad", textTransform: "uppercase", fontWeight: 700, margin: 0, marginBottom: "0.25rem", letterSpacing: "0.05em" }}>
+                              <p style={{ fontSize: "0.65rem", color: "#6B7280", textTransform: "uppercase", fontWeight: 700, margin: 0, marginBottom: "0.25rem", letterSpacing: "0.05em" }}>
                                 Shift
                               </p>
-                              <p style={{ fontSize: "0.9rem", color: "#a1faff", fontFamily: "monospace", fontWeight: 700, margin: 0 }}>
+                              <p style={{ fontSize: "0.9rem", color: "#111827", fontFamily: "monospace", fontWeight: 700, margin: 0 }}>
                                 {emp.shift_timing || 'Standard'}
                               </p>
                             </div>
                           </div>
 
                           {emp.reporting_manager && (
-                            <p style={{ fontSize: "0.75rem", color: "#aaabad", margin: "0.5rem 0" }}>
+                            <p style={{ fontSize: "0.75rem", color: "#6B7280", margin: "0.5rem 0" }}>
                               👔 {emp.reporting_manager}
                             </p>
                           )}
@@ -1198,7 +1134,7 @@ export default function HumanResources() {
                               style={{
                                 flex: 1,
                                 padding: "0.65rem",
-                                background: "rgba(249, 115, 22, 0.1)",
+                                background: "white",
                                 border: "1px solid rgba(249, 115, 22, 0.3)",
                                 color: "#f97316",
                                 borderRadius: "0.5rem",
@@ -1211,7 +1147,7 @@ export default function HumanResources() {
                               }}
                               onMouseEnter={(e) => {
                                 e.currentTarget.style.background = "#f97316";
-                                e.currentTarget.style.color = "#0c0e10";
+                                e.currentTarget.style.color = "white";
                               }}
                               onMouseLeave={(e) => {
                                 e.currentTarget.style.background = "rgba(249, 115, 22, 0.1)";
@@ -1225,7 +1161,7 @@ export default function HumanResources() {
                               style={{
                                 flex: 1,
                                 padding: "0.65rem",
-                                background: "rgba(239, 68, 68, 0.1)",
+                                background: "white",
                                 border: "1px solid rgba(239, 68, 68, 0.3)",
                                 color: "#ef4444",
                                 borderRadius: "0.5rem",
@@ -1284,7 +1220,7 @@ export default function HumanResources() {
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = "#f97316";
-                e.currentTarget.style.color = "#0c0e10";
+                e.currentTarget.style.color = "white";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = "transparent";
@@ -1294,37 +1230,37 @@ export default function HumanResources() {
               + Log Leave
             </button>
 
-            <div className="glass-card" style={{ borderRadius: "1rem", overflow: "hidden" }}>
+            <div className="bg-white border border-[#E5E7EB] rounded-lg shadow-sm" style={{ borderRadius: "1rem", overflow: "hidden" }}>
               {/* Month Navigation */}
               <div style={{
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
                 padding: "1rem",
-                background: "rgba(23, 26, 28, 0.8)",
-                borderBottom: "1px solid rgba(161, 250, 255, 0.1)"
+                background: "white",
+                borderBottom: "1px solid #E5E7EB"
               }}>
                 <button 
                   onClick={prevMonth}
                   style={{
-                    background: "rgba(6, 182, 212, 0.1)",
+                    background: "white",
                     border: "1px solid rgba(6, 182, 212, 0.3)",
-                    color: "#06b6d4",
+                    color: "#0EA5E9",
                     padding: "0.5rem 1rem",
                     borderRadius: "0.4rem",
                     cursor: "pointer",
                     fontWeight: 700,
                     transition: "all 0.2s ease"
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = "#06b6d4"; e.currentTarget.style.color = "#0c0e10"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(6, 182, 212, 0.1)"; e.currentTarget.style.color = "#06b6d4"; }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "#0EA5E9"; e.currentTarget.style.color = "white"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(6, 182, 212, 0.1)"; e.currentTarget.style.color = "#0EA5E9"; }}
                 >
                   ◀ Previous
                 </button>
                 <span style={{
                   fontSize: "1rem",
                   fontWeight: 700,
-                  color: "white",
+                  color: "#111827",
                   minWidth: "200px",
                   textAlign: "center",
                   textTransform: "uppercase",
@@ -1335,17 +1271,17 @@ export default function HumanResources() {
                 <button 
                   onClick={nextMonth}
                   style={{
-                    background: "rgba(6, 182, 212, 0.1)",
+                    background: "white",
                     border: "1px solid rgba(6, 182, 212, 0.3)",
-                    color: "#06b6d4",
+                    color: "#0EA5E9",
                     padding: "0.5rem 1rem",
                     borderRadius: "0.4rem",
                     cursor: "pointer",
                     fontWeight: 700,
                     transition: "all 0.2s ease"
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = "#06b6d4"; e.currentTarget.style.color = "#0c0e10"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(6, 182, 212, 0.1)"; e.currentTarget.style.color = "#06b6d4"; }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "#0EA5E9"; e.currentTarget.style.color = "white"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(6, 182, 212, 0.1)"; e.currentTarget.style.color = "#0EA5E9"; }}
                 >
                   Next ▶
                 </button>
@@ -1355,8 +1291,8 @@ export default function HumanResources() {
               <div style={{ 
                 display: "grid", 
                 gridTemplateColumns: "repeat(7, 1fr)", 
-                background: "rgba(23, 26, 28, 0.8)", 
-                borderBottom: "1px solid rgba(161, 250, 255, 0.1)" 
+                background: "white", 
+                borderBottom: "1px solid #E5E7EB" 
               }}>
                 {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
                   <div 
@@ -1367,7 +1303,7 @@ export default function HumanResources() {
                       fontSize: "0.7rem", 
                       fontWeight: 700, 
                       textTransform: "uppercase", 
-                      color: "#aaabad",
+                      color: "#6B7280",
                       letterSpacing: "0.05em"
                     }}
                   >
@@ -1388,20 +1324,20 @@ export default function HumanResources() {
               gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
               gap: "1rem"
             }}>
-              <div style={{ fontSize: "0.75rem", color: "#aaabad" }}>
+              <div style={{ fontSize: "0.75rem", color: "#6B7280" }}>
                 <span style={{ display: "inline-block", width: "8px", height: "8px", borderRadius: "50%", background: "#34d399", marginRight: "0.5rem" }} />
                 Paid Leave
               </div>
-              <div style={{ fontSize: "0.75rem", color: "#aaabad" }}>
+              <div style={{ fontSize: "0.75rem", color: "#6B7280" }}>
                 <span style={{ display: "inline-block", width: "8px", height: "8px", borderRadius: "50%", background: "#f97316", marginRight: "0.5rem" }} />
                 Sick Leave
               </div>
-              <div style={{ fontSize: "0.75rem", color: "#aaabad" }}>
+              <div style={{ fontSize: "0.75rem", color: "#6B7280" }}>
                 <span style={{ display: "inline-block", width: "8px", height: "8px", borderRadius: "50%", background: "#ef4444", marginRight: "0.5rem" }} />
                 Unpaid Leave
               </div>
-              <div style={{ fontSize: "0.75rem", color: "#aaabad" }}>
-                <div style={{ background: "rgba(255, 113, 108, 0.15)", padding: "0.25rem", borderRadius: "0.2rem" }}>
+              <div style={{ fontSize: "0.75rem", color: "#6B7280" }}>
+                <div style={{ background: "white", padding: "0.25rem", borderRadius: "0.2rem" }}>
                   ⚠️ Conflict Detection
                 </div>
               </div>
@@ -1414,7 +1350,7 @@ export default function HumanResources() {
           <div style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(0, 0, 0, 0.95)",
+            background: "white",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -1423,7 +1359,7 @@ export default function HumanResources() {
             overflow: "auto",
             backdropFilter: "blur(4px)"
           }}>
-            <div className="glass-card" style={{
+            <div className="bg-white border border-[#E5E7EB] rounded-lg shadow-sm" style={{
               borderRadius: "1rem",
               padding: "2.5rem",
               maxWidth: "700px",
@@ -1437,7 +1373,7 @@ export default function HumanResources() {
                   position: "fixed",
                   top: "2rem",
                   right: "1rem",
-                  background: "rgba(239, 68, 68, 0.2)",
+                  background: "white",
                   border: "1px solid rgba(239, 68, 68, 0.5)",
                   fontSize: "2.5rem",
                   color: "#ef4444",
@@ -1472,7 +1408,7 @@ export default function HumanResources() {
               {/* Show existing leaves on selected date */}
               {leavesOnSelectedDate.length > 0 && (
                 <div style={{
-                  background: "rgba(34, 197, 94, 0.1)",
+                  background: "white",
                   border: "1px solid rgba(34, 197, 94, 0.2)",
                   borderRadius: "0.75rem",
                   padding: "1rem",
@@ -1488,22 +1424,22 @@ export default function HumanResources() {
                         justifyContent: "space-between",
                         alignItems: "center",
                         padding: "0.75rem",
-                        background: "rgba(23, 26, 28, 0.5)",
-                        border: "1px solid rgba(161, 250, 255, 0.1)",
+                        background: "white",
+                        border: "1px solid #E5E7EB",
                         borderRadius: "0.5rem"
                       }}>
                         <div>
-                          <p style={{ fontSize: "0.875rem", fontWeight: 700, color: "white", margin: 0 }}>
+                          <p style={{ fontSize: "0.875rem", fontWeight: 700, color: "#111827", margin: 0 }}>
                             {leave.employee_name}
                           </p>
-                          <p style={{ fontSize: "0.75rem", color: "#aaabad", margin: "0.25rem 0 0 0" }}>
+                          <p style={{ fontSize: "0.75rem", color: "#6B7280", margin: "0.25rem 0 0 0" }}>
                             {leave.leave_type} • {leave.start_date} to {leave.end_date}
                           </p>
                         </div>
                         <button
                           onClick={() => handleCancelLeave(leave.id, leave)}
                           style={{
-                            background: "rgba(239, 68, 68, 0.1)",
+                            background: "white",
                             border: "1px solid rgba(239, 68, 68, 0.3)",
                             color: "#ef4444",
                             padding: "0.5rem 1rem",
@@ -1527,16 +1463,16 @@ export default function HumanResources() {
 
               <form onSubmit={handleLogLeave} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
                 <div>
-                  <label style={{ fontSize: "0.7rem", color: "#aaabad", fontWeight: 700, display: "block", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Employee *</label>
+                  <label style={{ fontSize: "0.7rem", color: "#6B7280", fontWeight: 700, display: "block", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Employee *</label>
                   <select
                     required
                     value={leaveData.employee_id}
                     onChange={(e) => setLeaveData({...leaveData, employee_id: e.target.value})}
                     style={{
                       width: "100%",
-                      background: "rgba(23, 26, 28, 0.5)",
-                      border: "1px solid rgba(161, 250, 255, 0.1)",
-                      color: "white",
+                      background: "white",
+                      border: "1px solid #E5E7EB",
+                      color: "#111827",
                       padding: "0.9rem",
                       borderRadius: "0.5rem",
                       fontSize: "0.9rem",
@@ -1545,7 +1481,7 @@ export default function HumanResources() {
                       transition: "all 0.2s ease"
                     }}
                     onFocus={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.3)"}
-                    onBlur={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.1)"}
+                    onBlur={(e) => e.target.style.borderColor = "#E5E7EB"}
                   >
                     <option value="">Select Employee</option>
                     {employees.map(emp => <option key={emp.id} value={emp.id}>{emp.full_name} ({emp.department || emp.role})</option>)}
@@ -1554,7 +1490,7 @@ export default function HumanResources() {
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
                   <div>
-                    <label style={{ fontSize: "0.7rem", color: "#aaabad", fontWeight: 700, display: "block", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Start Date *</label>
+                    <label style={{ fontSize: "0.7rem", color: "#6B7280", fontWeight: 700, display: "block", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Start Date *</label>
                     <input
                       required
                       type="date"
@@ -1562,9 +1498,9 @@ export default function HumanResources() {
                       onChange={(e) => setLeaveData({...leaveData, start_date: e.target.value})}
                       style={{
                         width: "100%",
-                        background: "rgba(23, 26, 28, 0.5)",
-                        border: "1px solid rgba(161, 250, 255, 0.1)",
-                        color: "white",
+                        background: "white",
+                        border: "1px solid #E5E7EB",
+                        color: "#111827",
                         padding: "0.9rem",
                         borderRadius: "0.5rem",
                         fontSize: "0.9rem",
@@ -1572,11 +1508,11 @@ export default function HumanResources() {
                         transition: "all 0.2s ease"
                       }}
                       onFocus={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.3)"}
-                      onBlur={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.1)"}
+                      onBlur={(e) => e.target.style.borderColor = "#E5E7EB"}
                     />
                   </div>
                   <div>
-                    <label style={{ fontSize: "0.7rem", color: "#aaabad", fontWeight: 700, display: "block", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>End Date *</label>
+                    <label style={{ fontSize: "0.7rem", color: "#6B7280", fontWeight: 700, display: "block", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>End Date *</label>
                     <input
                       required
                       type="date"
@@ -1584,9 +1520,9 @@ export default function HumanResources() {
                       onChange={(e) => setLeaveData({...leaveData, end_date: e.target.value})}
                       style={{
                         width: "100%",
-                        background: "rgba(23, 26, 28, 0.5)",
-                        border: "1px solid rgba(161, 250, 255, 0.1)",
-                        color: "white",
+                        background: "white",
+                        border: "1px solid #E5E7EB",
+                        color: "#111827",
                         padding: "0.9rem",
                         borderRadius: "0.5rem",
                         fontSize: "0.9rem",
@@ -1594,7 +1530,7 @@ export default function HumanResources() {
                         transition: "all 0.2s ease"
                       }}
                       onFocus={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.3)"}
-                      onBlur={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.1)"}
+                      onBlur={(e) => e.target.style.borderColor = "#E5E7EB"}
                     />
                   </div>
                 </div>
@@ -1602,28 +1538,28 @@ export default function HumanResources() {
                 {/* Duration display */}
                 {leaveData.start_date && leaveData.end_date && (
                   <div style={{
-                    background: "rgba(6, 182, 212, 0.1)",
-                    border: "1px solid rgba(6, 182, 212, 0.2)",
+                    background: "white",
+                    border: "1px solid #E5E7EB",
                     borderRadius: "0.5rem",
                     padding: "0.75rem",
                     textAlign: "center"
                   }}>
-                    <p style={{ fontSize: "0.75rem", color: "#06b6d4", fontWeight: 700, margin: 0 }}>
+                    <p style={{ fontSize: "0.75rem", color: "#0EA5E9", fontWeight: 700, margin: 0 }}>
                       📊 Duration: {calculateDaysBetween(leaveData.start_date, leaveData.end_date)} days
                     </p>
                   </div>
                 )}
 
                 <div>
-                  <label style={{ fontSize: "0.7rem", color: "#aaabad", fontWeight: 700, display: "block", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Leave Type *</label>
+                  <label style={{ fontSize: "0.7rem", color: "#6B7280", fontWeight: 700, display: "block", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Leave Type *</label>
                   <select
                     value={leaveData.leave_type}
                     onChange={(e) => setLeaveData({...leaveData, leave_type: e.target.value})}
                     style={{
                       width: "100%",
-                      background: "rgba(23, 26, 28, 0.5)",
-                      border: "1px solid rgba(161, 250, 255, 0.1)",
-                      color: "white",
+                      background: "white",
+                      border: "1px solid #E5E7EB",
+                      color: "#111827",
                       padding: "0.9rem",
                       borderRadius: "0.5rem",
                       fontSize: "0.9rem",
@@ -1632,7 +1568,7 @@ export default function HumanResources() {
                       transition: "all 0.2s ease"
                     }}
                     onFocus={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.3)"}
-                    onBlur={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.1)"}
+                    onBlur={(e) => e.target.style.borderColor = "#E5E7EB"}
                   >
                     <option value="Paid Leave">Paid Leave</option>
                     <option value="Sick Leave">Sick Leave</option>
@@ -1646,7 +1582,7 @@ export default function HumanResources() {
                     width: "100%",
                     padding: "1rem",
                     background: "#f97316",
-                    color: "#0c0e10",
+                    color: "white",
                     border: "none",
                     borderRadius: "0.6rem",
                     fontSize: "0.85rem",
@@ -1672,7 +1608,7 @@ export default function HumanResources() {
           <div style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(0, 0, 0, 0.95)",
+            background: "white",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -1681,7 +1617,7 @@ export default function HumanResources() {
             overflow: "auto",
             backdropFilter: "blur(4px)"
           }}>
-            <div className="glass-card" style={{
+            <div className="bg-white border border-[#E5E7EB] rounded-lg shadow-sm" style={{
               borderRadius: "1rem",
               padding: "2.5rem",
               maxWidth: "700px",
@@ -1696,7 +1632,7 @@ export default function HumanResources() {
                   position: "fixed",
                   top: "2rem",
                   right: "1rem",
-                  background: "rgba(239, 68, 68, 0.2)",
+                  background: "white",
                   border: "1px solid rgba(239, 68, 68, 0.5)",
                   fontSize: "2.5rem",
                   color: "#ef4444",
@@ -1720,7 +1656,7 @@ export default function HumanResources() {
               <h2 className="font-headline" style={{
                 fontSize: "1.75rem",
                 fontWeight: 700,
-                color: "#a1faff",
+                color: "#111827",
                 marginBottom: "1.5rem",
                 marginRight: "2rem",
                 letterSpacing: "-0.01em"
@@ -1730,17 +1666,17 @@ export default function HumanResources() {
 
               {/* Progress Bar */}
               <div style={{ marginBottom: "2rem" }}>
-                <div style={{ display: "flex", gap: "0.5rem", height: "4px", background: "rgba(161, 250, 255, 0.1)", borderRadius: "2px", overflow: "hidden" }}>
+                <div style={{ display: "flex", gap: "0.5rem", height: "4px", background: "white", borderRadius: "2px", overflow: "hidden" }}>
                   {[1, 2, 3, 4].map(s => (
                     <div key={s} style={{
                       flex: 1,
-                      background: s <= step ? "#a1faff" : "transparent",
+                      background: s <= step ? "#0EA5E9" : "transparent",
                       transition: "all 0.3s ease",
                       borderRadius: "1px"
                     }} />
                   ))}
                 </div>
-                <p style={{ fontSize: "0.7rem", color: "#aaabad", textTransform: "uppercase", marginTop: "0.75rem", margin: 0, letterSpacing: "0.05em", fontWeight: 700 }}>
+                <p style={{ fontSize: "0.7rem", color: "#6B7280", textTransform: "uppercase", marginTop: "0.75rem", margin: 0, letterSpacing: "0.05em", fontWeight: 700 }}>
                   Step {step} of 4
                 </p>
               </div>
@@ -1749,7 +1685,7 @@ export default function HumanResources() {
                 {/* STEP 1: Core Identity */}
                 {step === 1 && (
                   <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", flex: 1, animation: "slideInFromRight 0.3s ease-out" }}>
-                    <p style={{ fontSize: "0.8rem", fontWeight: 700, color: "#a1faff", textTransform: "uppercase", margin: 0, letterSpacing: "0.05em", paddingBottom: "0.75rem", borderBottom: "1px solid rgba(161, 250, 255, 0.1)" }}>
+                    <p style={{ fontSize: "0.8rem", fontWeight: 700, color: "#111827", textTransform: "uppercase", margin: 0, letterSpacing: "0.05em", paddingBottom: "0.75rem", borderBottom: "1px solid #E5E7EB" }}>
                       1. Core Identity
                     </p>
                     <input
@@ -1760,9 +1696,9 @@ export default function HumanResources() {
                       value={formData.full_name}
                       onChange={(e) => setFormData({...formData, full_name: e.target.value})}
                       style={{
-                        background: "rgba(23, 26, 28, 0.5)",
-                        border: "1px solid rgba(161, 250, 255, 0.1)",
-                        color: "white",
+                        background: "white",
+                        border: "1px solid #E5E7EB",
+                        color: "#111827",
                         padding: "0.9rem",
                         borderRadius: "0.5rem",
                         fontSize: "0.9rem",
@@ -1770,7 +1706,7 @@ export default function HumanResources() {
                         transition: "all 0.2s ease"
                       }}
                       onFocus={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.3)"}
-                      onBlur={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.1)"}
+                      onBlur={(e) => e.target.style.borderColor = "#E5E7EB"}
                     />
                     <input
                       type="text"
@@ -1778,9 +1714,9 @@ export default function HumanResources() {
                       value={formData.phone_number}
                       onChange={(e) => setFormData({...formData, phone_number: e.target.value})}
                       style={{
-                        background: "rgba(23, 26, 28, 0.5)",
-                        border: "1px solid rgba(161, 250, 255, 0.1)",
-                        color: "white",
+                        background: "white",
+                        border: "1px solid #E5E7EB",
+                        color: "#111827",
                         padding: "0.9rem",
                         borderRadius: "0.5rem",
                         fontSize: "0.9rem",
@@ -1788,7 +1724,7 @@ export default function HumanResources() {
                         transition: "all 0.2s ease"
                       }}
                       onFocus={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.3)"}
-                      onBlur={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.1)"}
+                      onBlur={(e) => e.target.style.borderColor = "#E5E7EB"}
                     />
                     <input
                       type="email"
@@ -1796,9 +1732,9 @@ export default function HumanResources() {
                       value={formData.personal_email}
                       onChange={(e) => setFormData({...formData, personal_email: e.target.value})}
                       style={{
-                        background: "rgba(23, 26, 28, 0.5)",
-                        border: "1px solid rgba(161, 250, 255, 0.1)",
-                        color: "white",
+                        background: "white",
+                        border: "1px solid #E5E7EB",
+                        color: "#111827",
                         padding: "0.9rem",
                         borderRadius: "0.5rem",
                         fontSize: "0.9rem",
@@ -1806,16 +1742,16 @@ export default function HumanResources() {
                         transition: "all 0.2s ease"
                       }}
                       onFocus={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.3)"}
-                      onBlur={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.1)"}
+                      onBlur={(e) => e.target.style.borderColor = "#E5E7EB"}
                     />
                     <input
                       type="date"
                       value={formData.dob}
                       onChange={(e) => setFormData({...formData, dob: e.target.value})}
                       style={{
-                        background: "rgba(23, 26, 28, 0.5)",
-                        border: "1px solid rgba(161, 250, 255, 0.1)",
-                        color: "white",
+                        background: "white",
+                        border: "1px solid #E5E7EB",
+                        color: "#111827",
                         padding: "0.9rem",
                         borderRadius: "0.5rem",
                         fontSize: "0.9rem",
@@ -1823,15 +1759,15 @@ export default function HumanResources() {
                         transition: "all 0.2s ease"
                       }}
                       onFocus={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.3)"}
-                      onBlur={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.1)"}
+                      onBlur={(e) => e.target.style.borderColor = "#E5E7EB"}
                     />
                     <select
                       value={formData.gender}
                       onChange={(e) => setFormData({...formData, gender: e.target.value})}
                       style={{
-                        background: "rgba(23, 26, 28, 0.5)",
-                        border: "1px solid rgba(161, 250, 255, 0.1)",
-                        color: "white",
+                        background: "white",
+                        border: "1px solid #E5E7EB",
+                        color: "#111827",
                         padding: "0.9rem",
                         borderRadius: "0.5rem",
                         fontSize: "0.9rem",
@@ -1840,7 +1776,7 @@ export default function HumanResources() {
                         cursor: "pointer"
                       }}
                       onFocus={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.3)"}
-                      onBlur={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.1)"}
+                      onBlur={(e) => e.target.style.borderColor = "#E5E7EB"}
                     >
                       <option value="">Select Gender</option>
                       <option value="Male">Male</option>
@@ -1853,21 +1789,21 @@ export default function HumanResources() {
                 {/* STEP 2: Employment & Role */}
                 {step === 2 && (
                   <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", flex: 1, animation: "slideInFromRight 0.3s ease-out" }}>
-                    <p style={{ fontSize: "0.8rem", fontWeight: 700, color: "#a1faff", textTransform: "uppercase", margin: 0, letterSpacing: "0.05em", paddingBottom: "0.75rem", borderBottom: "1px solid rgba(161, 250, 255, 0.1)" }}>
+                    <p style={{ fontSize: "0.8rem", fontWeight: 700, color: "#111827", textTransform: "uppercase", margin: 0, letterSpacing: "0.05em", paddingBottom: "0.75rem", borderBottom: "1px solid #E5E7EB" }}>
                       2. Employment & Role
                     </p>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
                       <div>
-                        <label style={{ fontSize: "0.7rem", color: "#aaabad", fontWeight: 700, display: "block", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Employee ID</label>
+                        <label style={{ fontSize: "0.7rem", color: "#6B7280", fontWeight: 700, display: "block", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Employee ID</label>
                         <input
                           readOnly
                           type="text"
                           value={formData.employee_id}
                           style={{
                             width: "100%",
-                            background: "rgba(23, 26, 28, 0.8)",
+                            background: "white",
                             border: "1px solid rgba(6, 182, 212, 0.3)",
-                            color: "#06b6d4",
+                            color: "#0EA5E9",
                             padding: "0.9rem",
                             borderRadius: "0.5rem",
                             fontSize: "0.9rem",
@@ -1878,16 +1814,16 @@ export default function HumanResources() {
                         />
                       </div>
                       <div>
-                        <label style={{ fontSize: "0.7rem", color: "#aaabad", fontWeight: 700, display: "block", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>System Role *</label>
+                        <label style={{ fontSize: "0.7rem", color: "#6B7280", fontWeight: 700, display: "block", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>System Role *</label>
                         <select
                           required
                           value={formData.role}
                           onChange={(e) => setFormData({...formData, role: e.target.value})}
                           style={{
                             width: "100%",
-                            background: "rgba(6, 182, 212, 0.1)",
+                            background: "white",
                             border: "1px solid rgba(6, 182, 212, 0.3)",
-                            color: "#06b6d4",
+                            color: "#0EA5E9",
                             padding: "0.9rem",
                             borderRadius: "0.5rem",
                             fontSize: "0.9rem",
@@ -1908,7 +1844,7 @@ export default function HumanResources() {
 
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
                       <div>
-                        <label style={{ fontSize: "0.7rem", color: "#aaabad", fontWeight: 700, display: "block", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Department</label>
+                        <label style={{ fontSize: "0.7rem", color: "#6B7280", fontWeight: 700, display: "block", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Department</label>
                         <input
                           type="text"
                           placeholder="e.g. Sales, Operations"
@@ -1916,9 +1852,9 @@ export default function HumanResources() {
                           onChange={(e) => setFormData({...formData, department: e.target.value})}
                           style={{
                             width: "100%",
-                            background: "rgba(23, 26, 28, 0.5)",
-                            border: "1px solid rgba(161, 250, 255, 0.1)",
-                            color: "white",
+                            background: "white",
+                            border: "1px solid #E5E7EB",
+                            color: "#111827",
                             padding: "0.9rem",
                             borderRadius: "0.5rem",
                             fontSize: "0.9rem",
@@ -1926,11 +1862,11 @@ export default function HumanResources() {
                             transition: "all 0.2s ease"
                           }}
                           onFocus={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.3)"}
-                          onBlur={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.1)"}
+                          onBlur={(e) => e.target.style.borderColor = "#E5E7EB"}
                         />
                       </div>
                       <div>
-                        <label style={{ fontSize: "0.7rem", color: "#aaabad", fontWeight: 700, display: "block", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Reporting Manager</label>
+                        <label style={{ fontSize: "0.7rem", color: "#6B7280", fontWeight: 700, display: "block", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Reporting Manager</label>
                         <input
                           type="text"
                           placeholder="Manager Name"
@@ -1938,9 +1874,9 @@ export default function HumanResources() {
                           onChange={(e) => setFormData({...formData, reporting_manager: e.target.value})}
                           style={{
                             width: "100%",
-                            background: "rgba(23, 26, 28, 0.5)",
-                            border: "1px solid rgba(161, 250, 255, 0.1)",
-                            color: "white",
+                            background: "white",
+                            border: "1px solid #E5E7EB",
+                            color: "#111827",
                             padding: "0.9rem",
                             borderRadius: "0.5rem",
                             fontSize: "0.9rem",
@@ -1948,14 +1884,14 @@ export default function HumanResources() {
                             transition: "all 0.2s ease"
                           }}
                           onFocus={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.3)"}
-                          onBlur={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.1)"}
+                          onBlur={(e) => e.target.style.borderColor = "#E5E7EB"}
                         />
                       </div>
                     </div>
 
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
                       <div>
-                        <label style={{ fontSize: "0.7rem", color: "#aaabad", fontWeight: 700, display: "block", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Work Location</label>
+                        <label style={{ fontSize: "0.7rem", color: "#6B7280", fontWeight: 700, display: "block", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Work Location</label>
                         <input
                           type="text"
                           placeholder="HQ / Territory"
@@ -1963,9 +1899,9 @@ export default function HumanResources() {
                           onChange={(e) => setFormData({...formData, work_location: e.target.value})}
                           style={{
                             width: "100%",
-                            background: "rgba(23, 26, 28, 0.5)",
-                            border: "1px solid rgba(161, 250, 255, 0.1)",
-                            color: "white",
+                            background: "white",
+                            border: "1px solid #E5E7EB",
+                            color: "#111827",
                             padding: "0.9rem",
                             borderRadius: "0.5rem",
                             fontSize: "0.9rem",
@@ -1973,19 +1909,19 @@ export default function HumanResources() {
                             transition: "all 0.2s ease"
                           }}
                           onFocus={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.3)"}
-                          onBlur={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.1)"}
+                          onBlur={(e) => e.target.style.borderColor = "#E5E7EB"}
                         />
                       </div>
                       <div>
-                        <label style={{ fontSize: "0.7rem", color: "#aaabad", fontWeight: 700, display: "block", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Employment Type</label>
+                        <label style={{ fontSize: "0.7rem", color: "#6B7280", fontWeight: 700, display: "block", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Employment Type</label>
                         <select
                           value={formData.employment_type}
                           onChange={(e) => setFormData({...formData, employment_type: e.target.value})}
                           style={{
                             width: "100%",
-                            background: "rgba(23, 26, 28, 0.5)",
-                            border: "1px solid rgba(161, 250, 255, 0.1)",
-                            color: "white",
+                            background: "white",
+                            border: "1px solid #E5E7EB",
+                            color: "#111827",
                             padding: "0.9rem",
                             borderRadius: "0.5rem",
                             fontSize: "0.9rem",
@@ -1994,7 +1930,7 @@ export default function HumanResources() {
                             transition: "all 0.2s ease"
                           }}
                           onFocus={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.3)"}
-                          onBlur={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.1)"}
+                          onBlur={(e) => e.target.style.borderColor = "#E5E7EB"}
                         >
                           <option value="Full-time">Full-time</option>
                           <option value="Contract">Contract</option>
@@ -2004,16 +1940,16 @@ export default function HumanResources() {
                     </div>
 
                     <div>
-                      <label style={{ fontSize: "0.7rem", color: "#aaabad", fontWeight: 700, display: "block", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Joining Date</label>
+                      <label style={{ fontSize: "0.7rem", color: "#6B7280", fontWeight: 700, display: "block", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Joining Date</label>
                       <input
                         type="date"
                         value={formData.joining_date}
                         onChange={(e) => setFormData({...formData, joining_date: e.target.value})}
                         style={{
                           width: "100%",
-                          background: "rgba(23, 26, 28, 0.5)",
-                          border: "1px solid rgba(161, 250, 255, 0.1)",
-                          color: "white",
+                          background: "white",
+                          border: "1px solid #E5E7EB",
+                          color: "#111827",
                           padding: "0.9rem",
                           borderRadius: "0.5rem",
                           fontSize: "0.9rem",
@@ -2021,7 +1957,7 @@ export default function HumanResources() {
                           transition: "all 0.2s ease"
                         }}
                         onFocus={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.3)"}
-                        onBlur={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.1)"}
+                        onBlur={(e) => e.target.style.borderColor = "#E5E7EB"}
                       />
                     </div>
 
@@ -2029,15 +1965,15 @@ export default function HumanResources() {
                     {formData.role === "salesman" && (
                       <div style={{
                         padding: "1.25rem",
-                        background: "rgba(6, 182, 212, 0.1)",
-                        border: "1px solid rgba(6, 182, 212, 0.2)",
+                        background: "white",
+                        border: "1px solid #E5E7EB",
                         borderRadius: "0.75rem",
                         animation: "fadeInUp 0.3s ease-out"
                       }}>
-                        <p style={{ fontSize: "0.75rem", color: "#06b6d4", fontWeight: 700, textTransform: "uppercase", margin: "0 0 1rem 0", letterSpacing: "0.05em" }}>📊 Field Sales Configuration</p>
+                        <p style={{ fontSize: "0.75rem", color: "#0EA5E9", fontWeight: 700, textTransform: "uppercase", margin: "0 0 1rem 0", letterSpacing: "0.05em" }}>📊 Field Sales Configuration</p>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
                           <div>
-                            <label style={{ fontSize: "0.7rem", color: "#aaabad", fontWeight: 700, display: "block", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Commission Rate (%)</label>
+                            <label style={{ fontSize: "0.7rem", color: "#6B7280", fontWeight: 700, display: "block", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Commission Rate (%)</label>
                             <input
                               type="number"
                               step="0.1"
@@ -2045,9 +1981,9 @@ export default function HumanResources() {
                               onChange={(e) => setFormData({...formData, commission_rate: e.target.value})}
                               style={{
                                 width: "100%",
-                                background: "rgba(23, 26, 28, 0.5)",
-                                border: "1px solid rgba(161, 250, 255, 0.1)",
-                                color: "white",
+                                background: "white",
+                                border: "1px solid #E5E7EB",
+                                color: "#111827",
                                 padding: "0.9rem",
                                 borderRadius: "0.5rem",
                                 fontSize: "0.9rem",
@@ -2055,11 +1991,11 @@ export default function HumanResources() {
                                 transition: "all 0.2s ease"
                               }}
                               onFocus={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.3)"}
-                              onBlur={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.1)"}
+                              onBlur={(e) => e.target.style.borderColor = "#E5E7EB"}
                             />
                           </div>
                           <div>
-                            <label style={{ fontSize: "0.7rem", color: "#aaabad", fontWeight: 700, display: "block", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Incentive Tier</label>
+                            <label style={{ fontSize: "0.7rem", color: "#6B7280", fontWeight: 700, display: "block", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Incentive Tier</label>
                             <input
                               type="text"
                               placeholder="e.g. Tier 1, Standard"
@@ -2067,9 +2003,9 @@ export default function HumanResources() {
                               onChange={(e) => setFormData({...formData, incentive_structure: e.target.value})}
                               style={{
                                 width: "100%",
-                                background: "rgba(23, 26, 28, 0.5)",
-                                border: "1px solid rgba(161, 250, 255, 0.1)",
-                                color: "white",
+                                background: "white",
+                                border: "1px solid #E5E7EB",
+                                color: "#111827",
                                 padding: "0.9rem",
                                 borderRadius: "0.5rem",
                                 fontSize: "0.9rem",
@@ -2077,7 +2013,7 @@ export default function HumanResources() {
                                 transition: "all 0.2s ease"
                               }}
                               onFocus={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.3)"}
-                              onBlur={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.1)"}
+                              onBlur={(e) => e.target.style.borderColor = "#E5E7EB"}
                             />
                           </div>
                         </div>
@@ -2088,7 +2024,7 @@ export default function HumanResources() {
                     {formData.role === "warehouse" && (
                       <div style={{
                         padding: "1.25rem",
-                        background: "rgba(249, 115, 22, 0.1)",
+                        background: "white",
                         border: "1px solid rgba(249, 115, 22, 0.2)",
                         borderRadius: "0.75rem",
                         animation: "fadeInUp 0.3s ease-out"
@@ -2096,7 +2032,7 @@ export default function HumanResources() {
                         <p style={{ fontSize: "0.75rem", color: "#f97316", fontWeight: 700, textTransform: "uppercase", margin: "0 0 1rem 0", letterSpacing: "0.05em" }}>📦 Warehouse Configuration</p>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
                           <div>
-                            <label style={{ fontSize: "0.7rem", color: "#aaabad", fontWeight: 700, display: "block", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Shift Timing</label>
+                            <label style={{ fontSize: "0.7rem", color: "#6B7280", fontWeight: 700, display: "block", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Shift Timing</label>
                             <input
                               type="text"
                               placeholder="e.g. 9 AM - 6 PM"
@@ -2104,9 +2040,9 @@ export default function HumanResources() {
                               onChange={(e) => setFormData({...formData, shift_timing: e.target.value})}
                               style={{
                                 width: "100%",
-                                background: "rgba(23, 26, 28, 0.5)",
-                                border: "1px solid rgba(161, 250, 255, 0.1)",
-                                color: "white",
+                                background: "white",
+                                border: "1px solid #E5E7EB",
+                                color: "#111827",
                                 padding: "0.9rem",
                                 borderRadius: "0.5rem",
                                 fontSize: "0.9rem",
@@ -2114,19 +2050,19 @@ export default function HumanResources() {
                                 transition: "all 0.2s ease"
                               }}
                               onFocus={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.3)"}
-                              onBlur={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.1)"}
+                              onBlur={(e) => e.target.style.borderColor = "#E5E7EB"}
                             />
                           </div>
                           <div>
-                            <label style={{ fontSize: "0.7rem", color: "#aaabad", fontWeight: 700, display: "block", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Primary Responsibility</label>
+                            <label style={{ fontSize: "0.7rem", color: "#6B7280", fontWeight: 700, display: "block", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Primary Responsibility</label>
                             <select
                               value={formData.primary_responsibility}
                               onChange={(e) => setFormData({...formData, primary_responsibility: e.target.value})}
                               style={{
                                 width: "100%",
-                                background: "rgba(23, 26, 28, 0.5)",
-                                border: "1px solid rgba(161, 250, 255, 0.1)",
-                                color: "white",
+                                background: "white",
+                                border: "1px solid #E5E7EB",
+                                color: "#111827",
                                 padding: "0.9rem",
                                 borderRadius: "0.5rem",
                                 fontSize: "0.9rem",
@@ -2135,7 +2071,7 @@ export default function HumanResources() {
                                 transition: "all 0.2s ease"
                               }}
                               onFocus={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.3)"}
-                              onBlur={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.1)"}
+                              onBlur={(e) => e.target.style.borderColor = "#E5E7EB"}
                             >
                               <option value="">Select Duty</option>
                               <option value="Packing">Packing</option>
@@ -2153,7 +2089,7 @@ export default function HumanResources() {
                 {/* STEP 3: Financials & Payroll */}
                 {step === 3 && (
                   <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", flex: 1, animation: "slideInFromRight 0.3s ease-out" }}>
-                    <p style={{ fontSize: "0.8rem", fontWeight: 700, color: "#a1faff", textTransform: "uppercase", margin: 0, letterSpacing: "0.05em", paddingBottom: "0.75rem", borderBottom: "1px solid rgba(161, 250, 255, 0.1)" }}>
+                    <p style={{ fontSize: "0.8rem", fontWeight: 700, color: "#111827", textTransform: "uppercase", margin: 0, letterSpacing: "0.05em", paddingBottom: "0.75rem", borderBottom: "1px solid #E5E7EB" }}>
                       3. Financials & Payroll
                     </p>
                     <input
@@ -2163,9 +2099,9 @@ export default function HumanResources() {
                       value={formData.base_salary}
                       onChange={(e) => setFormData({...formData, base_salary: e.target.value})}
                       style={{
-                        background: "rgba(23, 26, 28, 0.5)",
-                        border: "1px solid rgba(161, 250, 255, 0.1)",
-                        color: "white",
+                        background: "white",
+                        border: "1px solid #E5E7EB",
+                        color: "#111827",
                         padding: "0.9rem",
                         borderRadius: "0.5rem",
                         fontSize: "0.9rem",
@@ -2173,15 +2109,15 @@ export default function HumanResources() {
                         transition: "all 0.2s ease"
                       }}
                       onFocus={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.3)"}
-                      onBlur={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.1)"}
+                      onBlur={(e) => e.target.style.borderColor = "#E5E7EB"}
                     />
                     <select
                       value={formData.payment_cycle}
                       onChange={(e) => setFormData({...formData, payment_cycle: e.target.value})}
                       style={{
-                        background: "rgba(23, 26, 28, 0.5)",
-                        border: "1px solid rgba(161, 250, 255, 0.1)",
-                        color: "white",
+                        background: "white",
+                        border: "1px solid #E5E7EB",
+                        color: "#111827",
                         padding: "0.9rem",
                         borderRadius: "0.5rem",
                         fontSize: "0.9rem",
@@ -2190,7 +2126,7 @@ export default function HumanResources() {
                         transition: "all 0.2s ease"
                       }}
                       onFocus={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.3)"}
-                      onBlur={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.1)"}
+                      onBlur={(e) => e.target.style.borderColor = "#E5E7EB"}
                     >
                       <option value="Weekly">Weekly</option>
                       <option value="Monthly">Monthly</option>
@@ -2201,9 +2137,9 @@ export default function HumanResources() {
                       value={formData.bank_account_no}
                       onChange={(e) => setFormData({...formData, bank_account_no: e.target.value})}
                       style={{
-                        background: "rgba(23, 26, 28, 0.5)",
-                        border: "1px solid rgba(161, 250, 255, 0.1)",
-                        color: "white",
+                        background: "white",
+                        border: "1px solid #E5E7EB",
+                        color: "#111827",
                         padding: "0.9rem",
                         borderRadius: "0.5rem",
                         fontSize: "0.9rem",
@@ -2212,7 +2148,7 @@ export default function HumanResources() {
                         fontFamily: "monospace"
                       }}
                       onFocus={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.3)"}
-                      onBlur={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.1)"}
+                      onBlur={(e) => e.target.style.borderColor = "#E5E7EB"}
                     />
                     <input
                       type="text"
@@ -2220,9 +2156,9 @@ export default function HumanResources() {
                       value={formData.bank_ifsc}
                       onChange={(e) => setFormData({...formData, bank_ifsc: e.target.value.toUpperCase()})}
                       style={{
-                        background: "rgba(23, 26, 28, 0.5)",
-                        border: "1px solid rgba(161, 250, 255, 0.1)",
-                        color: "white",
+                        background: "white",
+                        border: "1px solid #E5E7EB",
+                        color: "#111827",
                         padding: "0.9rem",
                         borderRadius: "0.5rem",
                         fontSize: "0.9rem",
@@ -2231,7 +2167,7 @@ export default function HumanResources() {
                         fontFamily: "monospace"
                       }}
                       onFocus={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.3)"}
-                      onBlur={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.1)"}
+                      onBlur={(e) => e.target.style.borderColor = "#E5E7EB"}
                     />
                     <input
                       type="text"
@@ -2239,9 +2175,9 @@ export default function HumanResources() {
                       value={formData.upi_id}
                       onChange={(e) => setFormData({...formData, upi_id: e.target.value})}
                       style={{
-                        background: "rgba(23, 26, 28, 0.5)",
-                        border: "1px solid rgba(161, 250, 255, 0.1)",
-                        color: "white",
+                        background: "white",
+                        border: "1px solid #E5E7EB",
+                        color: "#111827",
                         padding: "0.9rem",
                         borderRadius: "0.5rem",
                         fontSize: "0.9rem",
@@ -2250,7 +2186,7 @@ export default function HumanResources() {
                         fontFamily: "monospace"
                       }}
                       onFocus={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.3)"}
-                      onBlur={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.1)"}
+                      onBlur={(e) => e.target.style.borderColor = "#E5E7EB"}
                     />
                   </div>
                 )}
@@ -2268,9 +2204,9 @@ export default function HumanResources() {
                       value={formData.work_email}
                       onChange={(e) => setFormData({...formData, work_email: e.target.value})}
                       style={{
-                        background: "rgba(23, 26, 28, 0.5)",
-                        border: "1px solid rgba(161, 250, 255, 0.1)",
-                        color: "white",
+                        background: "white",
+                        border: "1px solid #E5E7EB",
+                        color: "#111827",
                         padding: "0.9rem",
                         borderRadius: "0.5rem",
                         fontSize: "0.9rem",
@@ -2279,7 +2215,7 @@ export default function HumanResources() {
                         fontFamily: "monospace"
                       }}
                       onFocus={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.3)"}
-                      onBlur={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.1)"}
+                      onBlur={(e) => e.target.style.borderColor = "#E5E7EB"}
                     />
                     <input
                       required={!isEditing}
@@ -2288,9 +2224,9 @@ export default function HumanResources() {
                       value={formData.password}
                       onChange={(e) => setFormData({...formData, password: e.target.value})}
                       style={{
-                        background: "rgba(23, 26, 28, 0.5)",
-                        border: "1px solid rgba(161, 250, 255, 0.1)",
-                        color: "white",
+                        background: "white",
+                        border: "1px solid #E5E7EB",
+                        color: "#111827",
                         padding: "0.9rem",
                         borderRadius: "0.5rem",
                         fontSize: "0.9rem",
@@ -2299,15 +2235,15 @@ export default function HumanResources() {
                         fontFamily: "monospace"
                       }}
                       onFocus={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.3)"}
-                      onBlur={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.1)"}
+                      onBlur={(e) => e.target.style.borderColor = "#E5E7EB"}
                     />
                     <select
                       value={formData.status}
                       onChange={(e) => setFormData({...formData, status: e.target.value})}
                       style={{
-                        background: "rgba(23, 26, 28, 0.5)",
-                        border: "1px solid rgba(161, 250, 255, 0.1)",
-                        color: "white",
+                        background: "white",
+                        border: "1px solid #E5E7EB",
+                        color: "#111827",
                         padding: "0.9rem",
                         borderRadius: "0.5rem",
                         fontSize: "0.9rem",
@@ -2316,7 +2252,7 @@ export default function HumanResources() {
                         transition: "all 0.2s ease"
                       }}
                       onFocus={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.3)"}
-                      onBlur={(e) => e.target.style.borderColor = "rgba(161, 250, 255, 0.1)"}
+                      onBlur={(e) => e.target.style.borderColor = "#E5E7EB"}
                     >
                       <option value="Active">Active</option>
                       <option value="On Leave">On Leave</option>
@@ -2331,7 +2267,7 @@ export default function HumanResources() {
                   gap: "1rem",
                   marginTop: "2.5rem",
                   paddingTop: "1.5rem",
-                  borderTop: "1px solid rgba(161, 250, 255, 0.1)"
+                  borderTop: "1px solid #E5E7EB"
                 }}>
                   {step > 1 && (
                     <button
@@ -2340,9 +2276,9 @@ export default function HumanResources() {
                       style={{
                         flex: 1,
                         padding: "1rem",
-                        background: "rgba(23, 26, 28, 0.5)",
-                        border: "1px solid rgba(161, 250, 255, 0.1)",
-                        color: "#aaabad",
+                        background: "white",
+                        border: "1px solid #E5E7EB",
+                        color: "#6B7280",
                         borderRadius: "0.6rem",
                         fontSize: "0.85rem",
                         fontWeight: 700,
@@ -2352,12 +2288,12 @@ export default function HumanResources() {
                         letterSpacing: "0.05em"
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.background = "rgba(161, 250, 255, 0.1)";
-                        e.currentTarget.style.color = "#a1faff";
+                        e.currentTarget.style.background = "#E5E7EB";
+                        e.currentTarget.style.color = "#111827";
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.background = "rgba(23, 26, 28, 0.5)";
-                        e.currentTarget.style.color = "#aaabad";
+                        e.currentTarget.style.color = "#6B7280";
                       }}
                     >
                       ← Back
@@ -2369,8 +2305,8 @@ export default function HumanResources() {
                     style={{
                       flex: 1,
                       padding: "1rem",
-                      background: step === 4 ? "#34d399" : "#06b6d4",
-                      color: "#0c0e10",
+                      background: step === 4 ? "#34d399" : "#0EA5E9",
+                      color: "white",
                       border: "none",
                       borderRadius: "0.6rem",
                       fontSize: "0.85rem",

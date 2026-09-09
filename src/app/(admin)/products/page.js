@@ -1,107 +1,152 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 
-// --- FORM STATE ---
+// --- 1. INPUTS ARE THE SOURCE OF TRUTH (EMPTY STATE) ---
 const emptyFormState = {
   name: "",
   category: "Power Bank",
-  image: "📦",
+  image: "",
   description: "",
-  specs: {},
-  costs: { fob: 0, freight: 0, duty: 0, gst: 0, other: 0 },
-  pricing: { distributor: 0, retailer: 0, ecommerce: 0, quickCommerce: 0 },
   stock: 0,
+  
+  // Explicit semantic names for specs
+  specs: {
+    series: "",
+    supplier: "",
+    origin: "",
+    warranty: "",
+    status: "Active",
+    reorderLevel: 500,
+  },
+  
+  // Explicit semantic names for costs
+  costs: {
+    factoryPrice: 0,
+    shippingCost: 0,
+    packagingCost: 0,
+    handlingCost: 0,
+    poNumber: "",
+    qtyOrdered: 0,
+    poStatus: "Pending"
+  },
+  
+  // Explicit semantic names for pricing
+  pricing: {
+    sellingPriceToDistributor: 0,
+    distributorSellingPrice: 0,
+    retailSellingPrice: 0,
+    mrp: 0
+  }
 };
 
 // --- HELPERS ---
 const generateSKU = (category) => {
-  const prefix = category ? category.substring(0, 3).toUpperCase() : "PRD";
-  const randomNum = Math.floor(1000 + Math.random() * 9000);
-  return `${prefix}-${randomNum}`;
+  const prefix = "CQ";
+  const catCode = category ? category.substring(0, 3).toUpperCase() : "GEN";
+  const random = Math.floor(100 + Math.random() * 900);
+  return `${prefix}-${catCode}-${random}`;
 };
 
 const generateBarcode = () => {
   return Math.floor(100000000000 + Math.random() * 900000000000).toString();
 };
 
-const calculateLandedCost = (costs) => {
-  return ["fob", "freight", "duty", "gst", "other"].reduce(
-    (total, key) => total + (parseFloat(costs[key]) || 0),
-    0
-  );
+// --- 3. CREATE ONE CENTRAL CALCULATION ENGINE ---
+const calculateProductEconomics = (inputs) => {
+  const c = inputs.costs || {};
+  const p = inputs.pricing || {};
+  const s = inputs.specs || {};
+  const stock = parseInt(inputs.stock) || 0;
+
+  // Ensure safe numeric inputs
+  const factoryPrice = parseFloat(c.factoryPrice) || 0;
+  const shippingCost = parseFloat(c.shippingCost) || 0;
+  const packagingCost = parseFloat(c.packagingCost) || 0;
+  const handlingCost = parseFloat(c.handlingCost) || 0;
+  const qtyOrdered = parseInt(c.qtyOrdered) || 0;
+
+  const sellingPriceToDistributor = parseFloat(p.sellingPriceToDistributor) || 0;
+  const distributorSellingPrice = parseFloat(p.distributorSellingPrice) || 0;
+  const retailSellingPrice = parseFloat(p.retailSellingPrice) || 0;
+  const mrp = parseFloat(p.mrp) || 0;
+
+  const reorderLevel = parseInt(s.reorderLevel) || 0;
+
+  // --- 5. COST CALCULATION ---
+  const totalUnitCost = factoryPrice + shippingCost + packagingCost + handlingCost;
+  const grandPOCost = totalUnitCost * qtyOrdered;
+
+  // --- 6. PRICING CALCULATIONS ---
+  const companyProfit = sellingPriceToDistributor - totalUnitCost;
+  const companyMarkupPct = totalUnitCost ? (companyProfit / totalUnitCost) * 100 : 0;
+
+  const distributorProfit = distributorSellingPrice - sellingPriceToDistributor;
+  const distributorMarkupPct = sellingPriceToDistributor ? (distributorProfit / sellingPriceToDistributor) * 100 : 0;
+
+  const retailProfit = retailSellingPrice - distributorSellingPrice;
+  const retailMarkupPct = distributorSellingPrice ? (retailProfit / distributorSellingPrice) * 100 : 0;
+
+  // --- 7. MRP CALCULATIONS ---
+  const retailerProfitOnMrp = mrp - distributorSellingPrice;
+  const retailMarginOnMrpPct = mrp ? (retailerProfitOnMrp / mrp) * 100 : 0;
+
+  const discountAmount = mrp - retailSellingPrice;
+  const discountPct = mrp ? (discountAmount / mrp) * 100 : 0;
+
+  // --- 8. INVENTORY CALCULATIONS ---
+  const stockStatus = stock <= 0 ? "Out of Stock" : (stock <= reorderLevel ? "Low Stock" : "OK");
+  
+  const totalFactoryCostBasis = factoryPrice * stock;
+  const totalShippingCostBasis = shippingCost * stock;
+  const totalPackagingCostBasis = packagingCost * stock;
+  const totalHandlingCostBasis = handlingCost * stock;
+  
+  const inventoryValue = totalUnitCost * stock;
+  const totalRetailValue = retailSellingPrice * stock;
+  const expectedProfit = companyProfit * stock;
+
+  return {
+    totalUnitCost,
+    grandPOCost,
+    companyProfit,
+    companyMarkupPct,
+    distributorProfit,
+    distributorMarkupPct,
+    retailProfit,
+    retailMarkupPct,
+    retailerProfitOnMrp,
+    retailMarginOnMrpPct,
+    discountAmount,
+    discountPct,
+    stockStatus,
+    totalFactoryCostBasis,
+    totalShippingCostBasis,
+    totalPackagingCostBasis,
+    totalHandlingCostBasis,
+    inventoryValue,
+    totalRetailValue,
+    expectedProfit
+  };
 };
 
-// --- STYLES ---
-const styles = `
-  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap');
-
-  .products-root * { font-family: 'Manrope', sans-serif; box-sizing: border-box; }
-  .products-root .font-headline { font-family: 'Space Grotesk', sans-serif; }
-
-  .glass-panel {
-    background: rgba(35, 38, 41, 0.5);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(161, 250, 255, 0.05);
-  }
-  .glass-panel-modal {
-    background: rgba(17, 20, 22, 0.95);
-    backdrop-filter: blur(32px);
-    -webkit-backdrop-filter: blur(32px);
-    border: 1px solid rgba(161, 250, 255, 0.08);
-  }
-  .input-dark {
-    background: rgba(11, 13, 15, 0.8);
-    border: 1px solid rgba(70, 72, 74, 0.4);
-    color: #eeeef0;
-    outline: none;
-    transition: all 0.2s ease;
-    font-family: 'Manrope', sans-serif;
-  }
-  .input-dark:focus {
-    border-color: rgba(161, 250, 255, 0.4);
-    box-shadow: 0 0 0 3px rgba(0, 244, 254, 0.06);
-  }
-  .input-dark::placeholder { color: rgba(170, 171, 173, 0.3); }
-  .row-card {
-    transition: all 0.2s ease;
-    border-left: 3px solid transparent;
-  }
-  .row-card:hover {
-    background: rgba(41, 44, 47, 0.4) !important;
-    border-left-color: #a1faff;
-  }
-  .btn-primary {
-    background: linear-gradient(135deg, #a1faff 0%, #00f4fe 100%);
-    color: #004346;
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 700;
-    transition: all 0.2s ease;
-  }
-  .btn-primary:hover {
-    box-shadow: 0 0 30px rgba(0, 245, 255, 0.25);
-    transform: scale(1.02);
-  }
-  .btn-primary:active { transform: scale(0.98); }
-
-  @keyframes pulseGlow {
-    0%, 100% { box-shadow: 0 0 8px rgba(161,250,255,1); }
-    50% { box-shadow: 0 0 16px rgba(161,250,255,0.4); }
-  }
-  .pulse-dot { animation: pulseGlow 2s ease-in-out infinite; }
-`;
-
-export default function ProductsPage() {
+export default function Products() {
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [filteredProducts, setFilteredProducts] = useState([]);
+
+  // Modals
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  
+  // 11. Edit Product Behavior - Load stored product into inputs
   const [formData, setFormData] = useState(emptyFormState);
+  
   const [viewProduct, setViewProduct] = useState(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => { fetchProducts(); }, []);
 
@@ -111,18 +156,45 @@ export default function ProductsPage() {
       .from("products")
       .select("*")
       .order("created_at", { ascending: false });
-    if (!error) setProducts(data || []);
-    else console.error("Fetch Error:", error);
+
+    if (error) console.error("Error fetching products:", error);
+    else {
+      setProducts(data || []);
+      setFilteredProducts(data || []);
+    }
     setIsLoading(false);
   };
 
-  const filteredProducts = useMemo(() => {
-    return products.filter(
-      (p) =>
-        p.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.sku?.toLowerCase().includes(searchQuery.toLowerCase())
+  useEffect(() => {
+    const q = searchQuery.toLowerCase();
+    setFilteredProducts(
+      products.filter(p => p.name.toLowerCase().includes(q) || (p.sku && p.sku.toLowerCase().includes(q)))
     );
   }, [products, searchQuery]);
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('product-images')
+      .upload(fileName, file);
+
+    if (uploadError) {
+      alert("Error uploading image: " + uploadError.message);
+    } else {
+      const { data: publicUrlData } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(fileName);
+      
+      setFormData({ ...formData, image: publicUrlData.publicUrl });
+    }
+    setUploadingImage(false);
+  };
 
   const handleOpenAdd = () => {
     setFormData(emptyFormState);
@@ -131,6 +203,7 @@ export default function ProductsPage() {
   };
 
   const handleOpenEdit = (product) => {
+    // 11. Populate editable fields
     setFormData({
       ...product,
       pricing: product.pricing || emptyFormState.pricing,
@@ -146,320 +219,380 @@ export default function ProductsPage() {
     setIsDetailOpen(true);
   };
 
+  const handleDelete = async (id) => {
+    if (!confirm("Are you sure you want to delete this product?")) return;
+    const { error } = await supabase.from("products").delete().eq("id", id);
+    if (error) alert("Error deleting product");
+    else fetchProducts();
+  };
+
+  // PAUSED FOR STAGE 3 HARDENING
+  // const handleSyncToSheets = async (productId, productSku) => {
+  //   try {
+  //     const res = await fetch('/api/sync-sheets', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({ productId })
+  //     });
+  //     const data = await res.json();
+  //     if (data.success) {
+  //       alert(`✓ Product ${productSku} synchronized to Google Sheets (${data.result.action}).`);
+  //     } else {
+  //       alert(`✗ Sync failed — ${data.error}`);
+  //     }
+  //   } catch (err) {
+  //     alert(`✗ Sync failed — ${err.message}`);
+  //   }
+  // };
+
+  // --- 10. SAVE BEHAVIOR ---
   const handleSave = async (e) => {
     e.preventDefault();
-    const landedCost = calculateLandedCost(formData.costs);
+    
+    // 3. Run central calculation engine before save
+    const metrics = calculateProductEconomics(formData);
+
+    // 5. Construct final JSON objects ensuring explicit field naming
     const dbPayload = {
       name: formData.name,
       category: formData.category,
       image: formData.image,
       description: formData.description,
-      specs: formData.specs,
-      costs: formData.costs,
-      landed_cost: landedCost,
-      pricing: formData.pricing,
       stock: formData.stock || 0,
+      landed_cost: metrics.totalUnitCost, // Kept at top-level for backward compatibility in dashboard
+      
+      specs: {
+        series: formData.specs.series || "",
+        supplier: formData.specs.supplier || "",
+        origin: formData.specs.origin || "",
+        warranty: formData.specs.warranty || "",
+        status: formData.specs.status || "Active",
+        reorderLevel: parseInt(formData.specs.reorderLevel) || 0,
+        // Generated Derived Values
+        stockStatus: metrics.stockStatus,
+        totalFactoryCostBasis: metrics.totalFactoryCostBasis,
+        totalShippingCostBasis: metrics.totalShippingCostBasis,
+        totalPackagingCostBasis: metrics.totalPackagingCostBasis,
+        totalHandlingCostBasis: metrics.totalHandlingCostBasis,
+        inventoryValue: metrics.inventoryValue,
+        totalRetailValue: metrics.totalRetailValue,
+        expectedProfit: metrics.expectedProfit
+      },
+      
+      costs: {
+        factoryPrice: parseFloat(formData.costs.factoryPrice) || 0,
+        shippingCost: parseFloat(formData.costs.shippingCost) || 0,
+        packagingCost: parseFloat(formData.costs.packagingCost) || 0,
+        handlingCost: parseFloat(formData.costs.handlingCost) || 0,
+        poNumber: formData.costs.poNumber || "",
+        qtyOrdered: parseInt(formData.costs.qtyOrdered) || 0,
+        poStatus: formData.costs.poStatus || "Pending",
+        // Generated Derived Values
+        totalUnitCost: metrics.totalUnitCost,
+        grandPOCost: metrics.grandPOCost
+      },
+      
+      pricing: {
+        sellingPriceToDistributor: parseFloat(formData.pricing.sellingPriceToDistributor) || 0,
+        distributorSellingPrice: parseFloat(formData.pricing.distributorSellingPrice) || 0,
+        retailSellingPrice: parseFloat(formData.pricing.retailSellingPrice) || 0,
+        mrp: parseFloat(formData.pricing.mrp) || 0,
+        // Generated Derived Values
+        companyProfit: metrics.companyProfit,
+        companyMarkupPct: parseFloat(metrics.companyMarkupPct.toFixed(2)),
+        distributorProfit: metrics.distributorProfit,
+        distributorMarkupPct: parseFloat(metrics.distributorMarkupPct.toFixed(2)),
+        retailProfit: metrics.retailProfit,
+        retailMarkupPct: parseFloat(metrics.retailMarkupPct.toFixed(2)),
+        retailerProfitOnMrp: metrics.retailerProfitOnMrp,
+        retailMarginOnMrpPct: parseFloat(metrics.retailMarginOnMrpPct.toFixed(2)),
+        discountAmount: metrics.discountAmount,
+        discountPct: parseFloat(metrics.discountPct.toFixed(2))
+      }
     };
 
+    // 6. Save complete record to Supabase
     if (editingId) {
       const { error } = await supabase.from("products").update(dbPayload).eq("id", editingId);
-      if (error) { console.error("Update error:", error); alert(`Update Error: ${error.message}`); }
+      if (error) alert("Error updating product");
       else { fetchProducts(); setIsFormOpen(false); }
     } else {
       dbPayload.sku = generateSKU(formData.category);
       dbPayload.barcode = generateBarcode();
       const { error } = await supabase.from("products").insert([dbPayload]);
-      if (error) { console.error("Insert error:", error); alert(`Database Error: ${error.message || error.details}`); }
+      if (error) alert("Error creating product");
       else { fetchProducts(); setIsFormOpen(false); }
     }
   };
 
-  const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this product from the database?")) {
-      const { error } = await supabase.from("products").delete().eq("id", id);
-      if (error) { alert("Error deleting product"); console.error(error); }
-      else fetchProducts();
-    }
-  };
+  // We use the central engine to preview stats in the form live as inputs change
+  const liveMetrics = isFormOpen ? calculateProductEconomics(formData) : null;
 
   return (
-    <div className="products-root" style={{ color: "#eeeef0" }}>
-      <style>{styles}</style>
-
-      {/* PAGE HEADER */}
-      <section style={{ marginBottom: "3rem", display: "flex", flexWrap: "wrap", alignItems: "flex-end", justifyContent: "space-between", gap: "1.5rem" }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-          <h2 className="font-headline" style={{ fontSize: "clamp(1.8rem, 4vw, 2.8rem)", fontWeight: 700, letterSpacing: "-0.02em", color: "#eeeef0", lineHeight: 1, margin: 0 }}>
-            PRODUCT DATABASE
-          </h2>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <div className="pulse-dot" style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#a1faff", flexShrink: 0 }}></div>
-            <p className="font-headline" style={{ fontSize: "11px", color: "rgba(161,250,255,0.6)", letterSpacing: "0.2em", textTransform: "uppercase", margin: 0 }}>
-              Live connection:{" "}
-              <span style={{ color: "#a1faff", fontWeight: 700 }}>CONQRETE_DATABASE</span>
-            </p>
-          </div>
+    <div className="p-8 bg-[#F8F9FA] min-h-screen text-[#111827]">
+      {/* HEADER */}
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-2xl font-bold m-0 tracking-tight text-[#111827]">Products Directory</h1>
+          <p className="text-sm text-[#6B7280] mt-1">Manage catalog, ERP mappings, and pricing strategies</p>
         </div>
+        <button 
+          onClick={handleOpenAdd} 
+          className="bg-[#0EA5E9] hover:bg-[#0284C7] text-white px-5 py-2.5 rounded-lg border-none font-semibold cursor-pointer shadow-sm transition-colors"
+        >
+          + Add Product
+        </button>
+      </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-          {/* Search */}
-          <div style={{ position: "relative" }}>
-            <svg style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)", opacity: 0.4 }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a1faff" strokeWidth="2">
-              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-            </svg>
-            <input
-              type="text"
-              placeholder="Search name or SKU..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="input-dark glass-panel"
-              style={{ paddingLeft: "2.75rem", paddingRight: "1.25rem", paddingTop: "0.875rem", paddingBottom: "0.875rem", width: "280px", borderRadius: "0.75rem", fontSize: "13px" }}
-            />
-          </div>
-
-          {/* Add Button */}
-          <button onClick={handleOpenAdd} className="btn-primary" style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.875rem 1.75rem", borderRadius: "9999px", fontSize: "13px", letterSpacing: "0.05em", border: "none", cursor: "pointer" }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#004346" strokeWidth="2.5"><path d="M12 5v14M5 12h14"/></svg>
-            Add Product
-          </button>
-        </div>
-      </section>
+      {/* SEARCH */}
+      <div className="mb-6 max-w-md">
+        <input 
+          type="text" 
+          placeholder="Search by product name or SKU..." 
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full px-4 py-2 bg-white border border-[#D1D5DB] rounded-lg text-[#111827] focus:ring-2 focus:ring-[#0EA5E9]/50 focus:border-[#0EA5E9] outline-none shadow-sm"
+        />
+      </div>
 
       {/* TABLE */}
-      <section>
-        {/* Table Header */}
-        <div className="font-headline" style={{ display: "grid", gridTemplateColumns: "0.5fr 2.5fr 1.5fr 1.5fr 1.5fr 1fr 1fr", padding: "0.75rem 1.5rem", fontSize: "10px", fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#747578", marginBottom: "0.75rem" }}>
-          <div>IMG</div>
-          <div>Product Name</div>
-          <div>Category</div>
-          <div>SKU ID</div>
-          <div>Landed Cost</div>
-          <div>Stock</div>
-          <div style={{ textAlign: "right" }}>Actions</div>
-        </div>
+      <div className="bg-white rounded-xl shadow-sm border border-[#E5E7EB] overflow-hidden">
+        {isLoading ? (
+          <div className="p-10 text-center text-[#6B7280] animate-pulse">Loading products...</div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="p-10 text-center text-[#6B7280]">No products found.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-[#F9FAFB] border-b border-[#E5E7EB]">
+                  <th className="px-6 py-4 text-xs font-semibold text-[#6B7280] uppercase tracking-wider">Product</th>
+                  <th className="px-6 py-4 text-xs font-semibold text-[#6B7280] uppercase tracking-wider text-center">Stock</th>
+                  <th className="px-6 py-4 text-xs font-semibold text-[#6B7280] uppercase tracking-wider text-right">Landed Cost</th>
+                  <th className="px-6 py-4 text-xs font-semibold text-[#6B7280] uppercase tracking-wider text-right">Retail (MRP)</th>
+                  <th className="px-6 py-4 text-xs font-semibold text-[#6B7280] uppercase tracking-wider text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredProducts.map((product) => (
+                  <tr key={product.id} className="border-b border-[#E5E7EB] hover:bg-[#F9FAFB] transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-4 cursor-pointer" onClick={() => handleOpenView(product)}>
+                        <div>
+                          {product.image && product.image.startsWith('http') ? (
+                            <img src={product.image} alt={product.name} className="w-10 h-10 rounded-md object-cover border border-[#E5E7EB]" />
+                          ) : (
+                            <div className="w-10 h-10 rounded-md bg-[#F3F4F6] border border-[#E5E7EB] flex items-center justify-center text-xl">
+                              {product.image || '📦'}
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <p className="m-0 font-bold text-[#111827]">{product.name}</p>
+                          <div className="flex gap-2 items-center mt-1">
+                            <span className="text-xs text-[#6B7280]">SKU: {product.sku}</span>
+                            <span className="text-[10px] bg-[#F3F4F6] text-[#4B5563] px-2 py-0.5 rounded-full font-semibold border border-[#E5E7EB]">
+                              {product.category}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold border ${product.stock > (product.specs?.reorderLevel || 100) ? 'bg-[#D1FAE5] text-[#065F46] border-[#A7F3D0]' : 'bg-[#FEE2E2] text-[#991B1B] border-[#FECACA]'}`}>
+                        {product.stock} {product.stock <= (product.specs?.reorderLevel || 100) && ' (Low)'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right font-medium text-[#111827]">
+                      ₹{Number(product.landed_cost).toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 text-right font-bold text-[#0EA5E9]">
+                      ₹{Number(product.pricing?.mrp || 0).toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex justify-end gap-2">
+                        <button onClick={() => handleOpenView(product)} className="bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#374151] border border-[#D1D5DB] px-3 py-1.5 rounded text-xs font-semibold cursor-pointer transition-colors">View ERP</button>
+                        <button onClick={() => handleOpenEdit(product)} className="bg-[#0EA5E9]/10 hover:bg-[#0EA5E9]/20 text-[#0EA5E9] border border-[#0EA5E9]/20 px-3 py-1.5 rounded text-xs font-semibold cursor-pointer transition-colors">Edit</button>
+                        <button onClick={() => handleDelete(product.id)} className="bg-[#FEE2E2] hover:bg-[#FECACA] text-[#991B1B] border border-[#FECACA] px-3 py-1.5 rounded text-xs font-semibold cursor-pointer transition-colors">Del</button>
+                        {/* PAUSED FOR STAGE 3: <button onClick={() => handleSyncToSheets(product.id, product.sku)} className="bg-[#D1FAE5] hover:bg-[#A7F3D0] text-[#065F46] border border-[#A7F3D0] px-3 py-1.5 rounded text-xs font-semibold cursor-pointer transition-colors" title="Sync to Google Sheets">Sync</button> */}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
-        {/* Rows */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", position: "relative", minHeight: "120px" }}>
-          {isLoading && (
-            <div style={{ position: "absolute", inset: 0, background: "rgba(12,14,16,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10, borderRadius: "1rem" }}>
-              <span className="font-headline" style={{ color: "#a1faff", fontSize: "11px", letterSpacing: "0.3em", textTransform: "uppercase", animation: "pulse 2s ease-in-out infinite" }}>
-                FETCHING_DATA...
-              </span>
+      {/* 🔴 ADD / EDIT FORM MODAL */}
+      {isFormOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-6 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl shadow-xl border border-[#E5E7EB] relative">
+            <div className="sticky top-0 bg-white z-10 p-6 border-b border-[#E5E7EB] flex justify-between items-center">
+              <h2 className="text-xl font-bold m-0 text-[#111827]">{editingId ? "Edit Product (ERP Data)" : "Add New Product (ERP Data)"}</h2>
+              <button onClick={() => setIsFormOpen(false)} className="bg-transparent border-none text-[#6B7280] hover:text-[#111827] cursor-pointer text-xl">✕</button>
             </div>
-          )}
-
-          {filteredProducts.map((product) => (
-            <div
-              key={product.id}
-              className="glass-panel row-card"
-              style={{ display: "grid", gridTemplateColumns: "0.5fr 2.5fr 1.5fr 1.5fr 1.5fr 1fr 1fr", alignItems: "center", padding: "1.25rem 1.5rem", borderRadius: "1rem" }}
-            >
-              {/* Image/Emoji */}
-              <div>
-                <div style={{ width: "44px", height: "44px", borderRadius: "0.5rem", background: "rgba(23,26,28,0.8)", border: "1px solid rgba(161,250,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.5rem" }}>
-                  {product.image}
+            
+            <form onSubmit={handleSave} className="p-6">
+              {/* Image & Basic Info */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div>
+                  <label className="block text-xs font-semibold text-[#6B7280] uppercase tracking-wider mb-2">Product Image</label>
+                  <div className="flex items-center gap-4">
+                    {formData.image && formData.image.startsWith('http') ? (
+                      <img src={formData.image} alt="Preview" className="w-16 h-16 rounded-lg object-cover border border-[#E5E7EB]" />
+                    ) : (
+                      <div className="w-16 h-16 rounded-lg bg-[#F3F4F6] border border-[#E5E7EB] flex items-center justify-center text-2xl">
+                        {formData.image || '📦'}
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <input type="file" accept="image/*" onChange={handleImageUpload} disabled={uploadingImage} className="w-full px-4 py-2 bg-white border border-[#D1D5DB] rounded-md text-[#111827] focus:ring-2 focus:ring-[#0EA5E9]/50 focus:border-[#0EA5E9] outline-none text-sm" />
+                      {uploadingImage && <p className="text-xs text-[#0EA5E9] mt-1 font-semibold animate-pulse">Uploading image...</p>}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-[#6B7280] uppercase tracking-wider">Product Name</label>
+                  <input required type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="px-4 py-2 bg-white border border-[#D1D5DB] rounded-md text-[#111827] focus:ring-2 focus:ring-[#0EA5E9]/50 focus:border-[#0EA5E9] outline-none text-sm" />
+                </div>
+                <div className="col-span-1 md:col-span-2 flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-[#6B7280] uppercase tracking-wider">Description</label>
+                  <textarea value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="px-4 py-2 bg-white border border-[#D1D5DB] rounded-md text-[#111827] focus:ring-2 focus:ring-[#0EA5E9]/50 focus:border-[#0EA5E9] outline-none h-20 resize-y text-sm" />
                 </div>
               </div>
 
-              {/* Name */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem", cursor: "pointer" }} onClick={() => handleOpenView(product)}>
-                <span className="font-headline" style={{ color: "#eeeef0", fontWeight: 500, fontSize: "14px", transition: "color 0.2s" }}
-                  onMouseEnter={e => e.currentTarget.style.color = "#a1faff"}
-                  onMouseLeave={e => e.currentTarget.style.color = "#eeeef0"}
-                >
-                  {product.name}
-                </span>
-                <span style={{ fontSize: "10px", color: "#747578" }}>{product.description?.substring(0, 40) || "—"}</span>
+              {/* MODULE 1: STATIC PRODUCT MASTER DATA */}
+              <div className="mb-8 border border-[#E5E7EB] rounded-lg overflow-hidden">
+                <div className="bg-[#F9FAFB] px-4 py-3 border-b border-[#E5E7EB]">
+                  <h3 className="text-sm font-bold text-[#111827] uppercase tracking-wider m-0">1. Static Product Master Data</h3>
+                </div>
+                <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4 bg-white">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider">Category</label>
+                    <select value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} className="px-3 py-2 bg-white border border-[#D1D5DB] rounded-md text-[#111827] focus:ring-2 focus:ring-[#0EA5E9]/50 focus:border-[#0EA5E9] outline-none text-sm">
+                      <option>Power Bank</option><option>Cable</option><option>Adapter</option><option>Earbuds</option><option>Accessories</option>
+                    </select>
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider">Series / Collection</label>
+                    <input type="text" value={formData.specs.series || ""} onChange={e => setFormData({ ...formData, specs: { ...formData.specs, series: e.target.value } })} className="px-3 py-2 bg-white border border-[#D1D5DB] rounded-md text-[#111827] outline-none focus:border-[#0EA5E9] text-sm" />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider">Supplier</label>
+                    <input type="text" value={formData.specs.supplier || ""} onChange={e => setFormData({ ...formData, specs: { ...formData.specs, supplier: e.target.value } })} className="px-3 py-2 bg-white border border-[#D1D5DB] rounded-md text-[#111827] outline-none focus:border-[#0EA5E9] text-sm" />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider">Country of Origin</label>
+                    <input type="text" value={formData.specs.origin || ""} onChange={e => setFormData({ ...formData, specs: { ...formData.specs, origin: e.target.value } })} className="px-3 py-2 bg-white border border-[#D1D5DB] rounded-md text-[#111827] outline-none focus:border-[#0EA5E9] text-sm" />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider">Warranty Period</label>
+                    <input type="text" value={formData.specs.warranty || ""} onChange={e => setFormData({ ...formData, specs: { ...formData.specs, warranty: e.target.value } })} className="px-3 py-2 bg-white border border-[#D1D5DB] rounded-md text-[#111827] outline-none focus:border-[#0EA5E9] text-sm" />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider">Product Status</label>
+                    <select value={formData.specs.status || "Active"} onChange={e => setFormData({ ...formData, specs: { ...formData.specs, status: e.target.value } })} className="px-3 py-2 bg-white border border-[#D1D5DB] rounded-md text-[#111827] outline-none focus:border-[#0EA5E9] text-sm">
+                      <option>Active</option><option>Inactive</option><option>Discontinued</option>
+                    </select>
+                  </div>
+                </div>
               </div>
 
-              {/* Category */}
-              <div>
-                <span style={{ padding: "0.2rem 0.75rem", background: "rgba(68,28,200,0.2)", color: "#9f8eff", fontSize: "10px", borderRadius: "9999px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>
-                  {product.category}
-                </span>
-              </div>
-
-              {/* SKU */}
-              <div>
-                <span style={{ fontFamily: "monospace", fontSize: "12px", color: "#747578" }}>{product.sku}</span>
-              </div>
-
-              {/* Landed Cost */}
-              <div>
-                <span className="font-headline" style={{ color: "#a1faff", fontWeight: 700, fontSize: "14px" }}>
-                  ₹{Number(product.landed_cost || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                </span>
-              </div>
-
-              {/* Stock */}
-              <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
-                <span className="font-headline" style={{ color: product.stock < 20 ? "#ff716c" : "#eeeef0", fontWeight: 500 }}>
-                  {product.stock}
-                </span>
-                <span style={{ fontSize: "10px", color: "#747578", textTransform: "uppercase" }}>units</span>
-                {product.stock < 20 && (
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="#ff716c"><path d="M12 2L1 21h22L12 2zm0 3.5L20.5 19h-17L12 5.5zM11 10v4h2v-4h-2zm0 6v2h2v-2h-2z"/></svg>
-                )}
-              </div>
-
-              {/* Actions */}
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem" }}>
-                <button
-                  onClick={() => handleOpenEdit(product)}
-                  style={{ background: "none", border: "none", cursor: "pointer", color: "#747578", transition: "color 0.2s", padding: "0.25rem" }}
-                  onMouseEnter={e => e.currentTarget.style.color = "#a1faff"}
-                  onMouseLeave={e => e.currentTarget.style.color = "#747578"}
-                  title="Edit"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                </button>
-                <button
-                  onClick={() => handleDelete(product.id)}
-                  style={{ background: "none", border: "none", cursor: "pointer", color: "#747578", transition: "color 0.2s", padding: "0.25rem" }}
-                  onMouseEnter={e => e.currentTarget.style.color = "#ff716c"}
-                  onMouseLeave={e => e.currentTarget.style.color = "#747578"}
-                  title="Delete"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-                </button>
-              </div>
-            </div>
-          ))}
-
-          {!isLoading && filteredProducts.length === 0 && (
-            <div className="glass-panel" style={{ padding: "3rem", textAlign: "center", borderRadius: "1rem", color: "#747578", fontSize: "13px", letterSpacing: "0.1em" }}>
-              No products found.
-            </div>
-          )}
-        </div>
-
-        {/* Footer count */}
-        <div style={{ marginTop: "1.5rem", paddingTop: "1rem", borderTop: "1px solid rgba(70,72,74,0.15)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ fontSize: "11px", color: "#747578", letterSpacing: "0.2em", textTransform: "uppercase" }}>
-            {filteredProducts.length} product{filteredProducts.length !== 1 ? "s" : ""} {searchQuery ? "found" : "total"}
-          </span>
-        </div>
-      </section>
-
-      {/* ── FORM MODAL ── */}
-      {isFormOpen && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, padding: "1.5rem" }}>
-          <div className="glass-panel-modal" style={{ width: "100%", maxWidth: "56rem", maxHeight: "90vh", overflowY: "auto", borderRadius: "1.5rem", padding: "2.5rem", boxShadow: "0 0 60px rgba(0,0,0,0.6)" }}>
-
-            {/* Modal Header */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", paddingBottom: "1rem", borderBottom: "1px solid rgba(70,72,74,0.3)" }}>
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.25rem" }}>
-                  <div style={{ width: "6px", height: "6px", background: "#a1faff", borderRadius: "50%" }}></div>
-                  <span className="font-headline" style={{ fontSize: "10px", color: "rgba(161,250,255,0.6)", letterSpacing: "0.3em", textTransform: "uppercase" }}>
-                    {editingId ? "Modify Entry" : "New Entry"}
+              {/* MODULE 2: PROCUREMENT & UNIT COST */}
+              <div className="mb-8 border border-[#E5E7EB] rounded-lg overflow-hidden">
+                <div className="bg-[#F9FAFB] px-4 py-3 border-b border-[#E5E7EB] flex justify-between items-center">
+                  <h3 className="text-sm font-bold text-[#111827] uppercase tracking-wider m-0">2. Procurement & Unit Cost Logistics Data</h3>
+                  <span className="text-xs font-bold text-[#065F46] bg-[#D1FAE5] px-2.5 py-1 rounded-md border border-[#A7F3D0]">
+                    Total Unit Cost: ₹{liveMetrics?.totalUnitCost.toFixed(2)}
                   </span>
                 </div>
-                <h2 className="font-headline" style={{ fontSize: "1.5rem", fontWeight: 700, color: "#eeeef0", margin: 0 }}>
-                  {editingId ? "Edit Product" : "New Product Entry"}
-                </h2>
-              </div>
-              <button onClick={() => setIsFormOpen(false)} style={{ background: "none", border: "none", color: "#747578", cursor: "pointer", fontSize: "1.2rem", padding: "0.25rem", transition: "color 0.2s" }}
-                onMouseEnter={e => e.currentTarget.style.color = "#eeeef0"}
-                onMouseLeave={e => e.currentTarget.style.color = "#747578"}
-              >✕</button>
-            </div>
-
-            <form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-
-              {/* Basic Info */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-                  <label className="font-headline" style={{ fontSize: "10px", color: "#747578", textTransform: "uppercase", letterSpacing: "0.2em" }}>Product Name</label>
-                  <input required type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="input-dark" style={{ borderRadius: "0.75rem", padding: "0.75rem 1rem" }} />
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-                  <label className="font-headline" style={{ fontSize: "10px", color: "#747578", textTransform: "uppercase", letterSpacing: "0.2em" }}>Category</label>
-                  <select value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value, specs: {} })} className="input-dark" style={{ borderRadius: "0.75rem", padding: "0.75rem 1rem" }}>
-                    <option>Power Bank</option>
-                    <option>Cable</option>
-                    <option>Adapter</option>
-                    <option>Earbuds</option>
-                    <option>Accessories</option>
-                  </select>
-                </div>
-                <div style={{ gridColumn: "span 2", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-                  <label className="font-headline" style={{ fontSize: "10px", color: "#747578", textTransform: "uppercase", letterSpacing: "0.2em" }}>Description</label>
-                  <textarea value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="input-dark" style={{ borderRadius: "0.75rem", padding: "0.75rem 1rem", height: "80px", resize: "vertical" }} />
-                </div>
-              </div>
-
-              {/* Tech Specs */}
-              <div style={{ background: "rgba(11,13,15,0.6)", padding: "1.25rem", borderRadius: "1rem", border: "1px solid rgba(70,72,74,0.3)" }}>
-                <h3 className="font-headline" style={{ fontSize: "11px", color: "#a1faff", textTransform: "uppercase", letterSpacing: "0.2em", marginBottom: "1rem", fontWeight: 700 }}>
-                  Technical Specifications
-                </h3>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
-                  {formData.category === "Power Bank" && (<>
-                    {[["capacity", "Capacity (mAh)"], ["outputWatt", "Output Watt"], ["inputWatt", "Input Watt"], ["batteryType", "Battery Type"]].map(([key, placeholder]) => (
-                      <input key={key} placeholder={placeholder} value={formData.specs[key] || ""} onChange={e => setFormData({ ...formData, specs: { ...formData.specs, [key]: e.target.value } })} className="input-dark" style={{ borderRadius: "0.75rem", padding: "0.75rem 1rem", fontSize: "13px" }} />
-                    ))}
-                  </>)}
-                  {formData.category === "Cable" && (<>
-                    <select value={formData.specs.cableType || ""} onChange={e => setFormData({ ...formData, specs: { ...formData.specs, cableType: e.target.value } })} className="input-dark" style={{ borderRadius: "0.75rem", padding: "0.75rem 1rem", fontSize: "13px" }}>
-                      <option value="">Select Type...</option><option>Type-C</option><option>Lightning</option><option>Micro USB</option>
+                <div className="p-4 grid grid-cols-1 md:grid-cols-4 gap-4 bg-white">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider">PO Number</label>
+                    <input type="text" value={formData.costs.poNumber || ""} onChange={e => setFormData({ ...formData, costs: { ...formData.costs, poNumber: e.target.value } })} className="px-3 py-1.5 bg-white border border-[#D1D5DB] rounded-md text-[#111827] text-sm outline-none focus:border-[#0EA5E9]" />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider">Qty Ordered</label>
+                    <input type="number" min="0" value={formData.costs.qtyOrdered || 0} onChange={e => setFormData({ ...formData, costs: { ...formData.costs, qtyOrdered: e.target.value } })} className="px-3 py-1.5 bg-white border border-[#D1D5DB] rounded-md text-[#111827] text-sm outline-none focus:border-[#0EA5E9]" />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider">PO Status</label>
+                    <select value={formData.costs.poStatus || "Pending"} onChange={e => setFormData({ ...formData, costs: { ...formData.costs, poStatus: e.target.value } })} className="px-3 py-1.5 bg-white border border-[#D1D5DB] rounded-md text-[#111827] text-sm outline-none focus:border-[#0EA5E9]">
+                      <option>Pending</option><option>Shipped</option><option>Delivered</option>
                     </select>
-                    {[["length", "Length (e.g. 1M, 2M)"], ["maxWatt", "Max Watt Supported"], ["speed", "Data Speed"]].map(([key, placeholder]) => (
-                      <input key={key} placeholder={placeholder} value={formData.specs[key] || ""} onChange={e => setFormData({ ...formData, specs: { ...formData.specs, [key]: e.target.value } })} className="input-dark" style={{ borderRadius: "0.75rem", padding: "0.75rem 1rem", fontSize: "13px" }} />
-                    ))}
-                  </>)}
-                  {(formData.category === "Adapter" || formData.category === "Earbuds") && (<>
-                    {[["outputWatt", "Output Watt / Power"], ["features", "Key Features"]].map(([key, placeholder]) => (
-                      <input key={key} placeholder={placeholder} value={formData.specs[key] || ""} onChange={e => setFormData({ ...formData, specs: { ...formData.specs, [key]: e.target.value } })} className="input-dark" style={{ borderRadius: "0.75rem", padding: "0.75rem 1rem", fontSize: "13px" }} />
-                    ))}
-                  </>)}
+                  </div>
+                  <div className="hidden md:block"></div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider">Factory Price (₹)</label>
+                    <input type="number" step="0.01" min="0" value={formData.costs.factoryPrice || 0} onChange={e => setFormData({ ...formData, costs: { ...formData.costs, factoryPrice: e.target.value } })} className="px-3 py-1.5 bg-white border border-[#D1D5DB] rounded-md text-[#111827] text-sm outline-none focus:border-[#0EA5E9]" />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider">Shipping Cost (₹)</label>
+                    <input type="number" step="0.01" min="0" value={formData.costs.shippingCost || 0} onChange={e => setFormData({ ...formData, costs: { ...formData.costs, shippingCost: e.target.value } })} className="px-3 py-1.5 bg-white border border-[#D1D5DB] rounded-md text-[#111827] text-sm outline-none focus:border-[#0EA5E9]" />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider">Packaging Cost (₹)</label>
+                    <input type="number" step="0.01" min="0" value={formData.costs.packagingCost || 0} onChange={e => setFormData({ ...formData, costs: { ...formData.costs, packagingCost: e.target.value } })} className="px-3 py-1.5 bg-white border border-[#D1D5DB] rounded-md text-[#111827] text-sm outline-none focus:border-[#0EA5E9]" />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider">Handling Cost (₹)</label>
+                    <input type="number" step="0.01" min="0" value={formData.costs.handlingCost || 0} onChange={e => setFormData({ ...formData, costs: { ...formData.costs, handlingCost: e.target.value } })} className="px-3 py-1.5 bg-white border border-[#D1D5DB] rounded-md text-[#111827] text-sm outline-none focus:border-[#0EA5E9]" />
+                  </div>
                 </div>
               </div>
 
-              {/* Costs & Pricing */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                {/* Import Costs */}
-                <div style={{ background: "rgba(11,13,15,0.6)", padding: "1.25rem", borderRadius: "1rem", border: "1px solid rgba(70,72,74,0.3)" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-                    <h3 className="font-headline" style={{ fontSize: "11px", color: "#34d399", textTransform: "uppercase", letterSpacing: "0.2em", fontWeight: 700, margin: 0 }}>Import Cost</h3>
-                    <span className="font-headline" style={{ fontSize: "11px", color: "#34d399", fontWeight: 700, background: "rgba(11,13,15,0.8)", padding: "0.25rem 0.6rem", borderRadius: "0.5rem", border: "1px solid rgba(52,211,153,0.2)" }}>
-                      ₹{calculateLandedCost(formData.costs).toFixed(2)}
-                    </span>
+              {/* MODULE 3: PRICING STRATEGY */}
+              <div className="mb-8 border border-[#E5E7EB] rounded-lg overflow-hidden">
+                <div className="bg-[#F9FAFB] px-4 py-3 border-b border-[#E5E7EB]">
+                  <h3 className="text-sm font-bold text-[#111827] uppercase tracking-wider m-0">3. Pricing Strategy & Tiered Margins</h3>
+                </div>
+                <div className="p-4 grid grid-cols-1 md:grid-cols-4 gap-4 bg-white">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider">Sell to Distributor (₹)</label>
+                    <input type="number" step="0.01" min="0" value={formData.pricing.sellingPriceToDistributor || 0} onChange={e => setFormData({ ...formData, pricing: { ...formData.pricing, sellingPriceToDistributor: e.target.value } })} className="px-3 py-1.5 bg-white border border-[#D1D5DB] rounded-md text-[#111827] text-sm outline-none focus:border-[#0EA5E9]" />
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.6rem" }}>
-                    {["fob", "freight", "duty", "gst", "other"].map((field) => (
-                      <div key={field} style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                        <label className="font-headline" style={{ fontSize: "9px", color: "#747578", textTransform: "uppercase", letterSpacing: "0.15em" }}>{field}</label>
-                        <input type="number" min="0" step="0.01" value={formData.costs[field] || ""} onChange={e => setFormData({ ...formData, costs: { ...formData.costs, [field]: parseFloat(e.target.value) || 0 } })} className="input-dark" style={{ borderRadius: "0.5rem", padding: "0.6rem 0.75rem", fontSize: "13px" }} />
-                      </div>
-                    ))}
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider">Dist. Sell to Retailer (₹)</label>
+                    <input type="number" step="0.01" min="0" value={formData.pricing.distributorSellingPrice || 0} onChange={e => setFormData({ ...formData, pricing: { ...formData.pricing, distributorSellingPrice: e.target.value } })} className="px-3 py-1.5 bg-white border border-[#D1D5DB] rounded-md text-[#111827] text-sm outline-none focus:border-[#0EA5E9]" />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider">Retail Selling Price (₹)</label>
+                    <input type="number" step="0.01" min="0" value={formData.pricing.retailSellingPrice || 0} onChange={e => setFormData({ ...formData, pricing: { ...formData.pricing, retailSellingPrice: e.target.value } })} className="px-3 py-1.5 bg-white border border-[#D1D5DB] rounded-md text-[#111827] text-sm outline-none focus:border-[#0EA5E9]" />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider">MRP (Max Retail Price) (₹)</label>
+                    <input type="number" step="0.01" min="0" value={formData.pricing.mrp || 0} onChange={e => setFormData({ ...formData, pricing: { ...formData.pricing, mrp: e.target.value } })} className="px-3 py-1.5 bg-white border border-[#D1D5DB] rounded-md text-[#111827] text-sm outline-none focus:border-[#0EA5E9]" />
                   </div>
                 </div>
+              </div>
 
-                {/* Selling Prices */}
-                <div style={{ background: "rgba(11,13,15,0.6)", padding: "1.25rem", borderRadius: "1rem", border: "1px solid rgba(70,72,74,0.3)" }}>
-                  <h3 className="font-headline" style={{ fontSize: "11px", color: "#7c9eff", textTransform: "uppercase", letterSpacing: "0.2em", fontWeight: 700, marginBottom: "1rem" }}>Selling Prices</h3>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.6rem" }}>
-                    {[["distributor", "Distributor"], ["retailer", "Retailer"], ["ecommerce", "E-Commerce"], ["quickCommerce", "Quick Commerce"]].map(([key, label]) => (
-                      <div key={key} style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                        <label className="font-headline" style={{ fontSize: "9px", color: "#747578", textTransform: "uppercase", letterSpacing: "0.15em" }}>{label}</label>
-                        <input type="number" min="0" step="0.01" value={formData.pricing[key] || ""} onChange={e => setFormData({ ...formData, pricing: { ...formData.pricing, [key]: parseFloat(e.target.value) || 0 } })} className="input-dark" style={{ borderRadius: "0.5rem", padding: "0.6rem 0.75rem", fontSize: "13px" }} />
-                      </div>
-                    ))}
+              {/* MODULE 4: INVENTORY CONTROL */}
+              <div className="mb-8 border border-[#E5E7EB] rounded-lg overflow-hidden">
+                <div className="bg-[#F9FAFB] px-4 py-3 border-b border-[#E5E7EB]">
+                  <h3 className="text-sm font-bold text-[#111827] uppercase tracking-wider m-0">4. Inventory Control</h3>
+                </div>
+                <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 bg-white">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider">Quantity in Stock</label>
+                    <input type="number" min="0" value={formData.stock || 0} onChange={e => setFormData({ ...formData, stock: e.target.value })} className="px-3 py-1.5 bg-white border border-[#D1D5DB] rounded-md text-[#111827] text-sm outline-none focus:border-[#0EA5E9]" />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider">Reorder Level Threshold</label>
+                    <input type="number" min="0" value={formData.specs.reorderLevel || 0} onChange={e => setFormData({ ...formData, specs: { ...formData.specs, reorderLevel: e.target.value } })} className="px-3 py-1.5 bg-white border border-[#D1D5DB] rounded-md text-[#111827] text-sm outline-none focus:border-[#0EA5E9]" />
                   </div>
                 </div>
               </div>
 
               {/* Actions */}
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: "1rem", paddingTop: "1rem", borderTop: "1px solid rgba(70,72,74,0.2)" }}>
-                <button type="button" onClick={() => setIsFormOpen(false)} style={{ background: "none", border: "none", color: "#747578", cursor: "pointer", padding: "0.75rem 1.25rem", fontSize: "13px", transition: "color 0.2s" }}
-                  onMouseEnter={e => e.currentTarget.style.color = "#eeeef0"}
-                  onMouseLeave={e => e.currentTarget.style.color = "#747578"}
-                >
+              <div className="flex justify-end gap-3 pt-6">
+                <button type="button" onClick={() => setIsFormOpen(false)} className="bg-white border border-[#D1D5DB] text-[#374151] hover:bg-[#F3F4F6] px-5 py-2 rounded-md text-sm font-semibold cursor-pointer">
                   Cancel
                 </button>
-                <button type="submit" className="btn-primary" style={{ padding: "0.75rem 2rem", borderRadius: "9999px", fontSize: "13px", letterSpacing: "0.05em", border: "none", cursor: "pointer" }}>
-                  {editingId ? "Update Product" : "Save to Database"}
+                <button type="submit" className="bg-[#0EA5E9] hover:bg-[#0284C7] text-white border-none px-6 py-2 rounded-md text-sm font-semibold cursor-pointer shadow-sm">
+                  {editingId ? "Update Product" : "Save Product"}
                 </button>
               </div>
             </form>
@@ -467,82 +600,110 @@ export default function ProductsPage() {
         </div>
       )}
 
-      {/* ── DETAIL MODAL ── */}
-      {isDetailOpen && viewProduct && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, padding: "1.5rem" }}>
-          <div className="glass-panel-modal" style={{ width: "100%", maxWidth: "56rem", borderRadius: "1.5rem", padding: "2.5rem", boxShadow: "0 0 60px rgba(0,0,0,0.6)", position: "relative" }}>
+      {/* 🔴 DETAIL VIEW MODAL WITH ALL 34 CALCULATED DATA POINTS */}
+      {isDetailOpen && viewProduct && (() => {
+        // --- 11. Run Central Engine for Detail Modal View ---
+        const metrics = calculateProductEconomics(viewProduct);
+        
+        const c = viewProduct.costs || {};
+        const p = viewProduct.pricing || {};
+        const s = viewProduct.specs || {};
+        
+        const StatRow = ({ label, val, highlight }) => (
+          <div className="flex justify-between border-b border-[#E5E7EB] py-2 text-sm last:border-0 last:pb-0">
+            <span className="text-[#6B7280]">{label}</span>
+            <span className={`font-semibold ${highlight ? highlight : "text-[#111827]"}`}>{val}</span>
+          </div>
+        );
 
-            <button onClick={() => setIsDetailOpen(false)} style={{ position: "absolute", top: "1.25rem", right: "1.25rem", background: "none", border: "none", color: "#747578", cursor: "pointer", fontSize: "1.2rem", transition: "color 0.2s" }}
-              onMouseEnter={e => e.currentTarget.style.color = "#eeeef0"}
-              onMouseLeave={e => e.currentTarget.style.color = "#747578"}
-            >✕</button>
-
-            {/* Product Header */}
-            <div style={{ display: "flex", alignItems: "flex-start", gap: "1.5rem", marginBottom: "2rem", paddingBottom: "1.5rem", borderBottom: "1px solid rgba(70,72,74,0.3)" }}>
-              <div style={{ width: "80px", height: "80px", background: "rgba(11,13,15,0.8)", border: "1px solid rgba(161,250,255,0.15)", borderRadius: "1rem", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2.5rem", flexShrink: 0 }}>
-                {viewProduct.image}
-              </div>
-              <div>
-                <h2 className="font-headline" style={{ fontSize: "1.75rem", fontWeight: 700, color: "#eeeef0", margin: "0 0 0.5rem 0", letterSpacing: "-0.02em" }}>
-                  {viewProduct.name}
-                </h2>
-                <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginBottom: "0.5rem" }}>
-                  <span style={{ padding: "0.2rem 0.75rem", background: "rgba(68,28,200,0.2)", color: "#9f8eff", fontSize: "10px", borderRadius: "9999px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em" }}>{viewProduct.category}</span>
-                  <span style={{ fontFamily: "monospace", fontSize: "12px", color: "#747578", padding: "0.2rem 0" }}>SKU: {viewProduct.sku}</span>
-                  <span style={{ fontFamily: "monospace", fontSize: "12px", color: "#747578", padding: "0.2rem 0" }}>BC: {viewProduct.barcode}</span>
-                </div>
-                <p style={{ fontSize: "13px", color: "#aaabad", margin: 0, maxWidth: "600px" }}>{viewProduct.description}</p>
-              </div>
-            </div>
-
-            {/* 3-col detail grid */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1rem" }}>
-              {/* Specs */}
-              <div style={{ background: "rgba(11,13,15,0.6)", padding: "1.25rem", borderRadius: "1rem", border: "1px solid rgba(70,72,74,0.3)" }}>
-                <h3 className="font-headline" style={{ fontSize: "10px", color: "#747578", textTransform: "uppercase", letterSpacing: "0.2em", marginBottom: "1rem", fontWeight: 700 }}>Technical Specs</h3>
-                <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-                  {Object.entries(viewProduct.specs || {}).map(([k, v]) => (
-                    <li key={k} style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(70,72,74,0.2)", paddingBottom: "0.4rem", fontSize: "12px" }}>
-                      <span style={{ color: "#747578", textTransform: "capitalize" }}>{k.replace(/([A-Z])/g, " $1").trim()}</span>
-                      <span style={{ color: "#eeeef0", fontWeight: 500 }}>{v}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Costs */}
-              <div style={{ background: "rgba(11,13,15,0.6)", padding: "1.25rem", borderRadius: "1rem", border: "1px solid rgba(70,72,74,0.3)" }}>
-                <h3 className="font-headline" style={{ fontSize: "10px", color: "#34d399", textTransform: "uppercase", letterSpacing: "0.2em", marginBottom: "1rem", fontWeight: 700 }}>Internal Costs</h3>
-                <ul style={{ listStyle: "none", padding: 0, margin: "0 0 0.75rem 0", display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-                  {Object.entries(viewProduct.costs || {}).map(([k, v]) => (
-                    <li key={k} style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(70,72,74,0.2)", paddingBottom: "0.4rem", fontSize: "12px" }}>
-                      <span style={{ color: "#747578", textTransform: "uppercase", fontSize: "11px" }}>{k}</span>
-                      <span style={{ color: "#eeeef0", fontFamily: "monospace" }}>₹{v}</span>
-                    </li>
-                  ))}
-                </ul>
-                <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 700, color: "#34d399", background: "rgba(52,211,153,0.05)", padding: "0.6rem 0.75rem", borderRadius: "0.5rem", border: "1px solid rgba(52,211,153,0.15)", fontSize: "13px" }}>
-                  <span className="font-headline">LANDED COST</span>
-                  <span>₹{Number(viewProduct.landed_cost || 0).toFixed(2)}</span>
+        return (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-6 backdrop-blur-sm">
+            <div className="bg-white w-full max-w-5xl h-[90vh] flex flex-col rounded-xl shadow-xl border border-[#E5E7EB] relative">
+              <div className="shrink-0 p-6 border-b border-[#E5E7EB] flex items-start gap-6 relative">
+                <button onClick={() => setIsDetailOpen(false)} className="absolute top-5 right-5 bg-transparent border-none text-[#6B7280] hover:text-[#111827] cursor-pointer text-xl">✕</button>
+                {viewProduct.image && viewProduct.image.startsWith('http') ? (
+                  <img src={viewProduct.image} alt={viewProduct.name} className="w-20 h-20 object-cover border border-[#E5E7EB] rounded-lg shrink-0" />
+                ) : (
+                  <div className="w-20 h-20 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg flex items-center justify-center text-4xl shrink-0">📦</div>
+                )}
+                <div>
+                  <h2 className="text-2xl font-bold text-[#111827] m-0 mb-2">{viewProduct.name || "-"}</h2>
+                  <div className="flex gap-3 flex-wrap items-center">
+                    <span className="px-2.5 py-1 bg-[#F3F4F6] text-[#4B5563] text-[10px] rounded-full font-bold uppercase tracking-wider border border-[#E5E7EB]">{viewProduct.category || "-"}</span>
+                    <span className="text-sm text-[#6B7280]">SKU: {viewProduct.sku || "-"}</span>
+                    <span className={`text-xs font-bold px-2 py-1 rounded border ${(s.status || 'Active') === 'Active' ? 'bg-[#D1FAE5] text-[#065F46] border-[#A7F3D0]' : 'bg-[#FEE2E2] text-[#991B1B] border-[#FECACA]'}`}>{s.status || "Active"}</span>
+                  </div>
                 </div>
               </div>
 
-              {/* Pricing */}
-              <div style={{ background: "rgba(11,13,15,0.6)", padding: "1.25rem", borderRadius: "1rem", border: "1px solid rgba(70,72,74,0.3)" }}>
-                <h3 className="font-headline" style={{ fontSize: "10px", color: "#7c9eff", textTransform: "uppercase", letterSpacing: "0.2em", marginBottom: "1rem", fontWeight: 700 }}>Selling Tiers</h3>
-                <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-                  {[["Distributor", viewProduct.pricing?.distributor], ["Retailer", viewProduct.pricing?.retailer], ["E-Commerce", viewProduct.pricing?.ecommerce], ["Quick Comm.", viewProduct.pricing?.quickCommerce]].map(([label, val]) => (
-                    <li key={label} style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(70,72,74,0.2)", paddingBottom: "0.4rem", fontSize: "12px" }}>
-                      <span style={{ color: "#747578", textTransform: "uppercase", fontSize: "11px" }}>{label}</span>
-                      <span style={{ color: "#a1faff", fontFamily: "monospace", fontWeight: 500 }}>₹{val || 0}</span>
-                    </li>
-                  ))}
-                </ul>
+              <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-6 bg-[#F8F9FA]">
+                
+                {/* Module 1 */}
+                <div className="bg-white p-5 rounded-lg border border-[#E5E7EB] shadow-sm">
+                  <h3 className="text-xs font-bold text-[#0EA5E9] uppercase tracking-wider mb-4">1. Static Product Master Data</h3>
+                  <StatRow label="SKU (Stock Keeping Unit)" val={viewProduct.sku || "-"} />
+                  <StatRow label="Product Name" val={viewProduct.name || "-"} />
+                  <StatRow label="Series / Collection" val={s.series || "-"} />
+                  <StatRow label="Category" val={viewProduct.category || "-"} />
+                  <StatRow label="Supplier" val={s.supplier || "-"} />
+                  <StatRow label="Country of Origin" val={s.origin || "-"} />
+                  <StatRow label="Warranty Period" val={s.warranty || "-"} />
+                  <StatRow label="Product Status" val={s.status || "Active"} />
+                </div>
+
+                {/* Module 2 */}
+                <div className="bg-white p-5 rounded-lg border border-[#E5E7EB] shadow-sm">
+                  <h3 className="text-xs font-bold text-[#0EA5E9] uppercase tracking-wider mb-4">2. Procurement & Logistics Data</h3>
+                  <StatRow label="Purchase Order (PO) No." val={c.poNumber || "-"} />
+                  <StatRow label="Quantity Ordered" val={(c.qtyOrdered || 0).toLocaleString()} />
+                  <StatRow label="Factory Price" val={`₹${(c.factoryPrice || 0).toLocaleString()}`} />
+                  <StatRow label="Shipping Cost" val={`₹${(c.shippingCost || 0).toLocaleString()}`} />
+                  <StatRow label="Packaging Cost" val={`₹${(c.packagingCost || 0).toLocaleString()}`} />
+                  <StatRow label="Handling Cost" val={`₹${(c.handlingCost || 0).toLocaleString()}`} />
+                  <StatRow label="Total Unit Cost (Landed)" val={`₹${metrics.totalUnitCost.toLocaleString()}`} highlight="text-[#065F46]" />
+                  <StatRow label="Grand PO Cost" val={`₹${metrics.grandPOCost.toLocaleString()}`} />
+                  <StatRow label="PO Status" val={c.poStatus || "Pending"} />
+                </div>
+
+                {/* Module 3 */}
+                <div className="bg-white p-5 rounded-lg border border-[#E5E7EB] shadow-sm">
+                  <h3 className="text-xs font-bold text-[#0EA5E9] uppercase tracking-wider mb-4">3. Pricing & Tiered Margins Data</h3>
+                  <StatRow label="Selling Price to Distributor" val={`₹${(p.sellingPriceToDistributor || 0).toLocaleString()}`} />
+                  <StatRow label="Company Profit" val={`₹${metrics.companyProfit.toLocaleString()}`} highlight="text-[#065F46]" />
+                  <StatRow label="Company Markup %" val={`${metrics.companyMarkupPct.toFixed(1)}%`} />
+                  <StatRow label="Distributor Selling Price" val={`₹${(p.distributorSellingPrice || 0).toLocaleString()}`} />
+                  <StatRow label="Distributor Profit" val={`₹${metrics.distributorProfit.toLocaleString()}`} />
+                  <StatRow label="Distributor Markup %" val={`${metrics.distributorMarkupPct.toFixed(1)}%`} />
+                  <StatRow label="Retail Selling Price" val={`₹${(p.retailSellingPrice || 0).toLocaleString()}`} />
+                  <StatRow label="Retail Profit" val={`₹${metrics.retailProfit.toLocaleString()}`} />
+                  <StatRow label="Retail Markup %" val={`${metrics.retailMarkupPct.toFixed(1)}%`} />
+                  <StatRow label="MRP" val={`₹${(p.mrp || 0).toLocaleString()}`} />
+                  <StatRow label="Retailer Profit on MRP" val={`₹${metrics.retailerProfitOnMrp.toLocaleString()}`} />
+                  <StatRow label="Retail Margin on MRP %" val={`${metrics.retailMarginOnMrpPct.toFixed(1)}%`} />
+                  <StatRow label="Discount Amount" val={`₹${metrics.discountAmount.toLocaleString()}`} />
+                  <StatRow label="Discount %" val={`${metrics.discountPct.toFixed(1)}%`} />
+                </div>
+
+                {/* Module 4 */}
+                <div className="bg-white p-5 rounded-lg border border-[#E5E7EB] shadow-sm">
+                  <h3 className="text-xs font-bold text-[#0EA5E9] uppercase tracking-wider mb-4">4. Inventory Control & Finance Data</h3>
+                  <StatRow label="Quantity in Stock" val={(viewProduct.stock || 0).toLocaleString()} />
+                  <StatRow label="Reorder Level" val={(s.reorderLevel || 0).toLocaleString()} />
+                  <StatRow label="Stock Status" val={metrics.stockStatus} highlight={metrics.stockStatus === 'OK' ? "text-[#065F46]" : "text-[#991B1B]"} />
+                  <StatRow label="Total Factory Cost Basis" val={`₹${metrics.totalFactoryCostBasis.toLocaleString()}`} />
+                  <StatRow label="Total Shipping Cost Basis" val={`₹${metrics.totalShippingCostBasis.toLocaleString()}`} />
+                  <StatRow label="Total Packaging Cost Basis" val={`₹${metrics.totalPackagingCostBasis.toLocaleString()}`} />
+                  <StatRow label="Total Handling Cost Basis" val={`₹${metrics.totalHandlingCostBasis.toLocaleString()}`} />
+                  <StatRow label="Inventory Value (At Cost)" val={`₹${metrics.inventoryValue.toLocaleString()}`} highlight="text-[#065F46]" />
+                  <StatRow label="Total Retail Value (Forecast)" val={`₹${metrics.totalRetailValue.toLocaleString()}`} />
+                  <StatRow label="Expected Profit" val={`₹${metrics.expectedProfit.toLocaleString()}`} highlight="text-[#0EA5E9]" />
+                </div>
+
               </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }

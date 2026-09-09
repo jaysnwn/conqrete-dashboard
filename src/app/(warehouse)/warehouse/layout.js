@@ -5,9 +5,9 @@ export default function WarehouseLayout({ children }) {
     <AuthGuard>
       <div style={{
         minHeight: "100vh",
-        backgroundColor: "#000",
-        color: "#fff",
-        fontFamily: 'Inter, sans-serif'
+        backgroundColor: "#F8F9FA",
+        color: "#111827",
+        fontFamily: 'Inter, -apple-system, sans-serif'
       }}>
         {children}
       </div>

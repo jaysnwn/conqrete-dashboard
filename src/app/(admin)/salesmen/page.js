@@ -143,99 +143,109 @@ export default function SalesmenPage() {
   const topPerformer = teamPerformance.length > 0 ? teamPerformance[0] : null;
 
   return (
-    <div className="p-8 text-white min-h-screen bg-black pb-20">
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
+    <div className="p-8 min-h-screen bg-[#F8F9FA] pb-20">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-6">
         <div>
-          <h1 className="text-4xl font-black italic tracking-tighter uppercase text-white">FIELD FORCE</h1>
-          <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.3em] mt-1">CONQRETE Team & Performance</p>
+          <h1 className="text-2xl font-bold text-[#111827]">Field Force</h1>
+          <p className="text-sm text-[#6B7280] mt-1">Team & Performance</p>
         </div>
         
         <div className="flex flex-wrap gap-4 items-center">
-          <div className="bg-[#0a0a0a] border border-gray-800 px-6 py-3 rounded-2xl">
-            <p className="text-[9px] text-gray-500 uppercase font-black tracking-widest mb-1">Network Revenue</p>
-            <p className="text-2xl font-mono text-cyan-400 font-black">₹{totalTeamRevenue.toLocaleString()}</p>
+          <div className="bg-white border border-[#E5E7EB] rounded-lg shadow-sm px-4 py-3">
+            <p className="text-xs text-[#6B7280] font-semibold uppercase tracking-wider mb-1">Network Revenue</p>
+            <p className="text-xl font-bold text-[#111827]">₹{totalTeamRevenue.toLocaleString()}</p>
           </div>
-          <div className="bg-[#0a0a0a] border border-gray-800 px-6 py-3 rounded-2xl">
-            <p className="text-[9px] text-gray-500 uppercase font-black tracking-widest mb-1">Total Payroll Due</p>
-            <p className="text-2xl font-mono text-emerald-400 font-black">₹{Math.round(totalPayrollLiability).toLocaleString()}</p>
+          <div className="bg-white border border-[#E5E7EB] rounded-lg shadow-sm px-4 py-3">
+            <p className="text-xs text-[#6B7280] font-semibold uppercase tracking-wider mb-1">Total Payroll Due</p>
+            <p className="text-xl font-bold text-[#111827]">₹{Math.round(totalPayrollLiability).toLocaleString()}</p>
           </div>
           
           {/* NEW EXPENSE BUTTON */}
-          <button onClick={() => setIsExpenseModalOpen(true)} className="bg-transparent border border-orange-500 text-orange-400 px-8 py-3 rounded-full font-black uppercase text-xs tracking-widest hover:bg-orange-500 hover:text-black transition-all shadow-xl shadow-orange-500/10 active:scale-95">
+          <button onClick={() => setIsExpenseModalOpen(true)} className="bg-white border border-[#0EA5E9] text-[#0EA5E9] px-4 py-2 rounded-md font-semibold text-sm hover:bg-[#0EA5E9] hover:text-white transition-colors">
             + Log Expense
           </button>
         </div>
       </div>
 
       {topPerformer && topPerformer.totalSold > 0 && (
-        <div className="mb-10 bg-gradient-to-r from-[#0a1a15] to-black border border-emerald-900/50 p-6 rounded-3xl flex flex-col md:flex-row items-start md:items-center justify-between shadow-2xl">
-          <div className="flex items-center gap-6 mb-4 md:mb-0">
-            <div className="w-14 h-14 rounded-full bg-emerald-500 flex items-center justify-center text-black text-2xl font-black italic shadow-lg shadow-emerald-500/20">#1</div>
+        <div className="mb-8 bg-white border border-[#E5E7EB] rounded-lg shadow-sm p-6 flex flex-col md:flex-row items-start md:items-center justify-between">
+          <div className="flex items-center gap-4 mb-4 md:mb-0">
+            <div className="w-12 h-12 rounded-full bg-[#D1FAE5] border border-[#A7F3D0] flex items-center justify-center text-[#065F46] font-bold text-xl">
+              #1
+            </div>
             <div>
-              <p className="text-[10px] text-emerald-500 font-black uppercase tracking-[0.3em] mb-1">Top Closer</p>
-              <h2 className="text-3xl font-black text-white uppercase tracking-tight">{topPerformer.full_name}</h2>
-              <p className="text-xs text-emerald-400/70 uppercase tracking-widest font-bold">{topPerformer.work_location}</p>
+              <p className="text-xs text-[#6B7280] font-semibold uppercase tracking-wider mb-1">Top Closer</p>
+              <h2 className="text-xl font-bold text-[#111827]">{topPerformer.full_name}</h2>
+              <p className="text-sm text-[#6B7280]">{topPerformer.work_location}</p>
             </div>
           </div>
           <div className="text-left md:text-right">
-            <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Revenue Generated</p>
-            <p className="text-4xl font-mono font-black text-emerald-400">₹{topPerformer.totalSold.toLocaleString()}</p>
+            <p className="text-xs text-[#6B7280] font-semibold uppercase tracking-wider mb-1">Revenue Generated</p>
+            <p className="text-2xl font-bold text-[#065F46]">₹{topPerformer.totalSold.toLocaleString()}</p>
           </div>
         </div>
       )}
 
       {isLoading ? (
-        <div className="text-center py-20 text-cyan-400 font-mono text-xs tracking-widest uppercase animate-pulse">Syncing Payroll Data...</div>
+        <div className="text-center py-20 text-[#6B7280] text-sm animate-pulse">Syncing Payroll Data...</div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {teamPerformance.map((rep) => (
-            <div key={rep.id} className="bg-[#0a0a0a] border border-gray-800 rounded-3xl p-6 shadow-2xl hover:border-cyan-900/50 transition-all relative">
+            <div key={rep.id} className="bg-white border border-[#E5E7EB] rounded-lg shadow-sm p-6 relative">
               
-              <div className="absolute top-6 right-6 flex gap-3">
-                <button onClick={() => openEditModal(rep)} className="text-gray-500 hover:text-cyan-400 transition-colors text-sm">✏️</button>
-                <button onClick={() => handleDelete(rep.id, rep.full_name)} className="text-gray-500 hover:text-red-500 transition-colors text-sm">🗑️</button>
+              <div className="absolute top-4 right-4 flex gap-2">
+                <button onClick={() => openEditModal(rep)} className="text-[#6B7280] hover:text-[#0EA5E9] transition-colors text-sm">
+                  ✏️
+                </button>
+                <button onClick={() => handleDelete(rep.id, rep.full_name)} className="text-[#6B7280] hover:text-red-500 transition-colors text-sm">
+                  🗑️
+                </button>
               </div>
 
-              <div className="mb-6">
-                <h3 className="text-2xl font-black text-white uppercase tracking-tight pr-12">{rep.full_name}</h3>
-                <p className="text-[10px] text-cyan-400 font-mono mt-1">{rep.work_email}</p>
+              <div className="mb-4">
+                <h3 className="text-lg font-bold text-[#111827] pr-12">{rep.full_name}</h3>
+                <p className="text-sm text-[#6B7280] mt-1">{rep.work_email}</p>
                 <div className="flex gap-2 mt-3">
-                  <span className="text-[9px] bg-[#111] text-gray-400 px-3 py-1.5 rounded-full border border-gray-800 uppercase tracking-widest font-bold">{rep.work_location || 'Field'}</span>
-                  <span className="text-[9px] bg-cyan-900/20 text-cyan-400 px-3 py-1.5 rounded-full border border-cyan-900/50 uppercase tracking-widest font-bold">{rep.commission_rate}% Comm</span>
+                  <span className="text-xs bg-[#F3F4F6] text-[#4B5563] px-2.5 py-1 rounded-md border border-[#E5E7EB] font-medium">
+                    {rep.work_location || 'Field'}
+                  </span>
+                  <span className="text-xs bg-[#E0F2FE] text-[#0284C7] px-2.5 py-1 rounded-md border border-[#BAE6FD] font-medium">
+                    {rep.commission_rate}% Comm
+                  </span>
                 </div>
               </div>
 
-              <div className="mb-8 bg-black p-5 rounded-2xl border border-gray-800/50">
-                <div className="flex justify-between items-end mb-3">
-                  <span className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Target Progress</span>
-                  <span className={`font-mono text-sm font-black ${rep.progressPercent >= 100 ? 'text-emerald-400' : 'text-cyan-400'}`}>
+              <div className="mb-6 bg-[#F9FAFB] p-4 rounded-md border border-[#E5E7EB]">
+                <div className="flex justify-between items-end mb-2">
+                  <span className="text-xs text-[#6B7280] font-semibold">Target Progress</span>
+                  <span className={`text-sm font-bold ${rep.progressPercent >= 100 ? 'text-[#065F46]' : 'text-[#111827]'}`}>
                     {Math.round(rep.progressPercent)}%
                   </span>
                 </div>
-                <div className="w-full bg-[#111] rounded-full h-2.5 mb-3 overflow-hidden">
-                  <div className={`h-full rounded-full transition-all duration-1000 ${rep.progressPercent >= 100 ? 'bg-emerald-500' : 'bg-cyan-400'}`} style={{ width: `${rep.progressPercent}%` }}></div>
+                <div className="w-full bg-[#E5E7EB] rounded-full h-2 mb-2 overflow-hidden">
+                  <div className={`h-full rounded-full transition-all duration-1000 ${rep.progressPercent >= 100 ? 'bg-[#10B981]' : 'bg-[#0EA5E9]'}`} style={{ width: `${rep.progressPercent}%` }}></div>
                 </div>
-                <div className="flex justify-between text-[10px] font-mono text-gray-500 font-bold">
-                  <span className="text-white">₹{rep.totalSold.toLocaleString()}</span>
+                <div className="flex justify-between text-xs text-[#6B7280]">
+                  <span className="text-[#111827] font-semibold">₹{rep.totalSold.toLocaleString()}</span>
                   <span>Goal: ₹{Number(rep.monthly_target || 100000).toLocaleString()}</span>
                 </div>
               </div>
 
-              <div className="bg-[#111] rounded-2xl p-5 border border-gray-800">
-                <p className="text-[9px] text-gray-500 uppercase font-black tracking-widest mb-4 border-b border-gray-800 pb-2">Estimated Payout</p>
-                <div className="space-y-2 mb-4">
-                  <div className="flex justify-between text-xs">
-                    <span className="text-gray-400 font-bold">Fixed Base Salary:</span>
-                    <span className="font-mono text-white">₹{Number(rep.base_salary).toLocaleString()}</span>
+              <div className="bg-[#F8F9FA] rounded-md p-4 border border-[#E5E7EB]">
+                <p className="text-xs text-[#6B7280] font-semibold mb-3 border-b border-[#E5E7EB] pb-2">Estimated Payout</p>
+                <div className="space-y-2 mb-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-[#6B7280]">Fixed Base Salary:</span>
+                    <span className="text-[#111827] font-medium">₹{Number(rep.base_salary).toLocaleString()}</span>
                   </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-gray-400 font-bold">Commission Earned:</span>
-                    <span className="font-mono text-emerald-400">+ ₹{Math.round(rep.commissionEarned).toLocaleString()}</span>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-[#6B7280]">Commission Earned:</span>
+                    <span className="text-[#065F46] font-medium">+ ₹{Math.round(rep.commissionEarned).toLocaleString()}</span>
                   </div>
                 </div>
-                <div className="flex justify-between items-end border-t border-gray-800 pt-3">
-                  <span className="text-[10px] text-emerald-600 uppercase font-black tracking-widest">Total Cheque</span>
-                  <span className="text-xl font-mono text-emerald-400 font-black">₹{Math.round(rep.totalPayout).toLocaleString()}</span>
+                <div className="flex justify-between items-end border-t border-[#E5E7EB] pt-3">
+                  <span className="text-xs text-[#111827] font-bold">Total Cheque</span>
+                  <span className="text-lg text-[#065F46] font-bold">₹{Math.round(rep.totalPayout).toLocaleString()}</span>
                 </div>
               </div>
             </div>
@@ -245,15 +255,15 @@ export default function SalesmenPage() {
 
       {/* NEW: LOG TEAM EXPENSE MODAL */}
       {isExpenseModalOpen && (
-        <div className="fixed inset-0 bg-black/95 flex items-center justify-center p-4 z-50 backdrop-blur-xl">
-          <div className="bg-[#0a0a0a] border border-gray-800 p-8 rounded-3xl w-full max-w-md shadow-2xl relative">
-            <button onClick={() => setIsExpenseModalOpen(false)} className="absolute top-6 right-6 text-gray-600 hover:text-white text-2xl leading-none">×</button>
-            <h2 className="text-xl font-black text-orange-400 mb-8 uppercase tracking-tighter italic border-b border-gray-800 pb-4">Log Team Expense</h2>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white border border-[#E5E7EB] p-6 rounded-lg w-full max-w-md shadow-lg relative">
+            <button onClick={() => setIsExpenseModalOpen(false)} className="absolute top-4 right-4 text-[#6B7280] hover:text-[#111827] text-xl leading-none">×</button>
+            <h2 className="text-lg font-bold text-[#111827] mb-6 border-b border-[#E5E7EB] pb-3">Log Team Expense</h2>
             
-            <form onSubmit={handleLogExpense} className="space-y-6">
+            <form onSubmit={handleLogExpense} className="space-y-4">
               <div>
-                <label className="block text-[10px] text-gray-500 mb-2 uppercase font-black tracking-widest">Select Salesman</label>
-                <select required value={expenseData.salesman_id} onChange={e => setExpenseData({...expenseData, salesman_id: e.target.value})} className="w-full bg-black border border-gray-800 rounded-xl p-4 text-white text-sm outline-none focus:border-orange-400">
+                <label className="block text-sm text-[#6B7280] mb-1 font-medium">Select Salesman</label>
+                <select required value={expenseData.salesman_id} onChange={e => setExpenseData({...expenseData, salesman_id: e.target.value})} className="w-full px-4 py-2 bg-white border border-[#D1D5DB] rounded-md text-[#111827] focus:ring-2 focus:ring-[#0EA5E9]/50 focus:border-[#0EA5E9] outline-none">
                   <option value="">Select personnel...</option>
                   {salesmen.map(s => <option key={s.id} value={s.id}>{s.full_name}</option>)}
                 </select>
@@ -261,8 +271,8 @@ export default function SalesmenPage() {
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] text-gray-500 mb-2 uppercase font-black tracking-widest">Category</label>
-                  <select value={expenseData.category} onChange={e => setExpenseData({...expenseData, category: e.target.value})} className="w-full bg-black border border-gray-800 rounded-xl p-4 text-white text-sm outline-none">
+                  <label className="block text-sm text-[#6B7280] mb-1 font-medium">Category</label>
+                  <select value={expenseData.category} onChange={e => setExpenseData({...expenseData, category: e.target.value})} className="w-full px-4 py-2 bg-white border border-[#D1D5DB] rounded-md text-[#111827] focus:ring-2 focus:ring-[#0EA5E9]/50 focus:border-[#0EA5E9] outline-none">
                     <option value="Petrol">Petrol</option>
                     <option value="Hotel">Hotel</option>
                     <option value="Meals">Food</option>
@@ -270,14 +280,16 @@ export default function SalesmenPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] text-gray-500 mb-2 uppercase font-black tracking-widest">Amount (₹)</label>
-                  <input required type="number" value={expenseData.amount} onChange={e => setExpenseData({...expenseData, amount: e.target.value})} className="w-full bg-black border border-gray-800 rounded-xl p-4 text-orange-400 font-mono text-base font-black outline-none focus:border-orange-400" placeholder="0.00" />
+                  <label className="block text-sm text-[#6B7280] mb-1 font-medium">Amount (₹)</label>
+                  <input required type="number" value={expenseData.amount} onChange={e => setExpenseData({...expenseData, amount: e.target.value})} className="w-full px-4 py-2 bg-white border border-[#D1D5DB] rounded-md text-[#111827] focus:ring-2 focus:ring-[#0EA5E9]/50 focus:border-[#0EA5E9] outline-none" placeholder="0.00" />
                 </div>
               </div>
 
-              <button type="submit" disabled={isSaving} className="w-full bg-orange-500 text-black py-4 rounded-xl font-black uppercase text-xs tracking-widest hover:bg-orange-400 active:scale-95 transition-all shadow-[0_0_20px_rgba(249,115,22,0.2)]">
-                {isSaving ? "Saving..." : "Log Expense Claim"}
-              </button>
+              <div className="pt-2">
+                <button type="submit" disabled={isSaving} className="w-full bg-[#0EA5E9] text-white py-2 px-4 rounded-md font-semibold text-sm hover:bg-[#0284C7] transition-colors">
+                  {isSaving ? "Saving..." : "Log Expense Claim"}
+                </button>
+              </div>
             </form>
           </div>
         </div>
@@ -285,25 +297,42 @@ export default function SalesmenPage() {
 
       {/* EDIT MODAL */}
       {isEditModalOpen && (
-        <div className="fixed inset-0 bg-black/95 flex items-center justify-center p-4 z-50 backdrop-blur-xl">
-          <div className="bg-[#0a0a0a] border border-gray-800 p-8 rounded-3xl w-full max-w-lg shadow-2xl relative overflow-y-auto max-h-[95vh]">
-            <button onClick={() => setIsEditModalOpen(false)} className="absolute top-6 right-6 text-gray-600 hover:text-white text-2xl leading-none">×</button>
-            <h2 className="text-xl font-black text-cyan-400 mb-8 uppercase tracking-tighter italic border-b border-gray-800 pb-4">Update Profile</h2>
-            <form onSubmit={handleUpdateSalesman} className="space-y-6">
-              <div className="grid grid-cols-2 gap-5">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white border border-[#E5E7EB] p-6 rounded-lg w-full max-w-lg shadow-lg relative overflow-y-auto max-h-[95vh]">
+            <button onClick={() => setIsEditModalOpen(false)} className="absolute top-4 right-4 text-[#6B7280] hover:text-[#111827] text-xl leading-none">×</button>
+            <h2 className="text-lg font-bold text-[#111827] mb-6 border-b border-[#E5E7EB] pb-3">Update Profile</h2>
+            <form onSubmit={handleUpdateSalesman} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
-                  <label className="block text-[10px] text-gray-500 mb-2 uppercase font-black">Full Name</label>
-                  <input required type="text" value={editData.full_name} onChange={e => setEditData({...editData, full_name: e.target.value})} className="w-full bg-black border border-gray-800 rounded-xl p-4 text-white text-sm outline-none focus:border-cyan-400" />
+                  <label className="block text-sm text-[#6B7280] mb-1 font-medium">Full Name</label>
+                  <input required type="text" value={editData.full_name} onChange={e => setEditData({...editData, full_name: e.target.value})} className="w-full px-4 py-2 bg-white border border-[#D1D5DB] rounded-md text-[#111827] focus:ring-2 focus:ring-[#0EA5E9]/50 focus:border-[#0EA5E9] outline-none" />
                 </div>
-                <div><label className="block text-[10px] text-gray-500 mb-2 uppercase font-black">Phone</label><input type="text" value={editData.phone_number} onChange={e => setEditData({...editData, phone_number: e.target.value})} className="w-full bg-black border border-gray-800 rounded-xl p-4 text-white text-sm font-mono outline-none focus:border-cyan-400" /></div>
-                <div><label className="block text-[10px] text-gray-500 mb-2 uppercase font-black">Territory</label><input required type="text" value={editData.work_location} onChange={e => setEditData({...editData, work_location: e.target.value})} className="w-full bg-black border border-gray-800 rounded-xl p-4 text-white text-sm outline-none focus:border-cyan-400" /></div>
-                <div><label className="block text-[10px] text-gray-500 mb-2 uppercase font-black">Monthly Target (₹)</label><input required type="number" value={editData.monthly_target} onChange={e => setEditData({...editData, monthly_target: e.target.value})} className="w-full bg-black border border-gray-800 rounded-xl p-4 text-cyan-400 font-mono text-sm outline-none" /></div>
-                <div><label className="block text-[10px] text-gray-500 mb-2 uppercase font-black">Fixed Salary (₹)</label><input required type="number" value={editData.base_salary} onChange={e => setEditData({...editData, base_salary: e.target.value})} className="w-full bg-black border border-gray-800 rounded-xl p-4 text-white font-mono text-sm outline-none" /></div>
-                <div><label className="block text-[10px] text-gray-500 mb-2 uppercase font-black">Comm (%)</label><input required type="number" step="0.1" value={editData.commission_rate} onChange={e => setEditData({...editData, commission_rate: e.target.value})} className="w-full bg-black border border-gray-800 rounded-xl p-4 text-emerald-400 font-mono text-sm outline-none" /></div>
+                <div>
+                  <label className="block text-sm text-[#6B7280] mb-1 font-medium">Phone</label>
+                  <input type="text" value={editData.phone_number} onChange={e => setEditData({...editData, phone_number: e.target.value})} className="w-full px-4 py-2 bg-white border border-[#D1D5DB] rounded-md text-[#111827] focus:ring-2 focus:ring-[#0EA5E9]/50 focus:border-[#0EA5E9] outline-none" />
+                </div>
+                <div>
+                  <label className="block text-sm text-[#6B7280] mb-1 font-medium">Territory</label>
+                  <input required type="text" value={editData.work_location} onChange={e => setEditData({...editData, work_location: e.target.value})} className="w-full px-4 py-2 bg-white border border-[#D1D5DB] rounded-md text-[#111827] focus:ring-2 focus:ring-[#0EA5E9]/50 focus:border-[#0EA5E9] outline-none" />
+                </div>
+                <div>
+                  <label className="block text-sm text-[#6B7280] mb-1 font-medium">Monthly Target (₹)</label>
+                  <input required type="number" value={editData.monthly_target} onChange={e => setEditData({...editData, monthly_target: e.target.value})} className="w-full px-4 py-2 bg-white border border-[#D1D5DB] rounded-md text-[#111827] focus:ring-2 focus:ring-[#0EA5E9]/50 focus:border-[#0EA5E9] outline-none" />
+                </div>
+                <div>
+                  <label className="block text-sm text-[#6B7280] mb-1 font-medium">Fixed Salary (₹)</label>
+                  <input required type="number" value={editData.base_salary} onChange={e => setEditData({...editData, base_salary: e.target.value})} className="w-full px-4 py-2 bg-white border border-[#D1D5DB] rounded-md text-[#111827] focus:ring-2 focus:ring-[#0EA5E9]/50 focus:border-[#0EA5E9] outline-none" />
+                </div>
+                <div>
+                  <label className="block text-sm text-[#6B7280] mb-1 font-medium">Comm (%)</label>
+                  <input required type="number" step="0.1" value={editData.commission_rate} onChange={e => setEditData({...editData, commission_rate: e.target.value})} className="w-full px-4 py-2 bg-white border border-[#D1D5DB] rounded-md text-[#111827] focus:ring-2 focus:ring-[#0EA5E9]/50 focus:border-[#0EA5E9] outline-none" />
+                </div>
               </div>
-              <button type="submit" disabled={isSaving} className="w-full bg-cyan-400 text-black py-4 rounded-xl font-black text-xs uppercase active:scale-95 transition-all shadow-xl shadow-cyan-400/20">
-                {isSaving ? "Saving Updates..." : "Save Profile Changes"}
-              </button>
+              <div className="pt-2">
+                <button type="submit" disabled={isSaving} className="w-full bg-[#0EA5E9] text-white py-2 px-4 rounded-md font-semibold text-sm hover:bg-[#0284C7] transition-colors">
+                  {isSaving ? "Saving Updates..." : "Save Profile Changes"}
+                </button>
+              </div>
             </form>
           </div>
         </div>

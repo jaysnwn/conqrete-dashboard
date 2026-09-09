@@ -245,27 +245,27 @@ export default function PayrollEngine() {
   };
 
   return (
-    <div className="p-6 md:p-8 pt-28 md:pt-8 pb-32 md:pb-20 text-white min-h-screen bg-[#030303] selection:bg-cyan-500 selection:text-black">
+    <div className="p-6 md:p-8 pt-28 md:pt-8 min-h-screen bg-[#F8F9FA] text-[#111827]">
       
       {/* HEADER & TABS */}
-      <div className="mb-8 border-b border-gray-800 pb-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+      <div className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div>
-          <h1 className="text-4xl font-black italic tracking-tighter uppercase text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">PAYROLL & FINANCE</h1>
+          <h1 className="text-2xl font-bold text-[#111827]">Payroll & Finance</h1>
           
-          <div className="flex bg-[#111] border border-gray-800 rounded-xl p-1 mt-6 w-full md:w-auto shadow-lg">
+          <div className="flex bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg p-1 mt-6 w-full md:w-auto shadow-sm">
             <button 
               onClick={() => setActiveTab("run_payroll")} 
-              className={`flex-1 md:flex-none px-8 py-2.5 text-xs font-black uppercase tracking-widest rounded-lg transition-all ${activeTab === "run_payroll" ? "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 shadow-[0_0_10px_rgba(34,211,238,0.1)]" : "text-gray-500 hover:text-white"}`}
+              className={`flex-1 md:flex-none px-6 py-2 text-sm font-semibold rounded-md transition-all ${activeTab === "run_payroll" ? "bg-white text-[#0EA5E9] border border-[#E5E7EB] shadow-sm" : "text-[#6B7280] hover:text-[#111827]"}`}
             >
               Run Payroll
             </button>
             <button 
               onClick={() => setActiveTab("expenses")} 
-              className={`flex-1 md:flex-none px-8 py-2.5 text-xs font-black uppercase tracking-widest rounded-lg transition-all relative ${activeTab === "expenses" ? "bg-orange-500/20 text-orange-400 border border-orange-500/30 shadow-[0_0_10px_rgba(249,115,22,0.1)]" : "text-gray-500 hover:text-white"}`}
+              className={`flex-1 md:flex-none px-6 py-2 text-sm font-semibold rounded-md transition-all relative ${activeTab === "expenses" ? "bg-white text-[#0EA5E9] border border-[#E5E7EB] shadow-sm" : "text-[#6B7280] hover:text-[#111827]"}`}
             >
               Expense Claims
               {pendingExpenses.length > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[9px] w-5 h-5 flex items-center justify-center rounded-full animate-bounce">{pendingExpenses.length}</span>
+                <span className="absolute -top-2 -right-2 bg-[#FEE2E2] text-[#991B1B] text-[10px] w-5 h-5 flex items-center justify-center rounded-full border border-[#FECACA]">{pendingExpenses.length}</span>
               )}
             </button>
           </div>
@@ -273,10 +273,10 @@ export default function PayrollEngine() {
 
         {activeTab === "run_payroll" && (
           <div className="flex gap-4 items-center w-full md:w-auto">
-            <select value={selectedMonth} onChange={(e) => setSelectedMonth(Number(e.target.value))} className="bg-[#0a0a0a] border border-gray-800 text-cyan-400 font-bold p-3 rounded-xl outline-none">
+            <select value={selectedMonth} onChange={(e) => setSelectedMonth(Number(e.target.value))} className="px-4 py-2 bg-white border border-[#D1D5DB] rounded-md text-[#111827] focus:ring-2 focus:ring-[#0EA5E9]/50 focus:border-[#0EA5E9] outline-none font-semibold">
               {monthNames.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
             </select>
-            <select value={selectedYear} onChange={(e) => setSelectedYear(Number(e.target.value))} className="bg-[#0a0a0a] border border-gray-800 text-cyan-400 font-bold p-3 rounded-xl outline-none">
+            <select value={selectedYear} onChange={(e) => setSelectedYear(Number(e.target.value))} className="px-4 py-2 bg-white border border-[#D1D5DB] rounded-md text-[#111827] focus:ring-2 focus:ring-[#0EA5E9]/50 focus:border-[#0EA5E9] outline-none font-semibold">
               {[2025, 2026, 2027].map(y => <option key={y} value={y}>{y}</option>)}
             </select>
           </div>
@@ -284,34 +284,34 @@ export default function PayrollEngine() {
       </div>
 
       {isLoading ? (
-        <div className="text-center py-32 text-cyan-400 font-mono text-xs tracking-widest uppercase animate-pulse">Calculating Financials...</div>
+        <div className="text-center py-32 text-[#6B7280] text-sm font-semibold animate-pulse">Calculating Financials...</div>
       ) : (
         <>
           {/* --- TAB 1: EXPENSE CLAIMS --- */}
           {activeTab === "expenses" && (
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
-              <div className="bg-[#0a0a0a] border border-gray-800 rounded-3xl overflow-hidden shadow-2xl">
-                <div className="p-6 border-b border-gray-800 bg-[#050505] flex justify-between items-center">
-                  <h3 className="text-base font-black italic text-orange-400 uppercase tracking-widest">Pending Reimbursements</h3>
+            <div className="space-y-8">
+              <div className="bg-white border border-[#E5E7EB] rounded-lg shadow-sm overflow-hidden">
+                <div className="p-6 border-b border-[#E5E7EB] bg-[#F9FAFB] flex justify-between items-center">
+                  <h3 className="text-base font-semibold text-[#111827]">Pending Reimbursements</h3>
                 </div>
                 
                 {pendingExpenses.length === 0 ? (
-                  <div className="text-center py-20"><p className="text-gray-500 font-mono text-xs tracking-widest uppercase">No pending claims.</p></div>
+                  <div className="text-center py-20"><p className="text-[#6B7280] text-sm">No pending claims.</p></div>
                 ) : (
-                  <div className="divide-y divide-gray-900">
+                  <div className="divide-y divide-[#E5E7EB]">
                     {pendingExpenses.map(exp => (
-                      <div key={exp.id} className="p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:bg-white/[0.02] transition-colors">
+                      <div key={exp.id} className="p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:bg-[#F9FAFB] transition-colors">
                         <div>
-                          <p className="font-bold text-white uppercase">{exp.employee_name}</p>
-                          <p className="text-[10px] text-gray-500 font-mono mt-1">{new Date(exp.date).toDateString()}</p>
+                          <p className="font-semibold text-[#111827]">{exp.employee_name}</p>
+                          <p className="text-xs text-[#6B7280] mt-1">{new Date(exp.date).toDateString()}</p>
                         </div>
                         <div className="flex gap-4 items-center">
-                          <span className="text-[10px] bg-[#111] border border-gray-800 text-gray-400 px-3 py-1 rounded uppercase tracking-widest">{exp.category}</span>
-                          <span className="text-xl font-mono font-black text-orange-400">₹{Number(exp.amount).toLocaleString()}</span>
+                          <span className="text-xs bg-[#F3F4F6] border border-[#E5E7EB] text-[#4B5563] px-2 py-1 rounded-md font-medium">{exp.category}</span>
+                          <span className="text-lg font-bold text-[#111827]">₹{Number(exp.amount).toLocaleString()}</span>
                         </div>
                         <div className="flex gap-2 w-full md:w-auto">
-                          <button onClick={() => handleExpenseAction(exp.id, 'Approved')} className="flex-1 md:flex-none bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-6 py-3 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 hover:text-black transition-all">Approve</button>
-                          <button onClick={() => handleExpenseAction(exp.id, 'Rejected')} className="flex-1 md:flex-none bg-red-500/10 text-red-400 border border-red-500/20 px-6 py-3 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">Reject</button>
+                          <button onClick={() => handleExpenseAction(exp.id, 'Approved')} className="flex-1 md:flex-none bg-[#0EA5E9] text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-[#0284C7] transition-colors shadow-sm">Approve</button>
+                          <button onClick={() => handleExpenseAction(exp.id, 'Rejected')} className="flex-1 md:flex-none bg-white text-[#EF4444] border border-[#EF4444] px-4 py-2 rounded-md text-sm font-semibold hover:bg-[#FEF2F2] transition-colors">Reject</button>
                         </div>
                       </div>
                     ))}
@@ -323,80 +323,79 @@ export default function PayrollEngine() {
 
           {/* --- TAB 2: RUN PAYROLL --- */}
           {activeTab === "run_payroll" && (
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
+            <div className="space-y-8">
               
               {/* Top Dashboard */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-[#0a0a0a] border border-gray-800 p-6 rounded-2xl shadow-xl">
-                  <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest mb-2">Total Liability ({monthNames[selectedMonth-1]})</p>
-                  <p className="text-4xl font-mono text-white font-black">₹{Math.round(totalPayrollLiability).toLocaleString()}</p>
+                <div className="bg-white border border-[#E5E7EB] p-6 rounded-lg shadow-sm">
+                  <p className="text-xs text-[#6B7280] font-semibold uppercase tracking-wider mb-2">Total Liability ({monthNames[selectedMonth-1]})</p>
+                  <p className="text-3xl font-bold text-[#111827]">₹{Math.round(totalPayrollLiability).toLocaleString()}</p>
                 </div>
-                <div className="md:col-span-2 bg-[#111] border border-cyan-900/30 p-6 rounded-2xl shadow-xl flex justify-between items-center">
+                <div className="md:col-span-2 bg-white border border-[#E5E7EB] p-6 rounded-lg shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                   <div>
-                    <h3 className="text-lg font-black text-cyan-400 uppercase tracking-widest">Finalize Month</h3>
-                    <p className="text-xs text-gray-500 mt-1">Locking payroll generates immutable payslips.</p>
+                    <h3 className="text-lg font-semibold text-[#111827]">Finalize Month</h3>
+                    <p className="text-sm text-[#6B7280] mt-1">Locking payroll generates immutable payslips.</p>
                   </div>
-                  <button onClick={lockPayroll} className="bg-cyan-500 text-black px-8 py-4 rounded-xl font-black uppercase text-xs tracking-widest hover:bg-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.3)] active:scale-95 transition-transform">
+                  <button onClick={lockPayroll} className="bg-[#0EA5E9] text-white px-6 py-3 rounded-md font-semibold text-sm shadow-sm hover:bg-[#0284C7] transition-colors">
                     Lock & Generate
                   </button>
                 </div>
               </div>
 
-              {/* The Master Grid (Compact & Scrollbar-Free) */}
-              <div className="bg-[#0a0a0a] border border-gray-800 rounded-3xl overflow-hidden shadow-2xl">
-                <table className="w-full text-left border-collapse">
+              {/* The Master Grid */}
+              <div className="bg-white border border-[#E5E7EB] rounded-lg shadow-sm overflow-hidden overflow-x-auto">
+                <table className="w-full text-left border-collapse min-w-[800px]">
                   <thead>
-                    <tr className="bg-[#050505] border-b border-gray-800 text-[9px] lg:text-[10px] font-black uppercase tracking-widest text-gray-500">
-                      <th className="p-4 lg:p-5">Employee</th>
-                      <th className="p-4 lg:p-5 text-right">Base</th>
-                      <th className="p-4 lg:p-5 text-right text-cyan-400">Comm.</th>
-                      <th className="p-4 lg:p-5 text-right text-orange-400">Allow.</th>
-                      <th className="p-4 lg:p-5 text-right text-red-400">LWP</th>
-                      <th className="p-4 lg:p-5 text-right text-emerald-400">Net Payout</th>
-                      <th className="p-4 lg:p-5 text-center">Actions</th>
+                    <tr className="bg-[#F9FAFB] border-b border-[#E5E7EB] text-xs font-semibold uppercase tracking-wider text-[#6B7280]">
+                      <th className="p-4">Employee</th>
+                      <th className="p-4 text-right">Base</th>
+                      <th className="p-4 text-right">Comm.</th>
+                      <th className="p-4 text-right">Allow.</th>
+                      <th className="p-4 text-right">LWP</th>
+                      <th className="p-4 text-right">Net Payout</th>
+                      <th className="p-4 text-center">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-900">
+                  <tbody className="divide-y divide-[#E5E7EB]">
                     {payrollData.map(emp => (
-                      <tr key={emp.id} className="hover:bg-white/[0.02] transition-colors group">
-                        <td className="p-4 lg:p-5">
-                          <p className="font-bold text-white uppercase text-xs lg:text-sm whitespace-nowrap">{emp.full_name}</p>
-                          <p className="text-[9px] text-gray-500 font-mono mt-1">{emp.role}</p>
+                      <tr key={emp.id} className="hover:bg-[#F9FAFB] transition-colors">
+                        <td className="p-4">
+                          <p className="font-semibold text-[#111827] text-sm whitespace-nowrap">{emp.full_name}</p>
+                          <p className="text-xs text-[#6B7280] mt-1">{emp.role}</p>
                         </td>
-                        <td className="p-4 lg:p-5 text-right font-mono text-xs lg:text-sm text-gray-300">₹{Math.round(emp.payroll.base).toLocaleString()}</td>
-                        <td className="p-4 lg:p-5 text-right font-mono text-xs lg:text-sm text-cyan-400">{emp.payroll.commissions > 0 ? `+₹${Math.round(emp.payroll.commissions).toLocaleString()}` : '-'}</td>
-                        <td className="p-4 lg:p-5 text-right font-mono text-xs lg:text-sm text-orange-400">{emp.payroll.allowances > 0 ? `+₹${Math.round(emp.payroll.allowances).toLocaleString()}` : '-'}</td>
-                        <td className="p-4 lg:p-5 text-right">
-                          <p className="font-mono text-xs lg:text-sm text-red-400">{emp.payroll.deductions > 0 ? `-₹${Math.round(emp.payroll.deductions).toLocaleString()}` : '-'}</p>
-                          {emp.payroll.unpaidDays > 0 && <p className="text-[8px] lg:text-[9px] text-red-500/70 uppercase mt-1">({emp.payroll.unpaidDays} Days)</p>}
+                        <td className="p-4 text-right text-sm text-[#4B5563]">₹{Math.round(emp.payroll.base).toLocaleString()}</td>
+                        <td className="p-4 text-right text-sm text-[#059669]">{emp.payroll.commissions > 0 ? `+₹${Math.round(emp.payroll.commissions).toLocaleString()}` : '-'}</td>
+                        <td className="p-4 text-right text-sm text-[#D97706]">{emp.payroll.allowances > 0 ? `+₹${Math.round(emp.payroll.allowances).toLocaleString()}` : '-'}</td>
+                        <td className="p-4 text-right">
+                          <p className="text-sm text-[#DC2626]">{emp.payroll.deductions > 0 ? `-₹${Math.round(emp.payroll.deductions).toLocaleString()}` : '-'}</p>
+                          {emp.payroll.unpaidDays > 0 && <p className="text-[10px] text-[#EF4444] mt-1">({emp.payroll.unpaidDays} Days)</p>}
                         </td>
-                        <td className="p-4 lg:p-5 text-right">
-                          <p className="text-sm lg:text-lg font-mono font-black text-emerald-400">₹{Math.round(emp.payroll.net).toLocaleString()}</p>
+                        <td className="p-4 text-right">
+                          <p className="text-base font-bold text-[#111827]">₹{Math.round(emp.payroll.net).toLocaleString()}</p>
                         </td>
-                        <td className="p-4 lg:p-5 align-middle">
+                        <td className="p-4 align-middle">
                           <div className="flex flex-col gap-2 items-center justify-center">
                             {emp.isLocked ? (
                               <>
-                                <span className="text-[8px] lg:text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-full uppercase tracking-widest font-black">Locked</span>
-                                {/* Buttons are now stacked vertically (flex-col) to save horizontal space */}
-                                <div className="flex flex-col gap-1.5 w-full mt-1">
+                                <span className="text-[10px] bg-[#D1FAE5] text-[#065F46] border border-[#A7F3D0] px-2 py-1 rounded-md font-semibold">Locked</span>
+                                <div className="flex flex-col gap-2 w-full mt-1">
                                   <button 
                                     onClick={() => downloadPayslip(emp)}
-                                    className="w-full text-[8px] lg:text-[9px] bg-[#111] text-gray-400 border border-gray-700 px-2 py-1.5 rounded uppercase tracking-widest font-black hover:bg-gray-800 hover:text-white transition-colors"
+                                    className="w-full text-[10px] bg-white text-[#374151] border border-[#D1D5DB] px-2 py-1.5 rounded-md font-semibold hover:bg-[#F3F4F6] transition-colors shadow-sm"
                                   >
                                     Download
                                   </button>
                                   <button 
                                     onClick={() => sendPayslipEmail(emp)}
                                     disabled={isSendingId === emp.id}
-                                    className="w-full text-[8px] lg:text-[9px] bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 px-2 py-1.5 rounded uppercase tracking-widest font-black hover:bg-cyan-500 hover:text-black transition-colors disabled:opacity-50"
+                                    className="w-full text-[10px] bg-[#0EA5E9] text-white px-2 py-1.5 rounded-md font-semibold hover:bg-[#0284C7] transition-colors shadow-sm disabled:opacity-50"
                                   >
                                     {isSendingId === emp.id ? "Sending..." : "Email PDF"}
                                   </button>
                                 </div>
                               </>
                             ) : (
-                              <span className="text-[8px] lg:text-[9px] bg-gray-900 text-gray-400 border border-gray-700 px-3 py-1 rounded-full uppercase tracking-widest font-black">Live Math</span>
+                              <span className="text-[10px] bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A] px-2 py-1 rounded-md font-semibold">Live Math</span>
                             )}
                           </div>
                         </td>

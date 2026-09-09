@@ -172,11 +172,10 @@ export default function ProfitEngine() {
 
   if (isLoading) {
     return (
-      <div style={{ background: "#0c0e10", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}>
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}>
-          <div style={{ width: "2.25rem", height: "2.25rem", borderRadius: "50%", border: "2px solid rgba(161,250,255,0.2)", borderTopColor: "#a1faff", animation: "spin 0.8s linear infinite" }} />
-          <p style={{ fontFamily: "'Space Grotesk', sans-serif", color: "#a1faff", fontSize: "0.6875rem", letterSpacing: "0.5em", textTransform: "uppercase" }}>
+      <div className="min-h-screen flex items-center justify-center bg-[#F8F9FA] p-4">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-9 h-9 rounded-full border-2 border-[#E5E7EB] border-t-[#0EA5E9] animate-spin" />
+          <p className="text-[#6B7280] text-xs font-semibold uppercase tracking-wider">
             Syncing Financials...
           </p>
         </div>
@@ -186,23 +185,13 @@ export default function ProfitEngine() {
 
   if (error) {
     return (
-      <div style={{ background: "#0c0e10", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}>
-        <div style={{ background: "rgba(255,113,108,0.1)", border: "1px solid rgba(255,113,108,0.3)", borderRadius: "0.75rem", padding: "2rem", maxWidth: "500px", textAlign: "center" }}>
-          <p style={{ color: "#ff716c", fontSize: "0.875rem", margin: 0, marginBottom: "0.5rem" }}>⚠️ Error Loading Profit Engine</p>
-          <p style={{ color: "#aaabad", fontSize: "0.75rem", margin: 0 }}>{error}</p>
+      <div className="min-h-screen flex items-center justify-center bg-[#F8F9FA] p-4">
+        <div className="bg-[#FEE2E2] border border-[#FECACA] rounded-lg p-8 max-w-lg text-center">
+          <p className="text-[#991B1B] text-sm font-semibold mb-2">⚠️ Error Loading Profit Engine</p>
+          <p className="text-[#991B1B] text-xs opacity-80">{error}</p>
           <button
             onClick={() => calculateEngineMetrics()}
-            style={{
-              background: "#ff716c",
-              color: "white",
-              border: "none",
-              padding: "0.5rem 1rem",
-              borderRadius: "0.5rem",
-              marginTop: "1rem",
-              fontSize: "0.75rem",
-              fontWeight: 700,
-              cursor: "pointer"
-            }}
+            className="mt-4 px-4 py-2 bg-[#991B1B] text-white rounded-md text-xs font-semibold hover:bg-[#7F1D1D] transition-colors"
           >
             Retry
           </button>
@@ -212,508 +201,247 @@ export default function ProfitEngine() {
   }
 
   return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
-        
-        .font-headline { font-family: 'Space Grotesk', sans-serif; }
-        
-        * {
-          box-sizing: border-box;
-        }
-        
-        /* Mobile-first responsive approach */
-        @media (max-width: 768px) {
-          .card-grid { grid-template-columns: 1fr !important; }
-          .breakdown-item { flex-direction: column; align-items: flex-start !important; }
-          .breakdown-value { align-self: flex-end; margin-top: 0.5rem; }
-          .channel-grid { grid-template-columns: 1fr !important; }
-        }
+    <main className="min-h-screen bg-[#F8F9FA] text-[#111827] p-4 sm:p-6 lg:p-8 pb-12">
+      {/* HEADER */}
+      <section className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-[#111827] mb-1">
+          Profit Engine
+        </h1>
+        <p className="text-sm text-[#6B7280]">
+          Real-time financial metrics & channel profitability analysis
+        </p>
+      </section>
 
-        @media (max-width: 480px) {
-          .card-grid { padding: 0 !important; gap: 0.75rem !important; }
-        }
-      `}</style>
-
-      {/* ✅ FIXED: Removed excessive top padding */}
-      <main style={{ 
-        background: "#0c0e10", 
-        color: "#eeeef0", 
-        minHeight: "100vh", 
-        padding: "1rem",
-        paddingLeft: "clamp(1rem, 3vw, 2rem)",
-        paddingRight: "clamp(1rem, 3vw, 2rem)",
-        paddingBottom: "3rem"
-      }}>
-        
-        {/* HEADER - Mobile Responsive */}
-        <section style={{ marginBottom: "clamp(1.5rem, 5vw, 2rem)" }}>
-          <h1 className="font-headline" style={{
-            fontSize: "clamp(1.25rem, 5vw, 2.75rem)",
-            fontWeight: 700,
-            letterSpacing: "-0.02em",
-            color: "#a1faff",
-            margin: 0,
-            marginBottom: "0.5rem"
-          }}>
-            PROFIT ENGINE
-          </h1>
-          <p style={{ fontSize: "clamp(0.75rem, 2vw, 0.875rem)", color: "#aaabad", margin: 0 }}>
-            Real-time financial metrics & channel profitability analysis
+      {/* TOP METRICS GRID */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {/* Total Revenue */}
+        <div className="bg-white border border-[#E5E7EB] rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow">
+          <p className="text-xs font-semibold text-[#6B7280] uppercase tracking-wider mb-2">
+            Monthly Revenue
           </p>
-        </section>
-
-        {/* TOP METRICS GRID - Mobile Friendly */}
-        <div className="card-grid" style={{ 
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-          gap: "clamp(0.75rem, 2vw, 1rem)",
-          marginBottom: "clamp(1.5rem, 4vw, 2rem)",
-          padding: "0"
-        }}>
-          {/* Total Revenue */}
-          <div style={{
-            background: "rgba(23, 26, 28, 0.6)",
-            backdropFilter: "blur(32px)",
-            border: "1px solid rgba(161, 250, 255, 0.1)",
-            borderRadius: "1rem",
-            padding: "clamp(1rem, 3vw, 1.5rem)",
-            boxShadow: "0 0 20px rgba(0, 244, 254, 0.08)",
-            transition: "transform 0.2s ease, box-shadow 0.2s ease"
-          }} onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-2px)"} onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}>
-            <p style={{ fontSize: "clamp(0.625rem, 1.5vw, 0.75rem)", color: "#a1faff", textTransform: "uppercase", letterSpacing: "0.2em", margin: 0, marginBottom: "0.5rem", fontWeight: 700 }}>
-              Monthly Revenue
-            </p>
-            <p style={{ fontSize: "clamp(1.25rem, 4vw, 1.75rem)", fontFamily: "'Space Grotesk', monospace", fontWeight: 700, color: "#00f4fe", margin: 0 }}>
-              ₹{Math.round(stats.totalRevenue).toLocaleString()}
-            </p>
-            <p style={{ fontSize: "clamp(0.65rem, 1.5vw, 0.75rem)", color: "#aaabad", marginTop: "0.5rem", margin: 0 }}>
-              {stats.orderCount} orders
-            </p>
-          </div>
-
-          {/* Gross Profit */}
-          <div style={{
-            background: "rgba(23, 26, 28, 0.6)",
-            backdropFilter: "blur(32px)",
-            border: "1px solid rgba(161, 250, 255, 0.1)",
-            borderRadius: "1rem",
-            padding: "clamp(1rem, 3vw, 1.5rem)",
-            boxShadow: "0 0 20px rgba(0, 244, 254, 0.08)",
-            transition: "transform 0.2s ease, box-shadow 0.2s ease"
-          }} onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-2px)"} onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}>
-            <p style={{ fontSize: "clamp(0.625rem, 1.5vw, 0.75rem)", color: "#34d399", textTransform: "uppercase", letterSpacing: "0.2em", margin: 0, marginBottom: "0.5rem", fontWeight: 700 }}>
-              Gross Profit
-            </p>
-            <p style={{ fontSize: "clamp(1.25rem, 4vw, 1.75rem)", fontFamily: "'Space Grotesk', monospace", fontWeight: 700, color: "#34d399", margin: 0 }}>
-              ₹{Math.round(stats.grossProfit).toLocaleString()}
-            </p>
-            <p style={{ fontSize: "clamp(0.65rem, 1.5vw, 0.75rem)", color: "#aaabad", marginTop: "0.5rem", margin: 0 }}>
-              {stats.netMargin.toFixed(1)}% margin
-            </p>
-          </div>
-
-          {/* Net Profit */}
-          <div style={{
-            background: "rgba(23, 26, 28, 0.6)",
-            backdropFilter: "blur(32px)",
-            border: `1px solid ${isProfit ? "rgba(52, 211, 153, 0.2)" : "rgba(255, 113, 108, 0.2)"}`,
-            borderRadius: "1rem",
-            padding: "clamp(1rem, 3vw, 1.5rem)",
-            boxShadow: `0 0 20px ${isProfit ? "rgba(52, 211, 153, 0.08)" : "rgba(255, 113, 108, 0.08)"}`,
-            transition: "transform 0.2s ease, box-shadow 0.2s ease"
-          }} onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-2px)"} onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}>
-            <p style={{ fontSize: "clamp(0.625rem, 1.5vw, 0.75rem)", color: isProfit ? "#34d399" : "#ff716c", textTransform: "uppercase", letterSpacing: "0.2em", margin: 0, marginBottom: "0.5rem", fontWeight: 700 }}>
-              Net Profit
-            </p>
-            <p style={{ fontSize: "clamp(1.25rem, 4vw, 1.75rem)", fontFamily: "'Space Grotesk', monospace", fontWeight: 700, color: isProfit ? "#34d399" : "#ff716c", margin: 0 }}>
-              ₹{Math.round(totalNetProfit).toLocaleString()}
-            </p>
-            <p style={{ fontSize: "clamp(0.65rem, 1.5vw, 0.75rem)", color: "#aaabad", marginTop: "0.5rem", margin: 0 }}>
-              {isProfit ? "✅ Profitable" : "❌ Loss"}
-            </p>
-          </div>
-
-          {/* Break Even */}
-          <div style={{
-            background: "rgba(23, 26, 28, 0.6)",
-            backdropFilter: "blur(32px)",
-            border: "1px solid rgba(161, 250, 255, 0.1)",
-            borderRadius: "1rem",
-            padding: "clamp(1rem, 3vw, 1.5rem)",
-            boxShadow: "0 0 20px rgba(0, 244, 254, 0.08)",
-            transition: "transform 0.2s ease, box-shadow 0.2s ease"
-          }} onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-2px)"} onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}>
-            <p style={{ fontSize: "clamp(0.625rem, 1.5vw, 0.75rem)", color: "#a1faff", textTransform: "uppercase", letterSpacing: "0.2em", margin: 0, marginBottom: "0.5rem", fontWeight: 700 }}>
-              Break Even
-            </p>
-            <p style={{ fontSize: "clamp(1.25rem, 4vw, 1.75rem)", fontFamily: "'Space Grotesk', monospace", fontWeight: 700, color: "#a1faff", margin: 0 }}>
-              {breakEvenProgress.toFixed(0)}%
-            </p>
-            <div style={{ width: "100%", height: "4px", background: "rgba(161, 250, 255, 0.1)", borderRadius: "2px", marginTop: "0.75rem", overflow: "hidden" }}>
-              <div style={{ height: "100%", background: "linear-gradient(90deg, #a1faff, #00f4fe)", width: `${breakEvenProgress}%`, borderRadius: "2px", transition: "width 0.3s ease" }} />
-            </div>
-          </div>
+          <p className="text-2xl font-bold text-[#111827]">
+            ₹{Math.round(stats.totalRevenue).toLocaleString()}
+          </p>
+          <p className="text-xs text-[#6B7280] mt-2">
+            {stats.orderCount} orders
+          </p>
         </div>
 
-        {/* ✅ MONTHLY LIABILITY BREAKDOWN - Mobile Friendly */}
-        <section style={{
-          background: "rgba(35, 38, 41, 0.4)",
-          border: "1px solid rgba(249, 115, 22, 0.2)",
-          borderRadius: "1rem",
-          padding: "clamp(1rem, 3vw, 1.5rem)",
-          marginBottom: "clamp(1.5rem, 4vw, 2rem)",
-          boxShadow: "0 0 20px rgba(249, 115, 22, 0.05)"
-        }}>
-          <h2 className="font-headline" style={{
-            fontSize: "clamp(0.875rem, 3vw, 1.25rem)",
-            fontWeight: 700,
-            color: "#f97316",
-            margin: 0,
-            marginBottom: "clamp(1rem, 2vw, 1.5rem)",
-            fontStyle: "italic",
-            letterSpacing: "-0.01em"
-          }}>
-            Monthly Liability Subtotal
-          </h2>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "clamp(0.75rem, 2vw, 1rem)" }}>
-            {/* Base Salaries */}
-            <div className="breakdown-item" style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              paddingBottom: "clamp(0.75rem, 2vw, 1rem)",
-              borderBottom: "1px solid rgba(161, 250, 255, 0.1)"
-            }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: "clamp(0.65rem, 1.5vw, 0.75rem)", color: "#e5e7eb", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.1em", margin: 0, marginBottom: "0.25rem" }}>
-                  Base Salaries
-                </p>
-                <p style={{ fontSize: "clamp(0.6rem, 1.2vw, 0.7rem)", color: "#9ca3af", margin: 0 }}>
-                  Fixed commitment
-                </p>
-              </div>
-              <p style={{ fontSize: "clamp(0.875rem, 3vw, 1.25rem)", fontFamily: "'Space Grotesk', monospace", color: "#d1d5db", fontWeight: 700, margin: 0, textAlign: "right", marginLeft: "0.5rem", whiteSpace: "nowrap" }}>
-                ₹{Math.round(stats.totalSalaryBurn).toLocaleString()}
-              </p>
-            </div>
-
-            {/* Commissions */}
-            <div className="breakdown-item" style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              paddingBottom: "clamp(0.75rem, 2vw, 1rem)",
-              borderBottom: "1px solid rgba(161, 250, 255, 0.1)"
-            }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: "clamp(0.65rem, 1.5vw, 0.75rem)", color: "#06b6d4", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.1em", margin: 0, marginBottom: "0.25rem" }}>
-                  + Commissions
-                </p>
-                <p style={{ fontSize: "clamp(0.6rem, 1.2vw, 0.7rem)", color: "#22d3ee", margin: 0 }}>
-                  From sales
-                </p>
-              </div>
-              <p style={{ fontSize: "clamp(0.875rem, 3vw, 1.25rem)", fontFamily: "'Space Grotesk', monospace", color: "#06b6d4", fontWeight: 700, margin: 0, textAlign: "right", marginLeft: "0.5rem", whiteSpace: "nowrap" }}>
-                + ₹{Math.round(breakdownDetails.totalCommissions).toLocaleString()}
-              </p>
-            </div>
-
-            {/* Fixed OpEx */}
-            <div className="breakdown-item" style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              paddingBottom: "clamp(0.75rem, 2vw, 1rem)",
-              borderBottom: "1px solid rgba(161, 250, 255, 0.1)"
-            }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: "clamp(0.65rem, 1.5vw, 0.75rem)", color: "#eab308", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.1em", margin: 0, marginBottom: "0.25rem" }}>
-                  + Fixed OpEx
-                </p>
-                <p style={{ fontSize: "clamp(0.6rem, 1.2vw, 0.7rem)", color: "#ca8a04", margin: 0 }}>
-                  Rent, utilities
-                </p>
-              </div>
-              <p style={{ fontSize: "clamp(0.875rem, 3vw, 1.25rem)", fontFamily: "'Space Grotesk', monospace", color: "#eab308", fontWeight: 700, margin: 0, textAlign: "right", marginLeft: "0.5rem", whiteSpace: "nowrap" }}>
-                + ₹{Math.round(breakdownDetails.fixedExpenses).toLocaleString()}
-              </p>
-            </div>
-
-            {/* Salesman Expenses */}
-            <div className="breakdown-item" style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              paddingBottom: "clamp(0.75rem, 2vw, 1rem)",
-              borderBottom: "1px solid rgba(161, 250, 255, 0.1)"
-            }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: "clamp(0.65rem, 1.5vw, 0.75rem)", color: "#f97316", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.1em", margin: 0, marginBottom: "0.25rem" }}>
-                  + Salesman Claims
-                </p>
-                <p style={{ fontSize: "clamp(0.6rem, 1.2vw, 0.7rem)", color: "#ea580c", margin: 0 }}>
-                  Approved only
-                </p>
-              </div>
-              <p style={{ fontSize: "clamp(0.875rem, 3vw, 1.25rem)", fontFamily: "'Space Grotesk', monospace", color: "#f97316", fontWeight: 700, margin: 0, textAlign: "right", marginLeft: "0.5rem", whiteSpace: "nowrap" }}>
-                + ₹{Math.round(breakdownDetails.salariedExpenses).toLocaleString()}
-              </p>
-            </div>
-
-            {/* Paid Leave - Only show if > 0 */}
-            {breakdownDetails.paidLeaveCost > 0 && (
-              <div className="breakdown-item" style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                paddingBottom: "clamp(0.75rem, 2vw, 1rem)",
-                borderBottom: "1px solid rgba(161, 250, 255, 0.1)"
-              }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontSize: "clamp(0.65rem, 1.5vw, 0.75rem)", color: "#ef4444", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.1em", margin: 0, marginBottom: "0.25rem" }}>
-                    + Paid Leave
-                  </p>
-                  <p style={{ fontSize: "clamp(0.6rem, 1.2vw, 0.7rem)", color: "#dc2626", margin: 0 }}>
-                    Salary continuation
-                  </p>
-                </div>
-                <p style={{ fontSize: "clamp(0.875rem, 3vw, 1.25rem)", fontFamily: "'Space Grotesk', monospace", color: "#ef4444", fontWeight: 700, margin: 0, textAlign: "right", marginLeft: "0.5rem", whiteSpace: "nowrap" }}>
-                  + ₹{Math.round(breakdownDetails.paidLeaveCost).toLocaleString()}
-                </p>
-              </div>
-            )}
-
-            {/* TOTAL LIABILITY */}
-            <div style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              paddingTop: "clamp(0.75rem, 2vw, 1rem)",
-              paddingBottom: "clamp(0.75rem, 2vw, 1rem)",
-              paddingLeft: "clamp(0.75rem, 2vw, 1rem)",
-              paddingRight: "clamp(0.75rem, 2vw, 1rem)",
-              background: "rgba(249, 115, 22, 0.1)",
-              borderTop: "2px solid #f97316",
-              borderRadius: "0.5rem",
-              marginTop: "0.5rem"
-            }}>
-              <p className="font-headline" style={{
-                fontSize: "clamp(0.75rem, 1.5vw, 0.875rem)",
-                fontWeight: 700,
-                color: "#f97316",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                margin: 0
-              }}>
-                TOTAL LIABILITY
-              </p>
-              <p style={{ fontSize: "clamp(1rem, 3vw, 1.5rem)", fontFamily: "'Space Grotesk', monospace", color: "#f97316", fontWeight: 700, margin: 0, textAlign: "right", whiteSpace: "nowrap" }}>
-                ₹{Math.round(stats.totalFixedBurn).toLocaleString()}
-              </p>
-            </div>
-
-            {/* NET PROFIT */}
-            <div style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              paddingTop: "clamp(0.75rem, 2vw, 1rem)",
-              paddingBottom: "clamp(0.75rem, 2vw, 1rem)",
-              paddingLeft: "clamp(0.75rem, 2vw, 1rem)",
-              paddingRight: "clamp(0.75rem, 2vw, 1rem)",
-              background: isProfit ? "rgba(52, 211, 153, 0.1)" : "rgba(255, 113, 108, 0.1)",
-              borderTop: `2px solid ${isProfit ? "#34d399" : "#ff716c"}`,
-              borderRadius: "0.5rem"
-            }}>
-              <p className="font-headline" style={{
-                fontSize: "clamp(0.75rem, 1.5vw, 0.875rem)",
-                fontWeight: 700,
-                color: isProfit ? "#34d399" : "#ff716c",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                margin: 0
-              }}>
-                NET PROFIT
-              </p>
-              <p style={{ fontSize: "clamp(1rem, 3vw, 1.5rem)", fontFamily: "'Space Grotesk', monospace", color: isProfit ? "#34d399" : "#ff716c", fontWeight: 700, margin: 0, textAlign: "right", whiteSpace: "nowrap" }}>
-                ₹{Math.round(totalNetProfit).toLocaleString()}
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* CHANNEL PROFITABILITY */}
-        <section style={{ marginBottom: "clamp(1.5rem, 4vw, 2rem)" }}>
-          <h2 className="font-headline" style={{
-            fontSize: "clamp(0.875rem, 3vw, 1.25rem)",
-            fontWeight: 700,
-            color: "#a1faff",
-            margin: 0,
-            marginBottom: "clamp(0.75rem, 2vw, 1rem)",
-            letterSpacing: "-0.01em"
-          }}>
-            Channel Profitability
-          </h2>
-
-          <div className="channel-grid" style={{ 
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-            gap: "clamp(0.75rem, 2vw, 1rem)"
-          }}>
-            {channelData.length > 0 ? (
-              channelData.map((channel) => (
-                <div key={channel.name} style={{
-                  background: "rgba(23, 26, 28, 0.6)",
-                  backdropFilter: "blur(32px)",
-                  border: "1px solid rgba(161, 250, 255, 0.1)",
-                  borderRadius: "1rem",
-                  padding: "clamp(1rem, 3vw, 1.5rem)",
-                  boxShadow: "0 0 20px rgba(0, 244, 254, 0.08)",
-                  transition: "transform 0.2s ease"
-                }} onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-2px)"} onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}>
-                  <p style={{ fontSize: "clamp(0.625rem, 1.5vw, 0.75rem)", color: "#a1faff", textTransform: "uppercase", letterSpacing: "0.2em", fontWeight: 700, margin: 0, marginBottom: "clamp(0.75rem, 2vw, 1rem)" }}>
-                    {channel.name}
-                  </p>
-
-                  <div style={{ marginBottom: "clamp(0.75rem, 2vw, 1rem)" }}>
-                    <p style={{ fontSize: "clamp(0.625rem, 1.2vw, 0.75rem)", color: "#aaabad", textTransform: "uppercase", letterSpacing: "0.1em", margin: 0, marginBottom: "0.25rem" }}>
-                      Revenue
-                    </p>
-                    <p style={{ fontSize: "clamp(1rem, 3vw, 1.25rem)", fontFamily: "'Space Grotesk', monospace", color: "#00f4fe", fontWeight: 700, margin: 0 }}>
-                      ₹{Math.round(channel.revenue).toLocaleString()}
-                    </p>
-                  </div>
-
-                  <div style={{ marginBottom: "clamp(0.75rem, 2vw, 1rem)" }}>
-                    <p style={{ fontSize: "clamp(0.625rem, 1.2vw, 0.75rem)", color: "#aaabad", textTransform: "uppercase", letterSpacing: "0.1em", margin: 0, marginBottom: "0.25rem" }}>
-                      Profit
-                    </p>
-                    <p style={{ fontSize: "clamp(1rem, 3vw, 1.25rem)", fontFamily: "'Space Grotesk', monospace", color: "#34d399", fontWeight: 700, margin: 0 }}>
-                      ₹{Math.round(channel.profit).toLocaleString()}
-                    </p>
-                  </div>
-
-                  <div style={{ marginBottom: "clamp(0.75rem, 2vw, 1rem)" }}>
-                    <p style={{ fontSize: "clamp(0.625rem, 1.2vw, 0.75rem)", color: "#aaabad", textTransform: "uppercase", letterSpacing: "0.1em", margin: 0, marginBottom: "0.25rem" }}>
-                      Margin
-                    </p>
-                    <p style={{ fontSize: "clamp(1rem, 3vw, 1.25rem)", fontFamily: "'Space Grotesk', monospace", color: "#f59e0b", fontWeight: 700, margin: 0 }}>
-                      {channel.margin.toFixed(1)}%
-                    </p>
-                  </div>
-
-                  <div style={{ width: "100%", height: "3px", background: "rgba(161, 250, 255, 0.1)", borderRadius: "2px", overflow: "hidden" }}>
-                    <div style={{
-                      height: "100%",
-                      background: `linear-gradient(90deg, #a1faff, #00f4fe)`,
-                      width: `${Math.max(0, Math.min(channel.margin, 100))}%`,
-                      borderRadius: "2px",
-                      transition: "width 0.3s ease"
-                    }} />
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p style={{ color: "#aaabad", fontSize: "0.875rem" }}>No channel data available</p>
-            )}
-          </div>
-        </section>
-
-        {/* KEY INDICATORS - Mobile Friendly */}
-        <section style={{ marginBottom: "clamp(1.5rem, 4vw, 2rem)" }}>
-          <h2 className="font-headline" style={{
-            fontSize: "clamp(0.875rem, 3vw, 1.25rem)",
-            fontWeight: 700,
-            color: "#a1faff",
-            margin: 0,
-            marginBottom: "clamp(0.75rem, 2vw, 1rem)",
-            letterSpacing: "-0.01em"
-          }}>
-            Key Indicators
-          </h2>
-
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-            gap: "clamp(0.75rem, 2vw, 1rem)"
-          }}>
-            {/* COGS */}
-            <div style={{
-              background: "rgba(23, 26, 28, 0.6)",
-              backdropFilter: "blur(32px)",
-              border: "1px solid rgba(161, 250, 255, 0.1)",
-              borderRadius: "1rem",
-              padding: "clamp(1rem, 3vw, 1.5rem)",
-              transition: "transform 0.2s ease"
-            }} onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-2px)"} onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}>
-              <p style={{ fontSize: "clamp(0.625rem, 1.2vw, 0.75rem)", color: "#a1faff", textTransform: "uppercase", letterSpacing: "0.2em", margin: 0, marginBottom: "0.5rem", fontWeight: 700 }}>
-                COGS
-              </p>
-              <p style={{ fontSize: "clamp(1rem, 3vw, 1.25rem)", fontFamily: "'Space Grotesk', monospace", fontWeight: 700, color: "#f97316", margin: 0 }}>
-                ₹{Math.round(stats.totalCOGS).toLocaleString()}
-              </p>
-            </div>
-
-            {/* OpEx */}
-            <div style={{
-              background: "rgba(23, 26, 28, 0.6)",
-              backdropFilter: "blur(32px)",
-              border: "1px solid rgba(161, 250, 255, 0.1)",
-              borderRadius: "1rem",
-              padding: "clamp(1rem, 3vw, 1.5rem)",
-              transition: "transform 0.2s ease"
-            }} onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-2px)"} onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}>
-              <p style={{ fontSize: "clamp(0.625rem, 1.2vw, 0.75rem)", color: "#a1faff", textTransform: "uppercase", letterSpacing: "0.2em", margin: 0, marginBottom: "0.5rem", fontWeight: 700 }}>
-                Total OpEx
-              </p>
-              <p style={{ fontSize: "clamp(1rem, 3vw, 1.25rem)", fontFamily: "'Space Grotesk', monospace", fontWeight: 700, color: "#ef4444", margin: 0 }}>
-                ₹{Math.round(stats.totalOpEx).toLocaleString()}
-              </p>
-            </div>
-
-            {/* Revenue Ratio */}
-            <div style={{
-              background: "rgba(23, 26, 28, 0.6)",
-              backdropFilter: "blur(32px)",
-              border: "1px solid rgba(161, 250, 255, 0.1)",
-              borderRadius: "1rem",
-              padding: "clamp(1rem, 3vw, 1.5rem)",
-              transition: "transform 0.2s ease"
-            }} onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-2px)"} onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}>
-              <p style={{ fontSize: "clamp(0.625rem, 1.2vw, 0.75rem)", color: "#a1faff", textTransform: "uppercase", letterSpacing: "0.2em", margin: 0, marginBottom: "0.5rem", fontWeight: 700 }}>
-                Revenue/Burn
-              </p>
-              <p style={{ fontSize: "clamp(1rem, 3vw, 1.25rem)", fontFamily: "'Space Grotesk', monospace", fontWeight: 700, color: "#8b5cf6", margin: 0 }}>
-                {revenuePerBurn}x
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* FOOTER */}
-        <footer style={{
-          marginTop: "clamp(2rem, 5vw, 4rem)",
-          paddingTop: "clamp(1rem, 3vw, 2rem)",
-          borderTop: "1px solid rgba(161, 250, 255, 0.1)",
-          display: "flex",
-          flexDirection: "column",
-          gap: "clamp(0.75rem, 2vw, 1rem)",
-          alignItems: "center",
-          justifyContent: "center",
-          opacity: 0.4
-        }}>
-          <p style={{ fontSize: "clamp(0.65rem, 1.5vw, 0.75rem)", color: "#aaabad", margin: 0, textAlign: "center" }}>
-            © 2026 CONQRETE // PROFIT ENGINE v2.1
+        {/* Gross Profit */}
+        <div className="bg-white border border-[#E5E7EB] rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow">
+          <p className="text-xs font-semibold text-[#6B7280] uppercase tracking-wider mb-2">
+            Gross Profit
           </p>
-          <div style={{ display: "flex", gap: "clamp(1rem, 3vw, 2rem)", fontSize: "clamp(0.625rem, 1.2vw, 0.75rem)", color: "#aaabad", flexWrap: "wrap", justifyContent: "center" }}>
-            <span>METRICS UPDATED: NOW</span>
-            <span>STATUS: OPERATIONAL</span>
-          </div>
-        </footer>
+          <p className="text-2xl font-bold text-[#111827]">
+            ₹{Math.round(stats.grossProfit).toLocaleString()}
+          </p>
+          <p className="text-xs text-[#6B7280] mt-2">
+            {stats.netMargin.toFixed(1)}% margin
+          </p>
+        </div>
 
-      </main>
-    </>
+        {/* Net Profit */}
+        <div className={`bg-white border ${isProfit ? 'border-[#A7F3D0]' : 'border-[#FECACA]'} rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow`}>
+          <p className={`text-xs font-semibold uppercase tracking-wider mb-2 ${isProfit ? 'text-[#065F46]' : 'text-[#991B1B]'}`}>
+            Net Profit
+          </p>
+          <p className={`text-2xl font-bold ${isProfit ? 'text-[#065F46]' : 'text-[#991B1B]'}`}>
+            ₹{Math.round(totalNetProfit).toLocaleString()}
+          </p>
+          <p className="text-xs text-[#6B7280] mt-2">
+            {isProfit ? "✅ Profitable" : "❌ Loss"}
+          </p>
+        </div>
+
+        {/* Break Even */}
+        <div className="bg-white border border-[#E5E7EB] rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow">
+          <p className="text-xs font-semibold text-[#6B7280] uppercase tracking-wider mb-2">
+            Break Even
+          </p>
+          <p className="text-2xl font-bold text-[#111827]">
+            {breakEvenProgress.toFixed(0)}%
+          </p>
+          <div className="w-full h-1.5 bg-[#F3F4F6] rounded-full mt-3 overflow-hidden">
+            <div 
+              className="h-full bg-[#0EA5E9] rounded-full transition-all duration-300"
+              style={{ width: `${breakEvenProgress}%` }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* MONTHLY LIABILITY BREAKDOWN */}
+      <section className="bg-white border border-[#E5E7EB] rounded-lg p-5 sm:p-6 mb-8 shadow-sm">
+        <h2 className="text-lg font-bold text-[#111827] mb-4">
+          Monthly Liability Subtotal
+        </h2>
+
+        <div className="flex flex-col gap-3">
+          {/* Base Salaries */}
+          <div className="flex justify-between items-center pb-3 border-b border-[#F3F4F6]">
+            <div>
+              <p className="text-sm font-semibold text-[#111827] mb-0.5">Base Salaries</p>
+              <p className="text-xs text-[#6B7280]">Fixed commitment</p>
+            </div>
+            <p className="text-base font-semibold text-[#111827]">
+              ₹{Math.round(stats.totalSalaryBurn).toLocaleString()}
+            </p>
+          </div>
+
+          {/* Commissions */}
+          <div className="flex justify-between items-center pb-3 border-b border-[#F3F4F6]">
+            <div>
+              <p className="text-sm font-semibold text-[#111827] mb-0.5">+ Commissions</p>
+              <p className="text-xs text-[#6B7280]">From sales</p>
+            </div>
+            <p className="text-base font-semibold text-[#111827]">
+              + ₹{Math.round(breakdownDetails.totalCommissions).toLocaleString()}
+            </p>
+          </div>
+
+          {/* Fixed OpEx */}
+          <div className="flex justify-between items-center pb-3 border-b border-[#F3F4F6]">
+            <div>
+              <p className="text-sm font-semibold text-[#111827] mb-0.5">+ Fixed OpEx</p>
+              <p className="text-xs text-[#6B7280]">Rent, utilities</p>
+            </div>
+            <p className="text-base font-semibold text-[#111827]">
+              + ₹{Math.round(breakdownDetails.fixedExpenses).toLocaleString()}
+            </p>
+          </div>
+
+          {/* Salesman Expenses */}
+          <div className="flex justify-between items-center pb-3 border-b border-[#F3F4F6]">
+            <div>
+              <p className="text-sm font-semibold text-[#111827] mb-0.5">+ Salesman Claims</p>
+              <p className="text-xs text-[#6B7280]">Approved only</p>
+            </div>
+            <p className="text-base font-semibold text-[#111827]">
+              + ₹{Math.round(breakdownDetails.salariedExpenses).toLocaleString()}
+            </p>
+          </div>
+
+          {/* Paid Leave */}
+          {breakdownDetails.paidLeaveCost > 0 && (
+            <div className="flex justify-between items-center pb-3 border-b border-[#F3F4F6]">
+              <div>
+                <p className="text-sm font-semibold text-[#111827] mb-0.5">+ Paid Leave</p>
+                <p className="text-xs text-[#6B7280]">Salary continuation</p>
+              </div>
+              <p className="text-base font-semibold text-[#111827]">
+                + ₹{Math.round(breakdownDetails.paidLeaveCost).toLocaleString()}
+              </p>
+            </div>
+          )}
+
+          {/* TOTAL LIABILITY */}
+          <div className="flex justify-between items-center p-3 bg-[#F9FAFB] border-t-2 border-[#E5E7EB] rounded-md mt-2">
+            <p className="text-sm font-bold text-[#374151] uppercase tracking-wider">
+              Total Liability
+            </p>
+            <p className="text-lg font-bold text-[#111827]">
+              ₹{Math.round(stats.totalFixedBurn).toLocaleString()}
+            </p>
+          </div>
+
+          {/* NET PROFIT */}
+          <div className={`flex justify-between items-center p-3 rounded-md mt-2 border-l-4 ${isProfit ? 'bg-[#D1FAE5] border-[#065F46]' : 'bg-[#FEE2E2] border-[#991B1B]'}`}>
+            <p className={`text-sm font-bold uppercase tracking-wider ${isProfit ? 'text-[#065F46]' : 'text-[#991B1B]'}`}>
+              Net Profit
+            </p>
+            <p className={`text-lg font-bold ${isProfit ? 'text-[#065F46]' : 'text-[#991B1B]'}`}>
+              ₹{Math.round(totalNetProfit).toLocaleString()}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* CHANNEL PROFITABILITY */}
+      <section className="mb-8">
+        <h2 className="text-lg font-bold text-[#111827] mb-4">
+          Channel Profitability
+        </h2>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {channelData.length > 0 ? (
+            channelData.map((channel) => (
+              <div key={channel.name} className="bg-white border border-[#E5E7EB] rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow">
+                <p className="text-sm font-bold text-[#111827] mb-4 uppercase tracking-wider">
+                  {channel.name}
+                </p>
+
+                <div className="mb-3">
+                  <p className="text-xs text-[#6B7280] uppercase tracking-wider mb-1">Revenue</p>
+                  <p className="text-base font-semibold text-[#111827]">
+                    ₹{Math.round(channel.revenue).toLocaleString()}
+                  </p>
+                </div>
+
+                <div className="mb-3">
+                  <p className="text-xs text-[#6B7280] uppercase tracking-wider mb-1">Profit</p>
+                  <p className="text-base font-semibold text-[#111827]">
+                    ₹{Math.round(channel.profit).toLocaleString()}
+                  </p>
+                </div>
+
+                <div className="mb-3">
+                  <p className="text-xs text-[#6B7280] uppercase tracking-wider mb-1">Margin</p>
+                  <p className="text-base font-semibold text-[#0EA5E9]">
+                    {channel.margin.toFixed(1)}%
+                  </p>
+                </div>
+
+                <div className="w-full h-1.5 bg-[#F3F4F6] rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-[#0EA5E9] rounded-full transition-all duration-300"
+                    style={{ width: `${Math.max(0, Math.min(channel.margin, 100))}%` }}
+                  />
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-sm text-[#6B7280]">No channel data available</p>
+          )}
+        </div>
+      </section>
+
+      {/* KEY INDICATORS */}
+      <section className="mb-8">
+        <h2 className="text-lg font-bold text-[#111827] mb-4">
+          Key Indicators
+        </h2>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* COGS */}
+          <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 shadow-sm">
+            <p className="text-xs font-semibold text-[#6B7280] uppercase tracking-wider mb-1">COGS</p>
+            <p className="text-lg font-bold text-[#111827]">₹{Math.round(stats.totalCOGS).toLocaleString()}</p>
+          </div>
+
+          {/* OpEx */}
+          <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 shadow-sm">
+            <p className="text-xs font-semibold text-[#6B7280] uppercase tracking-wider mb-1">Total OpEx</p>
+            <p className="text-lg font-bold text-[#111827]">₹{Math.round(stats.totalOpEx).toLocaleString()}</p>
+          </div>
+
+          {/* Revenue Ratio */}
+          <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 shadow-sm">
+            <p className="text-xs font-semibold text-[#6B7280] uppercase tracking-wider mb-1">Revenue/Burn</p>
+            <p className="text-lg font-bold text-[#111827]">{revenuePerBurn}x</p>
+          </div>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="mt-12 pt-6 border-t border-[#E5E7EB] flex flex-col gap-2 items-center justify-center text-[#6B7280]">
+        <p className="text-xs text-center">
+          © 2026 CONQRETE ERP // Profit Engine v2.1
+        </p>
+        <div className="flex gap-4 text-[10px] uppercase tracking-wider">
+          <span>Metrics Updated: Now</span>
+          <span>Status: Operational</span>
+        </div>
+      </footer>
+    </main>
   );
 }

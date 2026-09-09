@@ -98,72 +98,91 @@ export default function RetailerLedger() {
   // --- SAFETY RENDER ---
   if (isLoading) {
     return (
-      <div className="p-10 flex flex-col items-center justify-center min-h-screen bg-black">
-        <div className="w-10 h-10 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-cyan-400 font-mono tracking-widest uppercase text-xs">Decrypting Ledger...</p>
+      <div className="p-8 flex flex-col items-center justify-center min-h-[60vh]">
+        <div className="w-10 h-10 border-4 border-[#0EA5E9]/30 border-t-[#0EA5E9] rounded-full animate-spin mb-4"></div>
+        <p className="text-[#6B7280] font-medium text-sm">Loading ledger...</p>
       </div>
     );
   }
 
   if (!retailer) {
-    return <div className="p-20 text-center text-red-500 font-bold uppercase">Error: Retailer Data Missing</div>;
+    return (
+      <div className="p-8 text-center text-[#991B1B] font-semibold bg-[#FEE2E2] border border-[#FECACA] rounded-md m-8">
+        Error: Retailer Data Missing
+      </div>
+    );
   }
 
   return (
-    <div className="p-8 text-white bg-black min-h-screen">
-      <button onClick={() => router.back()} className="text-[10px] text-gray-600 mb-6 flex items-center gap-2 font-bold uppercase tracking-widest hover:text-white transition-all">
-        ← BACK TO DIRECTORY
+    <div className="p-6 md:p-8 bg-[#F8F9FA] min-h-screen">
+      <button 
+        onClick={() => router.back()} 
+        className="text-[#6B7280] hover:text-[#111827] text-sm font-medium mb-6 flex items-center gap-2 transition-colors"
+      >
+        ← Back to Directory
       </button>
 
       {/* RETAILER HEADER CARD */}
-      <div className="bg-[#0a0a0a] border border-gray-800 p-8 rounded-2xl mb-10 flex flex-col md:flex-row justify-between items-start md:items-center shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-1 h-full bg-cyan-400"></div>
+      <div className="bg-white border border-[#E5E7EB] p-6 rounded-lg shadow-sm mb-8 flex flex-col md:flex-row justify-between items-start md:items-center">
         <div>
-          <h1 className="text-4xl font-black tracking-tighter text-white uppercase italic">{retailer.store_name}</h1>
+          <h1 className="text-2xl font-bold text-[#111827]">{retailer.store_name}</h1>
           <div className="flex gap-4 mt-2">
-            <p className="text-[10px] text-gray-500 uppercase font-black tracking-[0.2em]">{retailer.location}</p>
-            <p className="text-[10px] text-cyan-500 uppercase font-black tracking-[0.2em]">Net-{retailer.payment_cycle_days || 0} Days</p>
+            <p className="text-sm text-[#6B7280] font-medium">{retailer.location}</p>
+            <p className="text-sm text-[#0EA5E9] font-medium">Net {retailer.payment_cycle_days || 0} Days</p>
           </div>
         </div>
         <div className="text-left md:text-right mt-6 md:mt-0">
-          <p className="text-[10px] text-red-500 uppercase font-black tracking-[0.3em] mb-1">Outstanding Balance</p>
-          <p className="text-5xl font-mono text-red-500 font-black">
+          <p className="text-sm text-[#6B7280] font-medium mb-1">Outstanding Balance</p>
+          <p className="text-3xl font-bold text-[#991B1B]">
             ₹{Number(retailer.total_pending || 0).toLocaleString()}
           </p>
           <button 
             onClick={() => setIsPayModalOpen(true)} 
-            className="mt-6 bg-emerald-500 text-black px-8 py-3 rounded-full font-black hover:bg-emerald-400 transition-all uppercase text-[10px] tracking-widest shadow-xl shadow-emerald-500/10"
+            className="mt-4 bg-[#0EA5E9] text-white px-6 py-2 rounded-md font-semibold hover:bg-[#0284C7] transition-colors shadow-sm"
           >
-            Record Payment Received
+            Record Payment
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-10">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
         {/* INVOICE HISTORY */}
-        <div className="bg-[#0a0a0a] border border-gray-800 rounded-2xl overflow-hidden shadow-xl">
-          <div className="p-6 bg-[#111] border-b border-gray-800 flex justify-between items-center">
-            <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Sales History</h3>
-            <span className="text-[10px] bg-black px-3 py-1 rounded-full font-mono text-gray-600 border border-gray-800">Count: {orders.length}</span>
+        <div className="bg-white border border-[#E5E7EB] rounded-lg shadow-sm overflow-hidden">
+          <div className="p-4 border-b border-[#E5E7EB] flex justify-between items-center bg-[#F9FAFB]">
+            <h3 className="text-sm font-semibold text-[#111827]">Sales History</h3>
+            <span className="text-xs bg-[#E5E7EB] px-2 py-1 rounded-md text-[#4B5563] font-medium">
+              Count: {orders.length}
+            </span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
-                <tr className="text-[9px] text-gray-600 uppercase border-b border-gray-800 font-black tracking-widest">
-                  <th className="p-6">Date</th>
-                  <th className="p-6">Invoice #</th>
-                  <th className="p-6 text-right">Amount</th>
-                  <th className="p-6 text-center">Docs</th>
+                <tr className="bg-[#F9FAFB] text-[#6B7280] text-xs font-semibold uppercase tracking-wider border-b border-[#E5E7EB]">
+                  <th className="px-6 py-3">Date</th>
+                  <th className="px-6 py-3">Invoice #</th>
+                  <th className="px-6 py-3 text-right">Amount</th>
+                  <th className="px-6 py-3 text-center">Docs</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-[#E5E7EB]">
                 {orders.map(o => (
-                  <tr key={o.id} className="border-b border-gray-800/30 hover:bg-white/[0.02] transition-colors group">
-                    <td className="p-6 text-[11px] text-gray-500 font-mono">{new Date(o.created_at).toLocaleDateString()}</td>
-                    <td className="p-6 text-xs text-white font-bold tracking-tight">{o.order_number}</td>
-                    <td className="p-6 text-right font-mono text-white text-sm font-black">₹{Number(o.total_amount || 0).toLocaleString()}</td>
-                    <td className="p-6 text-center">
-                      <button onClick={() => handlePrint(o)} className="text-[9px] bg-black border border-gray-800 px-3 py-1 rounded text-gray-500 hover:border-cyan-400 hover:text-white transition-all font-black uppercase tracking-tighter">PDF</button>
+                  <tr key={o.id} className="hover:bg-[#F9FAFB] transition-colors">
+                    <td className="px-6 py-4 text-sm text-[#6B7280] whitespace-nowrap">
+                      {new Date(o.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 text-sm font-medium text-[#111827]">
+                      {o.order_number}
+                    </td>
+                    <td className="px-6 py-4 text-right text-sm font-semibold text-[#111827]">
+                      ₹{Number(o.total_amount || 0).toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <button 
+                        onClick={() => handlePrint(o)} 
+                        className="text-xs text-[#0EA5E9] border border-[#0EA5E9] px-2 py-1 rounded hover:bg-[#0EA5E9] hover:text-white transition-colors font-medium"
+                      >
+                        PDF
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -173,27 +192,31 @@ export default function RetailerLedger() {
         </div>
 
         {/* PAYMENT LEDGER */}
-        <div className="bg-[#0a0a0a] border border-gray-800 rounded-2xl overflow-hidden shadow-xl">
-          <div className="p-6 bg-[#111] border-b border-gray-800 flex justify-between items-center">
-            <h3 className="text-xs font-black text-emerald-500 uppercase tracking-[0.2em]">Credit Ledger</h3>
-            <span className="text-[10px] text-emerald-500 font-black tracking-widest uppercase">Lifetime Paid: ₹{Number(retailer.total_paid || 0).toLocaleString()}</span>
+        <div className="bg-white border border-[#E5E7EB] rounded-lg shadow-sm overflow-hidden">
+          <div className="p-4 border-b border-[#E5E7EB] flex justify-between items-center bg-[#F9FAFB]">
+            <h3 className="text-sm font-semibold text-[#111827]">Credit Ledger</h3>
+            <span className="text-xs font-semibold text-[#065F46] bg-[#D1FAE5] px-2 py-1 rounded-md border border-[#A7F3D0]">
+              Lifetime Paid: ₹{Number(retailer.total_paid || 0).toLocaleString()}
+            </span>
           </div>
-          <div className="p-6 space-y-4 max-h-[600px] overflow-y-auto custom-scrollbar">
+          <div className="p-4 space-y-3 max-h-[600px] overflow-y-auto">
             {payments.map(p => (
-              <div key={p.id} className="flex justify-between items-center bg-black p-5 rounded-xl border border-gray-800/50 group hover:border-emerald-500/30 transition-all">
+              <div key={p.id} className="flex justify-between items-center p-4 rounded-lg border border-[#E5E7EB] hover:bg-[#F9FAFB] transition-colors">
                 <div>
-                  <p className="text-[11px] font-black text-white uppercase tracking-widest">{p.payment_method}</p>
-                  <p className="text-[10px] text-gray-600 font-mono mt-1">{new Date(p.received_at).toLocaleDateString()} @ {new Date(p.received_at).toLocaleTimeString()}</p>
+                  <p className="text-sm font-semibold text-[#111827] uppercase">{p.payment_method}</p>
+                  <p className="text-xs text-[#6B7280] mt-1">
+                    {new Date(p.received_at).toLocaleDateString()} @ {new Date(p.received_at).toLocaleTimeString()}
+                  </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xl font-mono text-emerald-500 font-black">+₹{Number(p.amount || 0).toLocaleString()}</p>
-                  <p className="text-[9px] text-emerald-900 uppercase font-black tracking-widest">Entry Confirmed</p>
+                  <p className="text-base font-bold text-[#065F46]">+₹{Number(p.amount || 0).toLocaleString()}</p>
+                  <p className="text-xs text-[#065F46] mt-1 font-medium">Entry Confirmed</p>
                 </div>
               </div>
             ))}
             {payments.length === 0 && (
-              <div className="text-center py-20">
-                <p className="text-[10px] text-gray-700 font-black uppercase tracking-[0.3em]">No Payment Entries Found</p>
+              <div className="text-center py-10">
+                <p className="text-sm text-[#6B7280] font-medium">No Payment Entries Found</p>
               </div>
             )}
           </div>
@@ -202,25 +225,45 @@ export default function RetailerLedger() {
 
       {/* PAYMENT MODAL */}
       {isPayModalOpen && (
-        <div className="fixed inset-0 bg-black/95 flex items-center justify-center p-4 z-50 backdrop-blur-xl">
-          <div className="bg-[#0a0a0a] border border-emerald-500/30 rounded-3xl w-full max-w-sm p-8 shadow-2xl relative">
-            <button onClick={() => setIsPayModalOpen(false)} className="absolute top-6 right-6 text-gray-600 hover:text-white text-xl">×</button>
-            <h2 className="text-sm font-black text-white mb-8 uppercase tracking-[0.3em] border-b border-gray-800 pb-4">Record Entry</h2>
-            <form onSubmit={handleRecordPayment} className="space-y-6">
+        <div className="fixed inset-0 bg-gray-900/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+          <div className="bg-white border border-[#E5E7EB] rounded-lg w-full max-w-sm p-6 shadow-xl relative">
+            <button 
+              onClick={() => setIsPayModalOpen(false)} 
+              className="absolute top-4 right-4 text-[#6B7280] hover:text-[#111827] text-xl"
+            >
+              &times;
+            </button>
+            <h2 className="text-lg font-bold text-[#111827] mb-6 border-b border-[#E5E7EB] pb-3">Record Entry</h2>
+            <form onSubmit={handleRecordPayment} className="space-y-5">
               <div>
-                <label className="block text-[10px] text-gray-600 mb-2 uppercase tracking-widest font-black">Amount Received (₹)</label>
-                <input required type="number" autoFocus placeholder="0.00" value={payAmount} onChange={e => setPayAmount(e.target.value)} className="w-full bg-black border border-gray-800 rounded-xl p-5 text-3xl font-mono text-emerald-400 focus:border-emerald-500 focus:outline-none transition-all" />
+                <label className="block text-sm font-medium text-[#6B7280] mb-1">Amount Received (₹)</label>
+                <input 
+                  required 
+                  type="number" 
+                  autoFocus 
+                  placeholder="0.00" 
+                  value={payAmount} 
+                  onChange={e => setPayAmount(e.target.value)} 
+                  className="w-full px-4 py-2 bg-white border border-[#D1D5DB] rounded-md text-[#111827] focus:ring-2 focus:ring-[#0EA5E9]/50 focus:border-[#0EA5E9] outline-none text-lg font-semibold" 
+                />
               </div>
               <div>
-                <label className="block text-[10px] text-gray-600 mb-2 uppercase tracking-widest font-black">Transaction Method</label>
-                <select value={payMethod} onChange={e => setPayMethod(e.target.value)} className="w-full bg-black border border-gray-800 rounded-xl p-4 text-white text-[11px] font-black uppercase tracking-widest">
+                <label className="block text-sm font-medium text-[#6B7280] mb-1">Transaction Method</label>
+                <select 
+                  value={payMethod} 
+                  onChange={e => setPayMethod(e.target.value)} 
+                  className="w-full px-4 py-2 bg-white border border-[#D1D5DB] rounded-md text-[#111827] focus:ring-2 focus:ring-[#0EA5E9]/50 focus:border-[#0EA5E9] outline-none"
+                >
                   <option>UPI</option>
                   <option>Cash</option>
                   <option>Bank Transfer</option>
                   <option>Cheque</option>
                 </select>
               </div>
-              <button type="submit" className="w-full bg-emerald-500 text-black py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-emerald-400 transition-all shadow-xl shadow-emerald-500/20">
+              <button 
+                type="submit" 
+                className="w-full bg-[#0EA5E9] text-white py-2 rounded-md font-semibold hover:bg-[#0284C7] transition-colors"
+              >
                 Confirm & Sync
               </button>
             </form>

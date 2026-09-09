@@ -2,29 +2,125 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { usePathname } from "next/navigation"; 
-import { supabase } from "@/lib/supabase"; 
+import { usePathname } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 
 const navItems = [
-  { name: "Dashboard", path: "/dashboard" },
-  { name: "Products", path: "/products" },
-  { name: "Inventory", path: "/inventory" },
-  { name: "Orders", path: "/orders" },
-  { name: "Finance", path: "/finance" },
-  { name: "Shipments", path: "/shipments" },
-  { name: "Retailers", path: "/retailers" },
-  { name: "Salesmen", path: "/salesmen" },
-  { name: "Warehouse Monitor", path: "/warehouseworker" },
-  { name: "Human Resources", path: "/hr" },
-  { name: "Payroll Engine", path: "/payroll" },
-  { name: "Profit-Engine", path: "/profit-engine" },
-  { name: "Operating Expenses", path: "/expenseledger" },
+  {
+    name: "Dashboard", path: "/dashboard",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>
+      </svg>
+    )
+  },
+  {
+    name: "Products", path: "/products",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+      </svg>
+    )
+  },
+  {
+    name: "Inventory", path: "/inventory",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+        <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+      </svg>
+    )
+  },
+  {
+    name: "Orders", path: "/orders",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+      </svg>
+    )
+  },
+  {
+    name: "Finance", path: "/finance",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+      </svg>
+    )
+  },
+  {
+    name: "Shipments", path: "/shipments",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="1" y="3" width="15" height="13" rx="1"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+        <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+      </svg>
+    )
+  },
+  {
+    name: "Retailers", path: "/retailers",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+    )
+  },
+  {
+    name: "Salesmen", path: "/salesmen",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+    )
+  },
+  {
+    name: "Warehouse Monitor", path: "/warehouseworker",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+      </svg>
+    )
+  },
+  {
+    name: "Human Resources", path: "/hr",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+      </svg>
+    )
+  },
+  {
+    name: "Payroll Engine", path: "/payroll",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>
+      </svg>
+    )
+  },
+  {
+    name: "Profit Engine", path: "/profit-engine",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
+      </svg>
+    )
+  },
+  {
+    name: "Operating Expenses", path: "/expenseledger",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+      </svg>
+    )
+  },
 ];
 
 export default function Sidebar() {
-  const [hoveredIndex, setHoveredIndex] = useState(null);
-  const [isMobileOpen, setIsMobileOpen] = useState(false); 
-  const pathname = usePathname(); 
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const pathname = usePathname();
 
   const handleLogOut = async () => {
     await supabase.auth.signOut();
@@ -33,130 +129,135 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* GLOBAL STYLES FOR THE SIDEBAR FONTS */}
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Manrope:wght@200;300;400;500;600;700;800&display=swap');
-        .font-headline { font-family: 'Space Grotesk', sans-serif; }
-        .font-label { font-family: 'Manrope', sans-serif; }
-      `}</style>
-
       {/* MOBILE TOP BAR */}
-      <div className="md:hidden fixed top-0 left-0 w-full z-50 flex justify-between items-center p-4" style={{ background: "#050505", borderBottom: "1px solid rgba(161, 250, 255, 0.08)" }}>
-        <h2 className="text-xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-[#a1faff] font-headline m-0">
-          CONQRETE CORE
-        </h2>
-        <button onClick={() => setIsMobileOpen(!isMobileOpen)} className="text-[#a1faff] text-2xl focus:outline-none">
-          {isMobileOpen ? "✕" : "☰"}
+      <div
+        className="md:hidden fixed top-0 left-0 w-full z-50 flex justify-between items-center px-4 py-3"
+        style={{ background: "#fff", borderBottom: "1px solid #E5E7EB" }}
+      >
+        <div className="flex items-center gap-2">
+          <div style={{ width: 28, height: 28, borderRadius: 6, background: "#0EA5E9", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="white">
+              <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+          </div>
+          <span style={{ fontWeight: 700, fontSize: 14, color: "#111827", letterSpacing: "0.02em" }}>CONQRETE</span>
+        </div>
+        <button
+          onClick={() => setIsMobileOpen(!isMobileOpen)}
+          style={{ color: "#6B7280", background: "none", border: "none", cursor: "pointer", padding: 4 }}
+        >
+          {isMobileOpen ? (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          ) : (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          )}
         </button>
       </div>
 
       {/* MOBILE BACKDROP */}
       {isMobileOpen && (
-        <div onClick={() => setIsMobileOpen(false)} className="md:hidden fixed inset-0 bg-black/80 z-40 backdrop-blur-sm"></div>
+        <div
+          onClick={() => setIsMobileOpen(false)}
+          className="md:hidden fixed inset-0 z-40"
+          style={{ background: "rgba(0,0,0,0.4)" }}
+        />
       )}
 
-      {/* SIDEBAR (Locked Width, Sticky Position) */}
-      <aside 
-        className={`fixed inset-y-0 left-0 z-50 w-[260px] flex-shrink-0 transform transition-transform duration-300 ease-in-out md:sticky md:top-0 md:translate-x-0 ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}`}
+      {/* SIDEBAR */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-[240px] flex-shrink-0 transform transition-transform duration-300 ease-in-out md:sticky md:top-0 md:translate-x-0 ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}`}
         style={{
-          background: "linear-gradient(180deg, #0c0e10 0%, #050505 100%)",
-          borderRight: "1px solid rgba(161, 250, 255, 0.05)",
+          background: "#ffffff",
+          borderRight: "1px solid #E5E7EB",
           display: "flex",
           flexDirection: "column",
-          padding: "24px",
           height: "100vh",
-          boxShadow: "10px 0 30px rgba(0,0,0,0.5)",
-          boxSizing: "border-box"
+          boxSizing: "border-box",
+          fontFamily: "Inter, -apple-system, sans-serif",
         }}
       >
-        {/* DESKTOP HEADER */}
-        <div className="hidden md:block" style={{ marginBottom: "40px", marginTop: "8px" }}>
-          <h1 className="text-2xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-[#a1faff] font-headline m-0 uppercase">
-            CONQRETE CORE
-          </h1>
-          <p className="text-[10px] font-label uppercase tracking-widest text-[#aaabad]/60 mt-1 m-0">
-            ROOT_ACCESS
-          </p>
+        {/* LOGO */}
+        <div style={{ padding: "20px 20px 16px", borderBottom: "1px solid #F3F4F6" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ width: 30, height: 30, borderRadius: 7, background: "#0EA5E9", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
+                <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+              </svg>
+            </div>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 14, color: "#111827", letterSpacing: "0.02em", lineHeight: 1 }}>CONQRETE</div>
+              <div style={{ fontSize: 10, color: "#9CA3AF", marginTop: 2, fontWeight: 500 }}>ERP System</div>
+            </div>
+          </div>
         </div>
 
-        {/* NAVIGATION LINKS */}
-        <nav 
-          className="mt-16 md:mt-0 [&::-webkit-scrollbar]:hidden font-label" 
-          style={{ 
-            display: "flex", 
-            flexDirection: "column", 
-            gap: "8px", 
-            overflowY: "auto", 
-            flex: 1,
-            scrollbarWidth: "none", 
-            msOverflowStyle: "none",
-            paddingRight: "4px"
-          }} 
+        {/* NAV */}
+        <nav
+          style={{
+            flex: 1, overflowY: "auto", padding: "12px 12px",
+            scrollbarWidth: "none", msOverflowStyle: "none"
+          }}
         >
-          {navItems.map((item, index) => {
-            const isActive = pathname === item.path; 
-            const isHovered = hoveredIndex === index;
-            const isHighlighted = isActive || isHovered; 
-
+          {navItems.map((item) => {
+            const isActive = pathname === item.path;
             return (
-              <Link 
-                key={item.name} 
+              <Link
+                key={item.name}
                 href={item.path}
-                onClick={() => setIsMobileOpen(false)} 
-                onMouseEnter={() => setHoveredIndex(index)}
-                onMouseLeave={() => setHoveredIndex(null)}
+                onClick={() => setIsMobileOpen(false)}
                 style={{
-                  padding: "12px 16px",
-                  borderRadius: "8px",
-                  color: isHighlighted ? "#a1faff" : "#747578",
-                  textDecoration: "none",
-                  fontSize: "0.85rem",
-                  fontWeight: isHighlighted ? "600" : "500",
-                  letterSpacing: "0.05em",
-                  transition: "all 0.2s ease",
-                  borderRight: isHighlighted ? "2px solid #a1faff" : "2px solid transparent",
-                  background: isHighlighted ? "linear-gradient(90deg, rgba(161,250,255,0.05) 0%, transparent 100%)" : "transparent"
+                  display: "flex", alignItems: "center", gap: 10,
+                  padding: "8px 10px", borderRadius: 7, marginBottom: 2,
+                  textDecoration: "none", fontSize: 13, fontWeight: isActive ? 600 : 500,
+                  color: isActive ? "#0EA5E9" : "#374151",
+                  background: isActive ? "#F0F9FF" : "transparent",
+                  transition: "all 0.15s ease",
                 }}
+                onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = "#F9FAFB"; }}
+                onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
               >
-                {item.name}
+                <span style={{ color: isActive ? "#0EA5E9" : "#9CA3AF", flexShrink: 0 }}>
+                  {item.icon}
+                </span>
+                <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  {item.name}
+                </span>
+                {isActive && (
+                  <span style={{ marginLeft: "auto", width: 6, height: 6, borderRadius: "50%", background: "#0EA5E9", flexShrink: 0 }} />
+                )}
               </Link>
-            )
+            );
           })}
         </nav>
 
-        {/* BOTTOM CONTROLS */}
-        <div style={{ marginTop: "20px", display: "flex", flexDirection: "column", gap: "10px" }}>
-          <div className="flex items-center gap-3 px-2 mb-4 text-[#a1faff]">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#a1faff] opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00f4fe]"></span>
-            </span>
-            <span className="text-[9px] font-label font-bold tracking-widest uppercase">System Active</span>
+        {/* BOTTOM */}
+        <div style={{ padding: "12px 12px", borderTop: "1px solid #F3F4F6" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", marginBottom: 8 }}>
+            <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#10B981", flexShrink: 0 }} />
+            <span style={{ fontSize: 11, color: "#6B7280", fontWeight: 500 }}>System Online</span>
           </div>
-
-          <button 
-            onClick={handleLogOut} 
-            style={{ 
-              padding: "12px", 
-              background: "rgba(255,113,108,0.05)", 
-              color: "#ff716c", 
-              border: "1px solid rgba(255,113,108,0.2)", 
-              borderRadius: "8px", 
-              cursor: "pointer", 
-              fontSize: "0.75rem", 
-              fontWeight: "bold", 
-              textTransform: "uppercase", 
-              letterSpacing: "0.1em",
-              fontFamily: "'Space Grotesk', sans-serif",
-              transition: "all 0.2s ease"
+          <button
+            onClick={handleLogOut}
+            style={{
+              width: "100%", padding: "8px 10px", borderRadius: 7,
+              background: "#FEF2F2", color: "#DC2626",
+              border: "1px solid #FECACA", cursor: "pointer",
+              fontSize: 12, fontWeight: 600, display: "flex", alignItems: "center", gap: 8,
+              fontFamily: "Inter, sans-serif", transition: "all 0.15s ease"
             }}
-            onMouseEnter={e => e.currentTarget.style.background = "rgba(255,113,108,0.1)"}
-            onMouseLeave={e => e.currentTarget.style.background = "rgba(255,113,108,0.05)"}
+            onMouseEnter={e => e.currentTarget.style.background = "#FEE2E2"}
+            onMouseLeave={e => e.currentTarget.style.background = "#FEF2F2"}
           >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
             Log Out
           </button>
-          <div className="font-label" style={{ fontSize: "0.65rem", color: "#535557", textAlign: "center", letterSpacing: "0.1em" }}>
-            v4.0.2-NEXUS
+          <div style={{ fontSize: 10, color: "#D1D5DB", textAlign: "center", marginTop: 8, fontWeight: 500 }}>
+            v4.0.2
           </div>
         </div>
       </aside>
