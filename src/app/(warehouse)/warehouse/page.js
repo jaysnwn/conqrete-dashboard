@@ -144,10 +144,7 @@ export default function WarehousePage() {
 
     setTimeout(async () => {
       try {
-        const { error } = await supabase
-          .from("orders")
-          .update({ status: "Shipped" })
-          .eq("id", order.id);
+        const { error } = await supabase.rpc('rpc_warehouse_ship_order', { p_order_id: order.id });
 
         if (error) throw error;
 
@@ -178,20 +175,7 @@ export default function WarehousePage() {
 
       const newStockLevel = Number(productData.stock) + Number(addQuantity);
 
-      const { error: updateErr } = await supabase
-        .from("products")
-        .update({ stock: newStockLevel })
-        .eq("id", selectedProduct);
-      
-      if (updateErr) throw updateErr;
-
-      await supabase.from("inventory_logs").insert([{
-        product_id: selectedProduct,
-        product_name: productData.name,
-        change_amount: Number(addQuantity),
-        new_stock: newStockLevel,
-        reason: "Warehouse Restock",
-        user_name: workerName 
+      const { error: updateErr } = await supabase.rpc('rpc_update_stock', { p_product_id: selectedProduct, p_change_amount: addQuantity, p_reason: 'Warehouse Restock' });
       }]);
 
       alert(`✅ Successfully added ${addQuantity} units to ${productData.name}!`);

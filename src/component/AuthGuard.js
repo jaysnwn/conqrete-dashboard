@@ -53,9 +53,14 @@ export default function AuthGuard({ children }) {
         }
       }
 
-      // Admin or any unrecognized role â€” allow through
-      setIsAuthenticated(true);
-      setIsLoading(false);
+      if (employee && employee.role?.toLowerCase() === "admin") {
+        setIsAuthenticated(true);
+        setIsLoading(false);
+        return;
+      }
+      // Unrecognized role -> deny access
+      await supabase.auth.signOut();
+      router.push("/login");
     };
 
     checkUser();

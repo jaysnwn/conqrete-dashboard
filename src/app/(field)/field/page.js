@@ -212,15 +212,12 @@ export default function FieldPortal() {
         await supabase.from("order_items").insert([{
           order_id: newOrder.id, product_id: product.id, product_name: product.name, sku: product.sku, quantity: deductQty, unit_price: price, total_price: price * deductQty
         }]);
-        await supabase.from("products").update({ stock: newStock }).eq("id", product.id);
-        await supabase.from("inventory_logs").insert([{ product_id: product.id, product_name: product.name, change_amount: -deductQty, new_stock: newStock, reason: `Field Punch: ${orderNum}`, user_name: currentRep.full_name }]);
+        await supabase.rpc('rpc_update_stock', { p_product_id: product.id, p_change_amount: -deductQty, p_reason: `Field Punch: ${orderNum}` });
       }
 
       const retailer = retailers.find(r => r.store_name === customerName);
       if (retailer) {
-        await supabase.from("retailers").update({
-          total_lifetime_sales: Number(retailer.total_lifetime_sales || 0) + grandTotal, total_pending: Number(retailer.total_pending || 0) + grandTotal
-        }).eq("id", retailer.id);
+        await supabase.rpc('rpc_update_retailer_balances', { p_store_name: customerName, p_amount: grandTotal, p_is_increment: true });
       }
 
       setOrderSuccessData({ orderNum, customerName, grandTotal });
@@ -239,8 +236,7 @@ export default function FieldPortal() {
           const { data: product } = await supabase.from("products").select("stock").eq("id", item.product_id).maybeSingle();
           if (product) {
             const restoredStock = Number(product.stock) + Number(item.quantity);
-            await supabase.from("products").update({ stock: restoredStock }).eq("id", item.product_id);
-            await supabase.from("inventory_logs").insert([{ product_id: item.product_id, product_name: item.product_name, change_amount: item.quantity, new_stock: restoredStock, reason: `Order Pulled Back: ${orderNum}`, user_name: currentRep.full_name }]);
+            await supabase.rpc('rpc_update_stock', { p_product_id: item.product_id, p_change_amount: item.quantity, p_reason: `Order Pulled Back: ${orderNum}` });
           }
         }
       }
@@ -248,7 +244,7 @@ export default function FieldPortal() {
       if (retailer) {
         const newLifetime = Math.max(0, Number(retailer.total_lifetime_sales || 0) - Number(totalAmount));
         const newPending = Math.max(0, Number(retailer.total_pending || 0) - Number(totalAmount));
-        await supabase.from("retailers").update({ total_lifetime_sales: newLifetime, total_pending: newPending }).eq("id", retailer.id);
+        await supabase.rpc('rpc_update_retailer_balances', { p_store_name: customerName, p_amount: totalAmount, p_is_increment: false });
       }
       await supabase.from("order_items").delete().eq("order_id", orderId);
       await supabase.from("orders").delete().eq("id", orderId);
@@ -266,11 +262,7 @@ export default function FieldPortal() {
     let newStatus = newAmountPaid >= Number(selectedOrder.total_amount) ? "Paid" : "Partial";
 
     try {
-      await supabase.from("orders").update({ amount_paid: newAmountPaid, payment_status: newStatus }).eq("id", selectedOrder.id);
-      const retailer = retailers.find(r => r.store_name === selectedOrder.customer_name);
-      if (retailer) {
-        await supabase.from("retailers").update({ total_pending: Math.max(0, Number(retailer.total_pending || 0) - amount) }).eq("id", retailer.id);
-      }
+      await supabase.rpc('rpc_log_payment', { p_order_id: selectedOrder.id, p_amount: amount });
       alert(`₹${amount.toLocaleString()} collected! Great job.`);
       setIsPaymentModalOpen(false); setPaymentAmount(""); loginAsRep(currentRep); 
     } catch (err) { alert("Error logging payment: " + err.message); }
