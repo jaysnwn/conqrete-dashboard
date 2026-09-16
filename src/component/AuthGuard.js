@@ -22,7 +22,7 @@ export default function AuthGuard({ children }) {
       const userEmail = session.user.email?.toLowerCase();
 
       const { data: employee, error } = await supabase
-        .from("employees")
+        .from("employee_directory")
         .select("role")
         .eq("work_email", userEmail)
         .maybeSingle();
