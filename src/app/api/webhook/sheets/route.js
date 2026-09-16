@@ -2,9 +2,12 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { calculateProductEconomics } from '@/lib/productEconomics';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
+const getSupabase = () => {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !supabaseKey) return null;
+  return createClient(supabaseUrl, supabaseKey);
+};
 
 // 4. Verify WEBHOOK_SECRET configuration - No fallback, strictly from environment
 const WEBHOOK_SECRET = process.env.SHEETS_WEBHOOK_SECRET;
@@ -43,7 +46,7 @@ const PROTECTED_FIELDS = [
 async function logToSupabase(entry) {
   // 5. Do NOT silently ignore a missing sync_logs table
   // We remove the silent try-catch. If this fails, it throws to the caller.
-  const { error } = await supabase.from('sync_logs').insert([{
+  const { error } = await getSupabase().from('sync_logs').insert([{
     sku: entry.sku,
     product_id: entry.productId || null,
     source: entry.source || 'SYSTEM',
@@ -91,7 +94,7 @@ async function isDuplicateEvent(eventId) {
   // Fallback try/catch here so idempotency check doesn't crash the entire webhook if the table is missing
   // However, since we must not ignore a missing table, we should let it throw if it's a real DB error!
   // BUT to allow the user to run tests before creating the table, I'll temporarily catch 42P01 (undefined_table)
-  const { data, error } = await supabase.from('sync_logs').select('id').eq('event_id', eventId).maybeSingle();
+  const { data, error } = await getSupabase().from('sync_logs').select('id').eq('event_id', eventId).maybeSingle();
   if (error) {
      if (error.code === '42P01') return false; // Table doesn't exist yet
      throw error;
@@ -134,7 +137,7 @@ async function processEdit(edit, userEmail, eventId, occurredAt) {
     return { sku, field, status: 'REJECTED', reason: 'UNAUTHORIZED_FIELD' };
   }
 
-  const { data: product, error } = await supabase.from('products').select('*').eq('sku', sku).single();
+  const { data: product, error } = await getSupabase().from('products').select('*').eq('sku', sku).single();
   if (error || !product) {
     await logToSupabase({
       sku, field, old_value: oldValue, new_value: value,
@@ -191,7 +194,7 @@ async function processEdit(edit, userEmail, eventId, occurredAt) {
 
   product.landed_cost = metrics.totalUnitCost;
 
-  const { error: updateError } = await supabase.from('products').update({
+  const { error: updateError } = await getSupabase().from('products').update({
     name: product.name,
     category: product.category,
     stock: product.stock,
@@ -270,7 +273,7 @@ export async function POST(request) {
 
 export async function GET() {
   try {
-    const { data, error } = await supabase.from('sync_logs').select('*').order('created_at', { ascending: false }).limit(100);
+    const { data, error } = await getSupabase().from('sync_logs').select('*').order('created_at', { ascending: false }).limit(100);
     if (error) throw error;
     return NextResponse.json(data);
   } catch (e) {

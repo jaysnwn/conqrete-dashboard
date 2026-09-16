@@ -176,7 +176,6 @@ export default function WarehousePage() {
       const newStockLevel = Number(productData.stock) + Number(addQuantity);
 
       const { error: updateErr } = await supabase.rpc('rpc_update_stock', { p_product_id: selectedProduct, p_change_amount: addQuantity, p_reason: 'Warehouse Restock' });
-      }]);
 
       alert(`✅ Successfully added ${addQuantity} units to ${productData.name}!`);
       
