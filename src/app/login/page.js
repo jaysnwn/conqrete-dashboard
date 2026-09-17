@@ -56,7 +56,7 @@ export default function LoginPage() {
 
       const userEmail = authResponse.data.session.user.email?.toLowerCase();
       const { data: employee } = await supabase
-        .from("employees")
+        .from("employee_directory")
         .select("role")
         .eq("work_email", userEmail)
         .maybeSingle();

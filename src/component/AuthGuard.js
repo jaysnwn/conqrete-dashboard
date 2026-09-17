@@ -58,9 +58,17 @@ export default function AuthGuard({ children }) {
         setIsLoading(false);
         return;
       }
-      // Unrecognized role -> deny access
-      await supabase.auth.signOut();
-      router.push("/login");
+      
+      // Instead of sign out, show debug info!
+      document.body.innerHTML = `
+      <div style="padding:20px;font-family:monospace;background:white;color:red;z-index:9999;position:relative;min-height:100vh;">
+        <h2>AuthGuard Debug</h2>
+        <p>Email: ${userEmail}</p>
+        <p>Employee: ${JSON.stringify(employee)}</p>
+        <p>Error: ${JSON.stringify(error)}</p>
+        <button onclick="window.location.href='/login'" style="padding:10px;margin-top:20px;cursor:pointer;">Go to Login</button>
+      </div>`;
+      return;
     };
 
     checkUser();
